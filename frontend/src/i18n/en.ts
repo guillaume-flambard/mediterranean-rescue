@@ -411,6 +411,7 @@ export const en = {
   "diag.code.invalid_csv": "Unreadable CSV structure at this point.",
   "diag.code.missing_header": "Empty file, no header line.",
   "diag.code.too_many_records": "More records than the limit; reading stopped, no candidate kept.",
+  "diag.code.too_many_columns": "A row has more cells than the limit; reading stopped, no candidate kept.",
   "diag.code.duplicate_header": "Header present several times; columns cannot be mapped.",
   "diag.code.unknown_column": "Column missing from the contract (drift or typo).",
   "diag.code.missing_required_column": "Required column missing.",

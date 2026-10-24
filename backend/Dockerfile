@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgdal32 libge
 RUN pip install --no-cache-dir uv==0.12.22
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+RUN uv sync --locked --no-dev
 COPY backend ./backend
 COPY contracts ./contracts
 RUN useradd --uid 10001 --create-home rescue && chown -R rescue:rescue /app

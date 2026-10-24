@@ -507,6 +507,14 @@ class BoundsTests(unittest.TestCase):
         self.assertEqual(result["status"]["normalization"], "blocked")
         self.assertIn("too_many_records", codes(result))
 
+    def test_a_row_with_too_many_cells_stops_the_reading(self):
+        # Security audit of 25 October 2026: one huge row must not fill the worker's memory.
+        content = ops_csv(ops_row()) + (",x" * 300).encode() + b"\n"
+        result = diagnose(content, "Data_operations")
+        self.assertEqual(result["status"]["source_read"], "partial")
+        self.assertEqual(result["rows"], [])
+        self.assertIn("too_many_columns", codes(result))
+
     def test_interrupted_csv_is_never_complete(self):
         truncated = ops_csv(ops_row())[:-1] + b'\n03/02/2024,Rescue,"interrupted'
         result = diagnose(truncated, "Data_operations")

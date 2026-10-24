@@ -12,7 +12,8 @@
     "quotechar": "\"",
     "quoting": "RFC 4180: a quote may only open a field, close it, or be doubled inside a quoted field",
     "max_bytes": 5242880,
-    "max_records": 10000
+    "max_records": 10000,
+    "max_columns": 200
   },
   "limits": {
     "max_count": 100000

@@ -20,12 +20,12 @@ from .crosswalk import propose_links
 from .logbook import SHEET_HEADER
 from .logbook_sync import (
     LOGBOOK_SOURCE_KEY,
-    SHEET,
     current_logbook_snapshot,
+    current_sheets,
     rows_already_in_sheet,
     sheet_last_date,
 )
-from .models import SheetSnapshot, SheetSync
+from .models import SheetSync
 from .private_api import ERRORS, STATUS_BY_PROPOSAL, CanStageOrReview, PrivateView
 
 
@@ -116,13 +116,8 @@ def _sheet_people():
     """People in the association's sheets, by year and up to the date of SOS's published total."""
     by_year, until = {}, 0
     as_of = REPORTED_CUMULATIVE[0]
-    for snapshot in (
-        # Fictitious training sources never count against SOS's reports.
-        SheetSnapshot.objects.filter(sheet=SHEET, source__synthetic=False)
-        .exclude(source__key=LOGBOOK_SOURCE_KEY)
-        .order_by("source_id", "-created_at")
-        .distinct("source_id")
-    ):
+    # Fictitious training sources never count against SOS's reports.
+    for snapshot in current_sheets():
         rows = list(snapshot.rows.all())
         for year, people in _people_by_year(rows).items():
             by_year[year] = by_year.get(year, 0) + people

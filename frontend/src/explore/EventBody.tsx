@@ -63,6 +63,11 @@ export function PreviewBody({ id }: { id: string }) {
   );
 }
 
+/** Only web addresses become links: the server checks them too, this is the second lock. */
+function webLink(url: string | null | undefined) {
+  return url && /^https?:\/\//i.test(url) ? url : undefined;
+}
+
 export function PublicBody({ id }: { id: string }) {
   const i18n = useI18n();
   const { t } = i18n;
@@ -89,16 +94,20 @@ export function PublicBody({ id }: { id: string }) {
         />
       </dl>
       <div className="card__sources">
-        <a href={event.source_url} target="_blank" rel="noreferrer" className="pill-button pill-button--primary">
-          {t("detail.sourceLink")}
-          <Icon name="external" size={16} />
-        </a>
-        {(evidence.data?.items ?? []).map((item) => (
-          <a key={item.url} href={item.url} target="_blank" rel="noreferrer" className="pill-button">
-            {item.label}
+        {webLink(event.source_url) && (
+          <a href={webLink(event.source_url)} target="_blank" rel="noreferrer" className="pill-button pill-button--primary">
+            {t("detail.sourceLink")}
             <Icon name="external" size={16} />
           </a>
-        ))}
+        )}
+        {(evidence.data?.items ?? [])
+          .filter((item) => webLink(item.url))
+          .map((item) => (
+            <a key={item.url} href={webLink(item.url)} target="_blank" rel="noreferrer" className="pill-button">
+              {item.label}
+              <Icon name="external" size={16} />
+            </a>
+          ))}
       </div>
       <p className="card__provenance">
         {event.source.name}. {event.source.license_note}

@@ -11,6 +11,9 @@ DEBUG = ENVIRONMENT == "development"
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if len(SECRET_KEY) < 50:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY must contain at least 50 characters")
+if SECRET_KEY.startswith("replace"):
+    # The placeholder of .env.example is long enough to pass the length check.
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY is still the example value")
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 DATA_MODE = os.environ.get("DATA_MODE", "production")
 if DATA_MODE not in {"production", "training"}:

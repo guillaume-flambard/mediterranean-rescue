@@ -273,6 +273,12 @@ class _Diagnostic:
                 self.rows = []
                 return self.result()
             self.records += 1
+            if len(cells) > limits.get("max_columns", 200):
+                # One row of millions of cells would fill the worker's memory (security audit).
+                self.issue("error", "too_many_columns", line=start)
+                self.source_read = "partial"
+                self.rows = []
+                return self.result()
             if self.records > limits["max_records"]:
                 # No truncated candidate set: the reader stopped, so nothing is kept.
                 self.issue("error", "too_many_records", line=start)
@@ -581,6 +587,7 @@ EXPLANATIONS = {
         "invalid_csv": "Unreadable CSV structure at this point.",
         "missing_header": "Empty file, no header line.",
         "too_many_records": "More records than the limit; reading stopped, no candidate kept.",
+        "too_many_columns": "A row has more cells than the limit; reading stopped, no candidate kept.",
         "duplicate_header": "Header present several times; columns cannot be mapped.",
         "unknown_column": "Column missing from the contract (drift or typo).",
         "missing_required_column": "Required column missing.",
@@ -636,6 +643,7 @@ EXPLANATIONS = {
         "invalid_csv": "Structure CSV illisible à cet endroit.",
         "missing_header": "Fichier vide, sans ligne d’en-tête.",
         "too_many_records": "Plus d’enregistrements que la limite ; lecture arrêtée, aucun candidat gardé.",
+        "too_many_columns": "Une ligne a plus de cases que la limite ; lecture arrêtée, aucun candidat gardé.",
         "duplicate_header": "En-tête présent plusieurs fois ; correspondance des colonnes impossible.",
         "unknown_column": "Colonne absente du contrat (dérive ou faute de frappe).",
         "missing_required_column": "Colonne obligatoire absente.",

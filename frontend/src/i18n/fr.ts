@@ -414,6 +414,7 @@ export const fr: Messages = {
   "diag.code.invalid_csv": "Structure CSV illisible à cet endroit.",
   "diag.code.missing_header": "Fichier vide, sans ligne d’en-tête.",
   "diag.code.too_many_records": "Plus d’enregistrements que la limite ; lecture arrêtée, aucun candidat gardé.",
+  "diag.code.too_many_columns": "Une ligne a plus de cases que la limite ; lecture arrêtée, aucun candidat gardé.",
   "diag.code.duplicate_header": "En-tête présent plusieurs fois ; correspondance des colonnes impossible.",
   "diag.code.unknown_column": "Colonne absente du contrat (dérive ou faute de frappe).",
   "diag.code.missing_required_column": "Colonne obligatoire absente.",

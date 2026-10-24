@@ -35,5 +35,40 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  # The two scheduled readers, opt-in: `docker compose --profile sync up -d`. Each loops and
+  # records every pass in the database (SheetSync); the team space shows the last result.
+  sync-sheets:
+    profiles: ["sync"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uv", "run", "--no-sync", "python", "-u", "backend/manage.py", "sync_sheets", "--every", "300"]
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_USER: rescue
+      POSTGRES_DB: rescue
+      SHEETS_SYNC_CONFIG: /app/data/local/sheets-sync.json
+    volumes:
+      - ./data:/app/data:ro
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+  sync-logbook:
+    profiles: ["sync"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uv", "run", "--no-sync", "python", "-u", "backend/manage.py", "sync_logbook", "--every", "21600"]
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_USER: rescue
+      POSTGRES_DB: rescue
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   rescue_pg17_postgis36:

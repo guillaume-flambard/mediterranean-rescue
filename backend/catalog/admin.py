@@ -350,7 +350,11 @@ class VolunteerUserAdmin(UserAdmin):
         if (
             user is not None
             and not request.user.is_superuser
-            and user.groups.filter(name__in=RESTRICTED_ROLES).exists()
+            and (
+                user.groups.filter(name__in=RESTRICTED_ROLES).exists()
+                # Publishing can also be given as an individual permission, not only a role.
+                or user.has_perm("catalog.publish_event")
+            )
         ):
             raise PermissionDenied(_("Only a superuser can change this person's password."))
         return super().user_change_password(request, id, form_url)

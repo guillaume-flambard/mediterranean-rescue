@@ -1,7 +1,7 @@
 name: Platform foundation
 on:
   push:
-    branches: [main, feat/platform-foundation]
+    branches: [main, "feat/**"]
   pull_request:
 permissions:
   contents: read

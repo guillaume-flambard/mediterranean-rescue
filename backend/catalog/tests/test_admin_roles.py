@@ -95,6 +95,13 @@ class CoordinatorTests(TestCase):
         self.assertContains(form, "Vérifier les événements")
         self.assertNotContains(form, ">Verify events<")
 
+    def test_cannot_take_over_someone_who_may_publish_through_a_permission(self):
+        from django.contrib.auth.models import Permission
+
+        self.volunteer.user_permissions.add(Permission.objects.get(codename="publish_event"))
+        password = f"/admin/auth/user/{self.volunteer.pk}/password/"
+        self.assertEqual(self.client.get(password).status_code, 403)
+
     def test_cannot_make_a_publisher_or_take_over_one(self):
         url = f"/admin/auth/user/{self.volunteer.pk}/change/"
         publish = Group.objects.get(name="Publish events")
@@ -249,6 +256,11 @@ class LocalAutoLoginTests(TestCase):
             self.assertFalse(run().is_authenticated)
             User.objects.filter(username="local-team").update(is_active=True)
             self.assertEqual(run().username, "local-team")
+            # Never an account that holds the admin (security audit of 25 October 2026).
+            User.objects.filter(username="local-team").update(is_staff=True)
+            self.assertFalse(run().is_authenticated)
+            User.objects.filter(username="local-team").update(is_staff=False, is_superuser=True)
+            self.assertFalse(run().is_authenticated)
 
     def test_production_settings_refuse_it(self):
         import os

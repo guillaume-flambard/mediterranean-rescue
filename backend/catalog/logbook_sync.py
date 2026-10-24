@@ -63,21 +63,42 @@ def sheet_last_date():
     """The last operation in the association's sheet, as the team sees how far it lags. Fictitious
     training sources never count (acceptance of 24 October 2026, D3)."""
     last = None
-    for snapshot in _latest_real_sheets():
+    for snapshot in current_sheets():
         for value in snapshot.rows.values_list("candidate__occurred_on", flat=True):
             if value and (last is None or value > last):
                 last = value
     return date.fromisoformat(last) if last else SHEET_LAST_KNOWN
 
 
-def _latest_real_sheets():
-    # The association's own sheets, latest reading of each: never the logbook nor training data.
-    return (
+def current_sheets():
+    """The association's own sheets as they are now: never the logbook nor training data.
+
+    "Now" is the snapshot of the last successful reading of each source, not the one created
+    last: a sheet back to older content gives back an older snapshot (backend audit of 25
+    October 2026). A source never read automatically falls back to its latest manual import."""
+    current = []
+    for source_id in (
         SheetSnapshot.objects.filter(sheet=SHEET, source__synthetic=False)
         .exclude(source__key=LOGBOOK_SOURCE_KEY)
-        .order_by("source_id", "-created_at")
-        .distinct("source_id")
-    )
+        .values_list("source_id", flat=True)
+        .distinct()
+    ):
+        run = (
+            SheetSync.objects.filter(source_id=source_id, sheet=SHEET)
+            .exclude(snapshot=None)
+            .select_related("snapshot")
+            .order_by("-created_at")
+            .first()
+        )
+        snapshot = (
+            run.snapshot
+            if run is not None
+            else SheetSnapshot.objects.filter(source_id=source_id, sheet=SHEET)
+            .order_by("-created_at")
+            .first()
+        )
+        current.append(snapshot)
+    return current
 
 
 def rows_already_in_sheet(logbook_rows):
@@ -87,7 +108,7 @@ def rows_already_in_sheet(logbook_rows):
     once, so two rescues of the same size need two rows in the sheet (audit of 25 October 2026).
     """
     lines = defaultdict(list)
-    for snapshot in _latest_real_sheets():
+    for snapshot in current_sheets():
         for line, candidate in snapshot.rows.order_by("line").values_list("line", "candidate"):
             candidate = candidate or {}
             if candidate.get("kind") in ("rescue", "transfer") and candidate.get("nb_survivor"):

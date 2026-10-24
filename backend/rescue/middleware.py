@@ -29,7 +29,9 @@ class APIRequestLimit:
 
 class LocalAutoLogin:
     """Development only: signs every visitor in as LOCAL_AUTO_LOGIN, so the team space opens
-    without a sign-in screen on a local machine. Settings refuse it outside development."""
+    without a sign-in screen on a local machine. Settings refuse it outside development, and a
+    staff or superuser account is never signed in this way: whoever reaches the dev server (a
+    tunnel, a private network) would hold the admin (security audit of 25 October 2026)."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -41,7 +43,12 @@ class LocalAutoLogin:
         if not request.user.is_authenticated:
             user = (
                 get_user_model()
-                .objects.filter(username=settings.LOCAL_AUTO_LOGIN, is_active=True)
+                .objects.filter(
+                    username=settings.LOCAL_AUTO_LOGIN,
+                    is_active=True,
+                    is_staff=False,
+                    is_superuser=False,
+                )
                 .first()
             )
             if user is not None:
