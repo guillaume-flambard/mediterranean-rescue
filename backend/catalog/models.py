@@ -5,6 +5,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, URLValidator
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 
 class UUIDModel(models.Model):
@@ -17,12 +18,37 @@ class UUIDModel(models.Model):
 
 
 class Source(UUIDModel):
-    key = models.SlugField(unique=True)
-    name = models.CharField(max_length=200)
-    url = models.URLField(max_length=1000)
-    license_note = models.TextField(blank=True)
-    rights_approved = models.BooleanField(default=False)
-    synthetic = models.BooleanField(default=False)
+    key = models.SlugField(_("short key"), unique=True)
+    name = models.CharField(_("name"), max_length=200, help_text=_("As shown to the public."))
+    url = models.URLField(_("address"), max_length=1000)
+    license_note = models.TextField(
+        _("licence and agreement"),
+        blank=True,
+        help_text=_("Who agreed to the publication, when, and under which terms."),
+    )
+    rights_approved = models.BooleanField(
+        _("publication agreed"),
+        default=False,
+        help_text=_(
+            "Tick only once the data owner has agreed in writing. Until then nothing from this "
+            "source can be published."
+        ),
+    )
+    synthetic = models.BooleanField(
+        _("fictitious data"),
+        default=False,
+        help_text=_("Training data: shown publicly only in training mode."),
+    )
+
+    class Meta:
+        verbose_name = _("source")
+        verbose_name_plural = _("sources")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(rights_approved=False) | ~Q(license_note__regex=r"^\s*$"),
+                name="approved_source_has_licence_note",
+            )
+        ]
 
     def clean(self):
         if self.rights_approved and not self.license_note.strip():
@@ -33,17 +59,21 @@ class Source(UUIDModel):
 
 
 class Vessel(UUIDModel):
-    name = models.CharField(max_length=200)
-    imo = models.CharField(max_length=7, blank=True)
+    name = models.CharField(_("name"), max_length=200)
+    imo = models.CharField(_("IMO number"), max_length=7, blank=True)
+
+    class Meta:
+        verbose_name = _("ship")
+        verbose_name_plural = _("ships")
 
     def __str__(self):
         return self.name
 
 
 class Port(UUIDModel):
-    name = models.CharField(max_length=200)
-    country_code = models.CharField(max_length=2, blank=True)
-    location = models.PointField(srid=4326, null=True, blank=True)
+    name = models.CharField(_("name"), max_length=200)
+    country_code = models.CharField(_("country code"), max_length=2, blank=True)
+    location = models.PointField(_("position"), srid=4326, null=True, blank=True)
     # Whether the location was taken from the source row (format kept on that row) or typed
     # by the reviewer; empty for ports created before the crosswalk.
     location_source = models.CharField(
@@ -55,6 +85,10 @@ class Port(UUIDModel):
     created_from = models.ForeignKey(
         "SheetRow", null=True, blank=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    class Meta:
+        verbose_name = _("port")
+        verbose_name_plural = _("ports")
 
     def __str__(self):
         return self.name
@@ -68,6 +102,8 @@ class Voyage(UUIDModel):
     logbook_url = models.URLField(max_length=1000, blank=True)
 
     class Meta:
+        verbose_name = _("voyage")
+        verbose_name_plural = _("voyages")
         constraints = [
             models.CheckConstraint(
                 condition=Q(ended_on__isnull=True) | Q(ended_on__gte=models.F("started_on")),
@@ -100,12 +136,12 @@ class EventQuerySet(models.QuerySet):
 class Event(UUIDModel):
     source = models.ForeignKey(Source, on_delete=models.PROTECT, related_name="events")
     external_id = models.CharField(max_length=200)
-    kind = models.CharField(max_length=20, choices=EventKind.choices)
-    occurred_on = models.DateField(db_index=True)
-    title = models.CharField(max_length=240)
-    summary = models.TextField(blank=True)
-    source_url = models.URLField(max_length=1000)
-    location = models.PointField(srid=4326, null=True, blank=True)
+    kind = models.CharField(_("kind"), max_length=20, choices=EventKind.choices)
+    occurred_on = models.DateField(_("date"), db_index=True)
+    title = models.CharField(_("title"), max_length=240)
+    summary = models.TextField(_("summary"), blank=True)
+    source_url = models.URLField(_("source address"), max_length=1000)
+    location = models.PointField(_("position"), srid=4326, null=True, blank=True)
     location_precision = models.CharField(
         max_length=16,
         choices=[
@@ -115,9 +151,11 @@ class Event(UUIDModel):
         ],
         default="unknown",
     )
-    people = models.PositiveIntegerField(null=True, blank=True)
-    women = models.PositiveIntegerField(null=True, blank=True)
-    minors = models.PositiveIntegerField(null=True, blank=True)
+    people = models.PositiveIntegerField(
+        _("people"), null=True, blank=True, help_text=_("Leave empty when not known; never 0.")
+    )
+    women = models.PositiveIntegerField(_("women"), null=True, blank=True)
+    minors = models.PositiveIntegerField(_("minors"), null=True, blank=True)
     vessel = models.ForeignKey(Vessel, null=True, blank=True, on_delete=models.PROTECT)
     voyage = models.ForeignKey(Voyage, null=True, blank=True, on_delete=models.PROTECT)
     port = models.ForeignKey(Port, null=True, blank=True, on_delete=models.PROTECT)
@@ -134,9 +172,22 @@ class Event(UUIDModel):
     objects = EventQuerySet.as_manager()
 
     class Meta:
+        verbose_name = _("event")
+        verbose_name_plural = _("events")
         ordering = ["-occurred_on", "id"]
         permissions = [("publish_event", "Can publish or withdraw reviewed events")]
         constraints = [
+            models.CheckConstraint(condition=Q(kind__in=EventKind.values), name="event_kind_known"),
+            models.CheckConstraint(
+                condition=Q(status__in=["draft", "published", "withdrawn"]),
+                name="event_status_known",
+            ),
+            # A position always says how precise it is; no position, no precision.
+            models.CheckConstraint(
+                condition=(Q(location__isnull=True) & Q(location_precision="unknown"))
+                | (Q(location__isnull=False) & ~Q(location_precision="unknown")),
+                name="event_position_has_precision",
+            ),
             models.UniqueConstraint(fields=["source", "external_id"], name="event_source_identity"),
             models.CheckConstraint(
                 condition=~Q(status="published")
@@ -176,8 +227,15 @@ class Event(UUIDModel):
 
 class Evidence(UUIDModel):
     event = models.ForeignKey(Event, related_name="evidence", on_delete=models.CASCADE)
-    label = models.CharField(max_length=200)
-    url = models.URLField(max_length=1000)
+    label = models.CharField(_("label"), max_length=200)
+    url = models.URLField(_("address"), max_length=1000)
+
+    class Meta:
+        verbose_name = _("source document")
+        verbose_name_plural = _("source documents")
+
+    def __str__(self):
+        return self.label
 
 
 class ImportBatch(UUIDModel):
@@ -208,11 +266,20 @@ class StagedRecord(UUIDModel):
 
 class PublicationAudit(models.Model):
     event = models.ForeignKey(Event, on_delete=models.PROTECT, related_name="audit")
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    action = models.CharField(max_length=20)
-    reason = models.TextField()
-    snapshot = models.JSONField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("decided by")
+    )
+    action = models.CharField(_("decision"), max_length=20)
+    reason = models.TextField(_("reason"))
+    snapshot = models.JSONField(_("event as decided"))
+    created_at = models.DateTimeField(_("decided at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("publication decision")
+        verbose_name_plural = _("publication decisions")
+
+    def __str__(self):
+        return f"{self.action} · {self.event} · {self.created_at:%Y-%m-%d}"
 
 
 SHEETS = [

@@ -676,7 +676,7 @@ export const en = {
   "publish.title": "Publish",
   "publish.lead": "Two steps take a verified event to the public site. Each asks for a short reason, kept with the event so anyone can see later who decided and why.",
   "publish.locked.title": "Publishing is locked for now",
-  "publish.locked.body": "The publication rights of {sources} are not recorded yet. Once the association has agreed in writing, a coordinator records it in the administration and the lock goes away. Until then you can still verify and prepare events.",
+  "publish.locked.body": "The publication rights of {sources} are not recorded yet. Once the association has agreed in writing, an administrator records it and the lock goes away. Until then you can still verify and prepare events.",
   "publish.step": "Step {number}",
   "publish.reason": "Reason",
   "publish.prepare.title": "Prepare verified events",

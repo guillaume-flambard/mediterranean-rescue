@@ -1,7 +1,14 @@
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.template.response import TemplateResponse
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 
 from .models import (
     Event,
@@ -22,6 +29,12 @@ from .models import (
 )
 from .services import set_publication
 
+# The administration is for the coordinator and the technical lead; volunteers work in the team
+# space. Its titles say so in plain words.
+admin.site.site_header = _("Mediterranean Rescue administration")
+admin.site.site_title = _("Mediterranean Rescue administration")
+admin.site.index_title = _("Accounts, roles and source agreements")
+
 
 def lock_current(model, obj):
     current = model.objects.select_for_update().get(pk=obj.pk)
@@ -37,6 +50,7 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ["title", "kind", "occurred_on", "status", "source"]
     list_filter = ["status", "kind", "source"]
     search_fields = ["title", "external_id"]
+    date_hierarchy = "occurred_on"
     readonly_fields = ["status", "published_at", "reviewed_by"]
     actions = ["publish_reviewed", "withdraw_reviewed"]
 
@@ -66,36 +80,55 @@ class EventAdmin(admin.ModelAdmin):
             obj.reviewed_by_id = current.reviewed_by_id
         super().save_model(request, obj, form, change)
 
-    @admin.action(description="Publier après revue (droits source requis)")
-    def publish_reviewed(self, request, queryset):
+    def decide(self, request, queryset, publish):
+        """Ask for a reason on an intermediate page, then record one decision per event."""
+        reason = request.POST.get("reason", "").strip() if "apply" in request.POST else ""
+        if not reason:
+            return TemplateResponse(
+                request,
+                "admin/catalog/event/publication_reason.html",
+                {
+                    **self.admin_site.each_context(request),
+                    "title": _("Publish events") if publish else _("Withdraw events"),
+                    "events": queryset,
+                    "action": request.POST.get("action"),
+                    "publish": publish,
+                    "missing": "apply" in request.POST,
+                    "checkbox_name": ACTION_CHECKBOX_NAME,
+                    "opts": self.model._meta,
+                },
+            )
+        done = 0
         for event in queryset:
             try:
                 set_publication(
-                    event_id=event.pk,
-                    actor=request.user,
-                    publish=True,
-                    reason="Reviewed in Django admin",
+                    event_id=event.pk, actor=request.user, publish=publish, reason=reason
                 )
+                done += 1
             except (PermissionDenied, ValidationError) as exc:
-                self.message_user(request, str(exc), level=messages.ERROR)
+                self.message_user(request, f"{event}: {exc}", level=messages.ERROR)
+        if done:
+            self.message_user(
+                request,
+                ngettext("%(count)d event updated.", "%(count)d events updated.", done)
+                % {"count": done},
+                level=messages.SUCCESS,
+            )
+        return None
 
-    @admin.action(description="Retirer de la publication")
+    @admin.action(description=_("Publish, with a reason (source agreement required)"))
+    def publish_reviewed(self, request, queryset):
+        return self.decide(request, queryset, publish=True)
+
+    @admin.action(description=_("Withdraw from the public site, with a reason"))
     def withdraw_reviewed(self, request, queryset):
-        for event in queryset:
-            try:
-                set_publication(
-                    event_id=event.pk,
-                    actor=request.user,
-                    publish=False,
-                    reason="Withdrawn in Django admin",
-                )
-            except (PermissionDenied, ValidationError) as exc:
-                self.message_user(request, str(exc), level=messages.ERROR)
+        return self.decide(request, queryset, publish=False)
 
 
 @admin.register(Source)
 class SourceAdmin(admin.ModelAdmin):
     list_display = ["name", "rights_approved", "synthetic"]
+    search_fields = ["name", "key"]
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.events.filter(status="published").exists():
@@ -134,7 +167,14 @@ class ReadOnlyAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(PublicationAudit, ReadOnlyAdmin)
+@admin.register(PublicationAudit)
+class PublicationAuditAdmin(ReadOnlyAdmin):
+    list_display = ["created_at", "action", "event", "actor", "reason"]
+    list_filter = ["action"]
+    search_fields = ["reason", "event__title", "actor__username"]
+    date_hierarchy = "created_at"
+
+
 admin.site.register(ImportBatch, ReadOnlyAdmin)
 admin.site.register(StagedRecord, ReadOnlyAdmin)
 # Crosswalk records change only through catalog.crosswalk services (reviewed, with a reason).
@@ -174,17 +214,24 @@ class FrozenPublishedRelationAdmin(admin.ModelAdmin):
 @admin.register(Vessel)
 class VesselAdmin(FrozenPublishedRelationAdmin):
     event_field = "vessel"
+    list_display = ["name", "imo"]
+    search_fields = ["name", "imo"]
 
 
 @admin.register(Voyage)
 class VoyageAdmin(FrozenPublishedRelationAdmin):
     event_field = "voyage"
+    list_display = ["title", "vessel", "started_on", "ended_on"]
+    search_fields = ["title", "vessel__name"]
+    autocomplete_fields = ["vessel"]
 
 
 @admin.register(Port)
 class PortAdmin(FrozenPublishedRelationAdmin):
     event_field = "port"
     readonly_fields = ["created_from"]
+    list_display = ["name", "country_code"]
+    search_fields = ["name"]
 
 
 class EvidenceForm(forms.ModelForm):
@@ -222,3 +269,67 @@ class EvidenceAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+# Volunteer accounts. A coordinator (a staff member in the "Coordinator" group) creates accounts,
+# activates or deactivates them and gives volunteer roles; only a superuser can make staff,
+# superusers, coordinators or individual permissions. Django warns that editing users is close to
+# superuser power, so everything else is out of the coordinator's reach.
+COORDINATOR_ROLE = "Coordinator"
+User = get_user_model()
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class VolunteerUserAdmin(UserAdmin):
+    list_display = ["username", "first_name", "last_name", "is_active", "roles"]
+    list_filter = ["is_active", "groups"]
+
+    @admin.display(description=_("roles"))
+    def roles(self, obj):
+        return ", ".join(group.name for group in obj.groups.all())
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request).prefetch_related("groups")
+        if request.user.is_superuser:
+            return queryset
+        return queryset.filter(is_staff=False, is_superuser=False)
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser or obj is None:
+            return super().get_fieldsets(request, obj)
+        return [
+            (None, {"fields": ["username", "password"]}),
+            (_("Person"), {"fields": ["first_name", "last_name", "email"]}),
+            (
+                _("Access"),
+                {
+                    "fields": ["is_active", "groups"],
+                    "description": _(
+                        "Roles: Verify events, Prepare events, Publish events, Manual import. "
+                        "Untick Active to close an account without deleting its history."
+                    ),
+                },
+            ),
+        ]
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "groups" and not request.user.is_superuser:
+            kwargs["queryset"] = Group.objects.exclude(name=COORDINATOR_ROLE)
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def has_change_permission(self, request, obj=None):
+        if obj is not None and not request.user.is_superuser and (obj.is_staff or obj.is_superuser):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        # Accounts are deactivated, never deleted: their decisions stay attributed.
+        return False
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superuser:
+            obj.is_staff = False
+            obj.is_superuser = False
+        super().save_model(request, obj, form, change)

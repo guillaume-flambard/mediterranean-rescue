@@ -30,6 +30,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # The administration follows the browser's language (English or French).
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -53,15 +55,20 @@ TEMPLATES = [
     }
 ]
 WSGI_APPLICATION = "rescue.wsgi.application"
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
+if not DB_PASSWORD:
+    raise ImproperlyConfigured("DB_PASSWORD is required")
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": os.environ.get("POSTGRES_DB", "rescue"),
         "USER": os.environ.get("DB_USER", "rescue"),
-        "PASSWORD": os.environ["DB_PASSWORD"],
+        "PASSWORD": DB_PASSWORD,
         "HOST": os.environ.get("DB_HOST", "db"),
         "PORT": os.environ.get("DB_PORT", "5432"),
         "CONN_MAX_AGE": 60,
+        # A connection dropped by the database is replaced instead of failing the next request.
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {"options": "-c statement_timeout=10000"},
     }
 }
@@ -72,6 +79,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 LANGUAGE_CODE = "fr-fr"
+LANGUAGES = [("en", "English"), ("fr", "Français")]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
@@ -89,10 +98,25 @@ SECURE_HSTS_SECONDS = 31536000 if ENVIRONMENT == "production" else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = ENVIRONMENT == "production"
 SECURE_HSTS_PRELOAD = ENVIRONMENT == "production"
 X_FRAME_OPTIONS = "DENY"
+# Behind a proxy that terminates TLS, Django must trust its header or SECURE_SSL_REDIRECT loops.
+# Set only when that proxy always overwrites the header (Django deployment checklist).
+if os.environ.get("DJANGO_BEHIND_TLS_PROXY") == "1":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Number of proxies in front of Django. 0 ignores X-Forwarded-For, so a client cannot change the
+# address its sign-in attempts are counted under; set it to the real number of proxies.
+NUM_PROXIES = int(os.environ.get("DJANGO_NUM_PROXIES", "0"))
+# Shared by every worker, so the sign-in limit holds across processes and restarts.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 
@@ -114,7 +138,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAdminUser"],
     "URL_FORMAT_OVERRIDE": None,
     "EXCEPTION_HANDLER": "catalog.api.exception_handler",
-    # Sign-in attempts per client address (LocMemCache by default, one process).
+    "NUM_PROXIES": NUM_PROXIES,
+    # Sign-in attempts per client address, counted in the shared database cache.
     "DEFAULT_THROTTLE_RATES": {
         "sign_in": os.environ.get("SIGN_IN_RATE", "10/min"),
         "imports": os.environ.get("IMPORT_RATE", "30/min"),

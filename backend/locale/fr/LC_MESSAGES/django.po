@@ -1,0 +1,194 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "short key"
+msgstr "clé courte"
+
+msgid "name"
+msgstr "nom"
+
+msgid "As shown to the public."
+msgstr "Tel qu’affiché au public."
+
+msgid "address"
+msgstr "adresse"
+
+msgid "licence and agreement"
+msgstr "licence et accord"
+
+msgid "Who agreed to the publication, when, and under which terms."
+msgstr "Qui a donné son accord pour la publication, quand et à quelles conditions."
+
+msgid "publication agreed"
+msgstr "publication autorisée"
+
+msgid "Tick only once the data owner has agreed in writing. Until then nothing from this source can be published."
+msgstr "À cocher seulement après l’accord écrit du propriétaire des données. Jusque-là, rien de cette source ne peut être publié."
+
+msgid "fictitious data"
+msgstr "données fictives"
+
+msgid "Training data: shown publicly only in training mode."
+msgstr "Données d’entraînement : visibles publiquement seulement en mode entraînement."
+
+msgid "source"
+msgstr "source"
+
+msgid "sources"
+msgstr "sources"
+
+msgid "IMO number"
+msgstr "numéro OMI"
+
+msgid "ship"
+msgstr "navire"
+
+msgid "ships"
+msgstr "navires"
+
+msgid "country code"
+msgstr "code pays"
+
+msgid "position"
+msgstr "position"
+
+msgid "port"
+msgstr "port"
+
+msgid "ports"
+msgstr "ports"
+
+msgid "voyage"
+msgstr "rotation"
+
+msgid "voyages"
+msgstr "rotations"
+
+msgid "kind"
+msgstr "type"
+
+msgid "date"
+msgstr "date"
+
+msgid "title"
+msgstr "titre"
+
+msgid "summary"
+msgstr "résumé"
+
+msgid "source address"
+msgstr "adresse de la source"
+
+msgid "people"
+msgstr "personnes"
+
+msgid "Leave empty when not known; never 0."
+msgstr "Laisser vide si inconnu ; jamais 0."
+
+msgid "women"
+msgstr "femmes"
+
+msgid "minors"
+msgstr "mineurs"
+
+msgid "event"
+msgstr "événement"
+
+msgid "events"
+msgstr "événements"
+
+msgid "label"
+msgstr "intitulé"
+
+msgid "source document"
+msgstr "document source"
+
+msgid "source documents"
+msgstr "documents sources"
+
+msgid "decided by"
+msgstr "décidé par"
+
+msgid "decision"
+msgstr "décision"
+
+msgid "reason"
+msgstr "motif"
+
+msgid "event as decided"
+msgstr "événement au moment de la décision"
+
+msgid "decided at"
+msgstr "décidé le"
+
+msgid "publication decision"
+msgstr "décision de publication"
+
+msgid "publication decisions"
+msgstr "décisions de publication"
+
+msgid "Data and publication"
+msgstr "Données et publication"
+
+msgid "Mediterranean Rescue administration"
+msgstr "Administration de Mediterranean Rescue"
+
+msgid "Accounts, roles and source agreements"
+msgstr "Comptes, rôles et accords des sources"
+
+msgid "Publish events"
+msgstr "Publier des événements"
+
+msgid "Withdraw events"
+msgstr "Retirer des événements"
+
+msgid "Publish, with a reason (source agreement required)"
+msgstr "Publier, avec un motif (accord de la source requis)"
+
+msgid "Withdraw from the public site, with a reason"
+msgstr "Retirer du site public, avec un motif"
+
+msgid "roles"
+msgstr "rôles"
+
+msgid "Person"
+msgstr "Personne"
+
+msgid "Access"
+msgstr "Accès"
+
+msgid "Roles: Verify events, Prepare events, Publish events, Manual import. Untick Active to close an account without deleting its history."
+msgstr "Rôles : Verify events (vérifier), Prepare events (préparer), Publish events (publier), Manual import (import manuel). Décocher « Actif » ferme un compte sans effacer son historique."
+
+msgid "Your name and reason are kept with each decision."
+msgstr "Votre nom et votre motif sont gardés avec chaque décision."
+
+msgid "Reason"
+msgstr "Motif"
+
+msgid "A reason is required."
+msgstr "Un motif est obligatoire."
+
+msgid "Publish"
+msgstr "Publier"
+
+msgid "Withdraw"
+msgstr "Retirer"
+
+msgid "%(count)d event updated."
+msgid_plural "%(count)d events updated."
+msgstr[0] "%(count)d événement mis à jour."
+msgstr[1] "%(count)d événements mis à jour."
+
+msgid "This event will be visible to everyone on the public site."
+msgid_plural "These %(counter)s events will be visible to everyone on the public site."
+msgstr[0] "Cet événement sera visible par tout le monde sur le site public."
+msgstr[1] "Ces %(counter)s événements seront visibles par tout le monde sur le site public."
+
+msgid "This event will disappear from the public site and stay in the history."
+msgid_plural "These %(counter)s events will disappear from the public site and stay in the history."
+msgstr[0] "Cet événement disparaîtra du site public et restera dans l’historique."
+msgstr[1] "Ces %(counter)s événements disparaîtront du site public et resteront dans l’historique."

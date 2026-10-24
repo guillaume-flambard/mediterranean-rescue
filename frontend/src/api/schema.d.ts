@@ -597,13 +597,20 @@ export interface components {
             readonly id: string;
             readonly title: string;
             readonly summary: string;
-            /** Format: date */
+            /**
+             * Date
+             * Format: date
+             */
             readonly occurred_on: string;
             readonly kind: components["schemas"]["KindEnum"];
+            /** @description Leave empty when not known; never 0. */
             readonly people: number | null;
             readonly women: number | null;
             readonly minors: number | null;
-            /** Format: uri */
+            /**
+             * Source address
+             * Format: uri
+             */
             readonly source_url: string;
             source: components["schemas"]["Source"];
             vessel: components["schemas"]["Vessel"] | null;
@@ -626,7 +633,10 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly label: string;
-            /** Format: uri */
+            /**
+             * Address
+             * Format: uri
+             */
             readonly url: string;
         };
         EvidencePage: {
@@ -1094,10 +1104,22 @@ export interface components {
         Source: {
             /** Format: uuid */
             readonly id: string;
+            /** @description As shown to the public. */
             readonly name: string;
-            /** Format: uri */
+            /**
+             * Address
+             * Format: uri
+             */
             readonly url: string;
+            /**
+             * Licence and agreement
+             * @description Who agreed to the publication, when, and under which terms.
+             */
             readonly license_note: string;
+            /**
+             * Fictitious data
+             * @description Training data: shown publicly only in training mode.
+             */
             readonly synthetic: boolean;
         };
         SourceOption: {
@@ -1155,6 +1177,7 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             readonly name: string;
+            /** IMO number */
             readonly imo: string;
         };
         VesselList: {

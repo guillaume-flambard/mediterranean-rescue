@@ -2528,6 +2528,7 @@ components:
           type: string
           format: date
           readOnly: true
+          title: Date
         kind:
           allOf:
           - $ref: '#/components/schemas/KindEnum'
@@ -2536,6 +2537,7 @@ components:
           type: integer
           readOnly: true
           nullable: true
+          description: Leave empty when not known; never 0.
         women:
           type: integer
           readOnly: true
@@ -2548,6 +2550,7 @@ components:
           type: string
           format: uri
           readOnly: true
+          title: Source address
         source:
           $ref: '#/components/schemas/Source'
         vessel:
@@ -2627,6 +2630,7 @@ components:
           type: string
           format: uri
           readOnly: true
+          title: Address
       required:
       - id
       - label
@@ -3843,16 +3847,22 @@ components:
         name:
           type: string
           readOnly: true
+          description: As shown to the public.
         url:
           type: string
           format: uri
           readOnly: true
+          title: Address
         license_note:
           type: string
           readOnly: true
+          title: Licence and agreement
+          description: Who agreed to the publication, when, and under which terms.
         synthetic:
           type: boolean
           readOnly: true
+          title: Fictitious data
+          description: 'Training data: shown publicly only in training mode.'
       required:
       - id
       - license_note
@@ -4002,6 +4012,7 @@ components:
         imo:
           type: string
           readOnly: true
+          title: IMO number
       required:
       - id
       - imo

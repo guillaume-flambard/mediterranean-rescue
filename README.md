@@ -44,6 +44,10 @@ docker compose exec api uv run --no-sync python backend/manage.py createsuperuse
 
 L’administration Django est à /admin/. Le serveur de développement local sert ses fichiers statiques ; le serveur WSGI de production requiert un proxy pour /static/. Voir infra/README.md. Un éditeur peut préparer des brouillons, mais la permission catalog.publish_event est requise pour publier/retirer. Les droits de la source et sa licence doivent avoir été approuvés. Une publication crée un audit ; les relations d’un événement publié sont gelées dans l’administration. Retirer puis corriger et revoir avant republication. L’API publique est exclusivement en lecture.
 
+Les bénévoles n’ont pas besoin de l’administration : ils travaillent dans l’espace équipe (`/workspace`), qui va de la vérification à la publication ([ADR 0013](docs/decisions/0013-publication-and-onboarding-in-the-team-space.md)). Les rôles sont des groupes créés par la migration `0008` : **Verify events**, **Prepare events**, **Publish events**, **Manual import**. Une personne du groupe **Coordinator**, avec l’accès à l’administration (`is_staff`), crée les comptes bénévoles, les active ou les désactive et leur donne ces rôles ; elle ne voit ni ne modifie les comptes d’équipe technique, ne peut pas nommer d’autres coordinateurs, et un compte n’est jamais supprimé (ses décisions restent attribuées). L’accord de publication d’une source se coche seulement par un superutilisateur, une fois l’accord écrit obtenu. L’administration suit la langue du navigateur (anglais ou français, `backend/locale`).
+
+Réglages de production liés au proxy (liste de contrôle Django) : `DJANGO_NUM_PROXIES` (nombre de proxys devant Django, 0 par défaut : `X-Forwarded-For` est ignoré pour la limite de connexions) et `DJANGO_BEHIND_TLS_PROXY=1` quand un proxy termine TLS et réécrit toujours `X-Forwarded-Proto`. La limite de connexions est comptée dans un cache partagé en base (`django_cache`, créé par la migration `0008`). `/admin/` n’a pas de limite propre : le restreindre au proxy (adresse ou VPN) avant toute mise en ligne.
+
 ## Importer un export autorisé
 
 Créer une Source dans l’administration, puis placer le fichier local dans data/local/. Contrat canonique v1 : tableau JSON avec external_id stable, kind (rescue/transfer/medevac/incident/shipwreck/dead_missing), occurred_on (YYYY-MM-DD), title, source_url, people (entier ou null), longitude/latitude (nombres ou null ensemble), location_precision (unknown/approximate/reported), summary facultatif. Limite : 5 Mio, 10 000 lignes. Les inconnus restent null.
@@ -90,7 +94,7 @@ Quand un export plus récent corrige une ligne déjà convertie (`revision_neede
 ```sh
 docker compose run --rm api uv run --no-sync python backend/manage.py test catalog.tests --noinput
 docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
-docker compose run --rm -T api uv run --no-sync python backend/manage.py spectacular --validate --fail-on-warn > contracts/openapi.yaml
+docker compose run --rm -T api uv run --no-sync python backend/manage.py spectacular --lang en --validate --fail-on-warn > contracts/openapi.yaml
 cd frontend
 pnpm codegen
 pnpm test

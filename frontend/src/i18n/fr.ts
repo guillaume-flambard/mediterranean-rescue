@@ -679,7 +679,7 @@ export const fr: Messages = {
   "publish.title": "Publier",
   "publish.lead": "Deux étapes mènent un événement vérifié au site public. Chacune demande un motif court, gardé avec l’événement pour que chacun puisse voir plus tard qui a décidé et pourquoi.",
   "publish.locked.title": "La publication est verrouillée pour l’instant",
-  "publish.locked.body": "Les droits de publication de {sources} ne sont pas encore enregistrés. Une fois l’accord écrit de l’association obtenu, une personne coordinatrice l’enregistre dans l’administration et le verrou disparaît. D’ici là, vous pouvez vérifier et préparer les événements.",
+  "publish.locked.body": "Les droits de publication de {sources} ne sont pas encore enregistrés. Une fois l’accord écrit de l’association obtenu, une personne chargée de l’administration l’enregistre et le verrou disparaît. D’ici là, vous pouvez vérifier et préparer les événements.",
   "publish.step": "Étape {number}",
   "publish.reason": "Motif",
   "publish.prepare.title": "Préparer les événements vérifiés",

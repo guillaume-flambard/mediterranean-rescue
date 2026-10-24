@@ -56,6 +56,8 @@ cover/
 
 # Translations
 *.mo
+# The administration's French catalog is compiled and committed: the image has no gettext.
+!backend/locale/*/LC_MESSAGES/django.mo
 *.pot
 
 # Django stuff:

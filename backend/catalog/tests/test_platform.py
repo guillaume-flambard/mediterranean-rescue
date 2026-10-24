@@ -314,8 +314,13 @@ class PlatformTests(TestCase):
     def test_blank_license_is_never_public(self):
         self.publish(self.event())
         self.source.license_note = "   "
-        self.source.save()
-        self.assertEqual(Event.objects.public().count(), 0)
+        # The database refuses an approved source without a licence note (ADR 0013); the public
+        # filter keeps excluding it as a second guard.
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            self.source.save()
+        self.assertEqual(
+            Event.objects.exclude(source__license_note__regex=r"^\s*$").public().count(), 1
+        )
 
     def test_browser_query_without_content_length_and_paginated_evidence(self):
         from catalog.models import Evidence
