@@ -228,6 +228,8 @@ Review status pills pair a pale surface with a dark text and a 7px dot: to revie
 
 **The Dot-Only Kind Rule.** Kind colours are identification dots, never text, fills or borders. The same kind keeps the same colour on chips, cards and the map.
 
+**The Measured Contrast Rule.** Every visible text meets WCAG AA (4.5:1, 3:1 for large text) against its effective background. Measured on 25 October 2026 with a script over the rendered pages (public home, About, team home, data page with an open record, verify row, publish, imports, port names): 0 failure on 628 text elements. Hover and focus states and the map canvas were not part of that measure.
+
 **The Navy Is On Rule.** A pressed chip is filled navy with white text; a pressed switch option lifts to white (or ground inside the composer). Pressed never means orange.
 
 ## Typography
@@ -312,7 +314,9 @@ A floating white panel (24px corners, card shadow) that gathers the view switche
 - **Background:** white on ground, card shadow; raised on hover.
 - **Summary:** the whole summary is one button. Left: date (figure) with an optional status pill, kind title with its dot, facts line (people icon and count in navy, anchor icon and port), origin line in caption. Right: the locator, a static SVG of the same coastline in land and water with a navy point and soft halo, above a chevron that rotates 180 degrees when open.
 - **Open:** raised shadow plus the orange inset ring; the locator point and halo turn orange; the body appears below a hairline with a 6px rise and fade (0.35s). It holds the summary text, a grid of facts (13px muted terms, 15px 700 values), warnings, provenance and source pills.
-- **Pinned:** a record opened from the map that is not in the loaded feed sits above it with a small heading and a close icon button.
+- **Pinned:** a record opened from the map or from a link that is not in the loaded feed sits above it with a small heading ("Picked on the map" with a pin, or "Opened from a link" with a link icon) and a close icon button.
+- **Address:** an open record writes `?event=<id>` into the address (other filters kept), so it can be shared or cited; opening that address opens the record and brings it into view. The open body ends with a quiet "Copy the link to this record" button; without clipboard access the link itself is shown.
+- **Boat:** the sheet's free-text boat type is said in the reader's language ("Rubber boat (white & black)" reads "Embarcation pneumatique blanche et noire"); a wording with any word not understood is shown as written.
 - **Loading:** 124px skeleton cards with a slow white shimmer.
 
 ### Map
