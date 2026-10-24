@@ -28,3 +28,13 @@ REST-4 P1 DONE tests et CI ; dépend REST-2/3.
 REST-5 P1 DONE document de départ, revue indépendante et clôture ; R-DOC-1, dépend REST-4.
 
 Preuves tranche REST : REST-2 EV-R1/R3 ; REST-3 EV-R2/R4 ; REST-4 EV-R2/R3/R6 ; REST-5 EV-R0/R5/R6. Les cinq tâches sont vérifiées ; le produit reste IN_PROGRESS (L1..L5).
+
+## Tranche donnée D : diagnostic hors ligne des exports Sheets, 24 octobre 2026
+Spécification : docs/decisions/0004-data-first.md (dossier de cadrage, documents 04 et 09). Repartie de fa82c99 dans un checkout propre ; l’ébauche locale non publiée n’a pas été reprise telle quelle ni modifiée.
+D1 P1 DONE contrat machine lisible contracts/sheets-v1.json et contrôles de structure ; AC-D1.
+D2 P1 DONE normalisation candidate dates/effectifs/décimaux/coordonnées/liens ; AC-D2, dépend D1.
+D3 P1 DONE provenance exacte, déterminisme, doublons signalés ; AC-D3, dépend D1.
+D4 P1 DONE CLI privée bornée, statuts distincts, pas d’écrasement ; AC-D4, dépend D2/D3.
+D5 P1 DONE démonstration synthétique étiquetée et rapport lisible ; AC-D5, dépend D4.
+D6 P1 DONE revue indépendante et régressions ; dépend D1..D5. Un P1 et sept P2 corrigés avec régressions (EV-D3).
+Suite, bloquée par L1 : extrait autorisé, contrat approuvé, crosswalk d’identités, alias de ports, branchement sur le staging.

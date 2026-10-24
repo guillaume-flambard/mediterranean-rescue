@@ -15,3 +15,11 @@ AC-R3 = R-REST-3 : OpenAPI sans avertissement, régénération déterministe et 
 AC-R4 = R-REST-4 : carte/liste/détail avec hooks REST, test/build et parcours navigateur.
 AC-R5 = R-DOC-1 : document de départ, cinq lots dépendants, critères/risques et README exact ; inspection des liens et revue.
 Preuves courantes : section EV-R de 07-evidence.md (en cours).
+
+## Critères de la tranche donnée D (diagnostic hors ligne)
+AC-D1 : en-tête dupliqué/inconnu, colonne obligatoire absente, cellules en trop ou manquantes, colonne anonyme vide/non vide, guillemets mal formés ; dérive signalée, cellules brutes conservées, aucun décalage.
+AC-D2 : date impossible et bissextile, format de l’autre onglet, inconnu/zéro, négatif/fractionnaire, virgule décimale, coordonnées et hémisphères, bornes exactes avant conversion, minutes à 60, liens dangereux ou avec identifiants, listes label/url désalignées.
+AC-D3 : BOM, cellule multi-ligne, doublon, même fichier rejoué, ligne déplacée ; empreinte et ligne physique exactes, déterminisme, ni fusion ni identité.
+AC-D4 : plus de 5 Mio, plus de 10 000 enregistrements, UTF-8 invalide, CSV interrompu, dossier existant, erreur d’écriture, sentinelles absentes de stdout/stderr/rapport, modes 0700/0600, .gitignore local.
+AC-D5 : trois fixtures fictives étiquetées, rapport lisible, aucune conclusion sur le vrai jeu de données.
+Régressions : suite Django/PostGIS existante, migrations, check --deploy, OpenAPI et types inchangés, négatif TS, tests et build frontend.

@@ -43,6 +43,8 @@ Pas de event_id stable, voyage_id, source_id ni navire dans cet onglet. Le numé
 
 Contrat : [OtherData.ts](https://github.com/CartONG/SOSMedDashboard/blob/main/src/classes/data/OtherData.ts).
 
+Vérifié au commit `c5f4e9a2` : ce code lit l’onglet **par position** (`x[0]` à `x[14]`) et jette la ligne d’en-tête. Les noms ci-dessous ne sont donc pas confirmés par le code ; l’ordre l’est : date, type, latitude, longitude, wind_force, wave_height, boat_type, death_nb_people, inc_action, shipwreck_nb, boat_involved, testimony_name, testimony_src, image_src, video_srv. Voir [ADR 0004](decisions/0004-data-first.md) et `contracts/sheets-v1.json`.
+
 - date : code attend DD-MM-YYYY, différent de Data_operations.
 - type : Shipwreck, Dead & Missing, Incident.
 - latitude / longitude : coordonnées texte.
@@ -56,7 +58,7 @@ Ne pas fusionner un incident avec un sauvetage proche sans correspondance valid�
 
 ## Data_ports et référentiels cartographiques
 
-[Harbors.ts](https://github.com/CartONG/SOSMedDashboard/blob/main/src/classes/data/Harbors.ts) consomme nom, latitude, longitude. Aucun code de port normalisé n’est fourni dans cet onglet. Le Store charge ce tableau, pas nécessairement le GeoJSON local.
+[Harbors.ts](https://github.com/CartONG/SOSMedDashboard/blob/main/src/classes/data/Harbors.ts) consomme nom, latitude, longitude, lus par position (`x[0]`, `x[1]`, `x[2]`) après suppression de l’en-tête : le libellé exact de la première colonne n’est pas confirmé par le code. Aucun code de port normalisé n’est fourni dans cet onglet. Le Store charge ce tableau, pas nécessairement le GeoJSON local.
 
 Dans [src/assets/resources](https://github.com/CartONG/SOSMedDashboard/tree/main/src/assets/resources) : SAR.json (3 MultiLineString), SAR_centers.json (3 Point), zones_12_miles.json (25 Polygon), harbors_mediterranee.json (254 ports avec codes/catégories et métadonnées variables). L’existence de ces fichiers ne démontre pas leur autorité, leur date d’effet ou leurs droits. Un champ source:null est observé dans le référentiel de ports. Aucune copie incluse dans le fork.
 

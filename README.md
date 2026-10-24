@@ -10,6 +10,7 @@ Ce fork est une contribution en cours. Son périmètre et sa future adoption doi
 - [Architecture et limites de la première tranche](docs/architecture.md)
 - [Inventaire réel des sources et dictionnaire des trois onglets](docs/data-catalog.md)
 - [Décision REST et typage backend/frontend](docs/decisions/0003-rest-openapi.md)
+- [La donnée d’abord : diagnostic hors ligne des exports Sheets](docs/decisions/0004-data-first.md)
 - [Suivi et preuves](.agent/project/state.json)
 
 L’existant [CartONG/SOSMedDashboard](https://github.com/CartONG/SOSMedDashboard) a une carte et des données Sheets accessibles. Sa licence et les droits de republication des données ne sont pas établis. Aucun code ou dataset CartONG n’a été recopié dans cette plateforme. Le fond Natural Earth est du domaine public ; la provenance est conservée dans web/PROVENANCE.md.
@@ -53,6 +54,18 @@ docker compose exec api uv run --no-sync python backend/manage.py import_events 
 ```
 
 La première commande valide et conserve un staging privé. --apply crée seulement des brouillons, atomiquement. Rejouer le même fichier ne duplique pas le lot ; rejouer un lot appliqué ne duplique pas les événements. Une identité existante exige une révision revue, pas un écrasement implicite. Le connecteur Sheets et son crosswalk font partie de la tranche suivante ; ils ne sont pas simulés ici.
+
+## Diagnostiquer un export Sheets hors ligne
+
+Avant tout import, chaque export CSV des onglets Data_operations, Other_data ou Data_ports peut être diagnostiqué sur l’hôte avec Python 3.12+, sans Docker, base ni réseau. Contrat observé : `contracts/sheets-v1.json` (non approuvé par l’association).
+
+```sh
+python3 scripts/diagnose_sheets.py --sheet Data_operations --input data/local/Data_operations.csv --output-dir data/local/diagnostic-2026-10-24/Data_operations
+```
+
+Le dossier de sortie doit être nouveau ; rien n’est jamais écrasé. Il reçoit, en 0700/0600 et protégés par un `.gitignore` local : `snapshot.csv` (copie exacte), `diagnostic.json` (cellules brutes, candidats, anomalies ligne/colonne/champ), `rapport.md` (compteurs et localisations, sans valeur source) et `MANIFEST.json`, écrit en dernier : sans lui, le paquet est incomplet. Statuts distincts : lecture du CSV (`complete`, `partial`, `rejected`), normalisation (`blocked`, `needs_review`), identités `unresolved`, publication `disabled`. Codes de sortie : 0 paquet écrit sans erreur bloquante, 1 entrée refusée ou sortie impossible, 2 usage, 3 paquet écrit avec erreurs bloquantes. Aucun événement ni brouillon n’est créé.
+
+`--synthetic` étiquette une fixture fictive. Exemples générés à partir des fixtures de `backend/catalog/tests/fixtures/sheets/` : [docs/examples/diagnostic-synthetique](docs/examples/diagnostic-synthetique/). Tests sans Docker : `cd backend && python3 -m unittest catalog.tests.test_sheets` ; ils tournent aussi dans la suite Django ci-dessous.
 
 ## Contrat REST, types et vérification
 

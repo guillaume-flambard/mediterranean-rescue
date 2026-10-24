@@ -7,3 +7,9 @@ P0 restants 0 ; P1 restants 0 ; critères vérifiés 5/5 ; critères en échec/e
 Limites et travaux différés : poids du module carte, filtres spatiaux/URL côté UI, recette positive sur données métier autorisées, lots L1..L5. Aucune donnée réelle importée et aucun lancement public prétendu. Le produit entier reste IN_PROGRESS.
 
 Recette humaine : lire le document de départ, lancer via README, consulter carte/liste et filtres ; voir 08-manual-acceptance.md. Statut humain non acquis.
+
+# READY_FOR_MANUAL_ACCEPTANCE : diagnostic hors ligne des exports Sheets
+
+Résultat : contrat `contracts/sheets-v1.json`, module stdlib `backend/catalog/sheets.py`, CLI `scripts/diagnose_sheets.py`, fixtures et exemple synthétiques, ADR 0004. D1..D6 DONE, AC-D1..D5 vérifiés (EV-D0..D4). P0/P1 ouverts 0. CI GitHub de la PR à consulter avant fusion.
+
+Hors tranche : aucune donnée réelle, aucun import ni staging, aucun crosswalk. La recette humaine (08-manual-acceptance.md) n’est pas acquise.

@@ -1,0 +1,86 @@
+{
+  "version": "sheets-observed-v1",
+  "status": "observed_not_association_approved",
+  "observed_consumer": {
+    "repository": "https://github.com/CartONG/SOSMedDashboard",
+    "commit": "c5f4e9a2e52da3e5877da0bd0e8d5e45df789135",
+    "note": "Observed code, not a dictionary approved by SOS MEDITERRANEE. Data_operations is read by header name; Other_data and Data_ports are read by column position, so their header names are not confirmed by code."
+  },
+  "input": {
+    "encoding": "utf-8 (BOM accepted)",
+    "delimiter": ",",
+    "quotechar": "\"",
+    "quoting": "RFC 4180: a quote may only open a field, close it, or be doubled inside a quoted field",
+    "max_bytes": 5242880,
+    "max_records": 10000
+  },
+  "limits": {
+    "max_count": 100000
+  },
+  "unknown_markers": ["", "n/a", "unknown", "inconnu", "?", "-"],
+  "unknown_markers_status": "proposed_not_validated",
+  "sheets": {
+    "Data_operations": {
+      "binding": "header",
+      "date_format": "DD/MM/YYYY",
+      "kind_field": "type_ops",
+      "kinds": {"Rescue": "rescue", "Transfer": "transfer", "Medevac": "medevac"},
+      "columns": [
+        {"name": "date", "type": "date", "required": true, "name_status": "consumer_code"},
+        {"name": "type_ops", "type": "kind", "required": true, "name_status": "consumer_code"},
+        {"name": "nb_ops", "type": "count", "name_status": "consumer_code", "definition_status": "unknown", "note": "Not a demonstrated identifier."},
+        {"name": "nb_survivor", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed"},
+        {"name": "male", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed", "subset_of": "nb_survivor"},
+        {"name": "female", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed", "subset_of": "nb_survivor"},
+        {"name": "under_18", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed", "subset_of": "nb_survivor"},
+        {"name": "under_18_unacc", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed", "subset_of": "under_18"},
+        {"name": "under_5", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed", "subset_of": "under_18"},
+        {"name": "pregnant_women", "type": "count", "name_status": "consumer_code", "definition_status": "unconfirmed", "subset_of": "female"},
+        {"name": "latitude", "type": "latitude", "required": true, "name_status": "consumer_code"},
+        {"name": "longitude", "type": "longitude", "required": true, "name_status": "consumer_code"},
+        {"name": "wind_force", "type": "decimal", "name_status": "consumer_code", "definition_status": "unknown", "note": "Unit unknown."},
+        {"name": "wave_height", "type": "decimal", "name_status": "consumer_code", "definition_status": "unconfirmed", "note": "Unit unknown; comma decimals observed."},
+        {"name": "boat_type", "type": "text", "name_status": "consumer_code"},
+        {"name": "nb_nationalities", "type": "count", "name_status": "dossier_inventory_unverified", "definition_status": "unconfirmed", "note": "Not read by the observed consumer."},
+        {"name": "type_nationalities", "type": "text_list", "name_status": "consumer_code", "declared_count": "nb_nationalities"},
+        {"name": "transfer_type", "type": "text", "name_status": "dossier_inventory_unverified", "note": "The observed consumer reads transfertType, i.e. a header transfert_type. Which spelling the source uses is unknown; no alias is applied."},
+        {"name": "Port_disembarkation", "type": "text", "name_status": "consumer_code", "note": "Free port label; aliases need human approval."},
+        {"name": "image_src", "type": "url_list", "name_status": "consumer_code"},
+        {"name": "video_srv", "type": "url_list", "name_status": "consumer_code"},
+        {"name": "testimony_name", "type": "label_list", "name_status": "consumer_code", "paired_with": "testimony_src"},
+        {"name": "testimony_src", "type": "url_list", "name_status": "consumer_code", "paired_with": "testimony_name"}
+      ]
+    },
+    "Other_data": {
+      "binding": "position",
+      "date_format": "DD-MM-YYYY",
+      "kind_field": "type",
+      "kinds": {"Shipwreck": "shipwreck", "Dead & Missing": "dead_missing", "Incident": "incident"},
+      "columns": [
+        {"name": "date", "type": "date", "required": true, "name_status": "dossier_inventory_unverified"},
+        {"name": "type", "type": "kind", "required": true, "name_status": "dossier_inventory_unverified"},
+        {"name": "latitude", "type": "latitude", "required": true, "name_status": "dossier_inventory_unverified"},
+        {"name": "longitude", "type": "longitude", "required": true, "name_status": "dossier_inventory_unverified"},
+        {"name": "wind_force", "type": "decimal", "name_status": "dossier_inventory_unverified", "definition_status": "unknown"},
+        {"name": "wave_height", "type": "decimal", "name_status": "dossier_inventory_unverified", "definition_status": "unconfirmed"},
+        {"name": "boat_type", "type": "text", "name_status": "dossier_inventory_unverified"},
+        {"name": "death_nb_people", "type": "count", "name_status": "dossier_inventory_unverified", "definition_status": "unknown", "note": "Deaths and missing; certainty level unknown. Never feeds survivor counts."},
+        {"name": "inc_action", "type": "text", "name_status": "dossier_inventory_unverified"},
+        {"name": "shipwreck_nb", "type": "count", "name_status": "dossier_inventory_unverified", "definition_status": "unknown"},
+        {"name": "boat_involved", "type": "text", "name_status": "dossier_inventory_unverified"},
+        {"name": "testimony_name", "type": "label_list", "name_status": "dossier_inventory_unverified", "paired_with": "testimony_src"},
+        {"name": "testimony_src", "type": "url_list", "name_status": "dossier_inventory_unverified", "paired_with": "testimony_name"},
+        {"name": "image_src", "type": "url_list", "name_status": "dossier_inventory_unverified"},
+        {"name": "video_srv", "type": "url_list", "name_status": "dossier_inventory_unverified"}
+      ]
+    },
+    "Data_ports": {
+      "binding": "position",
+      "columns": [
+        {"name": "nom", "type": "text", "required": true, "name_status": "dossier_inventory_unverified", "note": "Port label; the observed consumer only uses position 1."},
+        {"name": "latitude", "type": "latitude", "required": true, "name_status": "dossier_inventory_unverified"},
+        {"name": "longitude", "type": "longitude", "required": true, "name_status": "dossier_inventory_unverified"}
+      ]
+    }
+  }
+}
