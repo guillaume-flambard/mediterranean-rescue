@@ -35,8 +35,8 @@
     "mutation_checks": "7/7 killed",
     "independent_review": "PASS after fixes (P0 0, P1 1 fixed)",
     "github_actions": {
-      "status": "PENDING",
-      "note": "run on the pull request"
+      "status": "NOT_RUN",
+      "note": "No pull request by owner decision (2026-10-24); the workflow runs on push only for main and feat/platform-foundation, so this branch has local evidence only (EV-D4)."
     },
     "previous_milestone": "rest-foundation-and-project-charter, CI run 40093284881 on 87b7d39",
     "evidence": "07-evidence.md"
@@ -49,5 +49,8 @@
     "connect diagnostic to business staging",
     "logbook and geographic enrichment",
     "identity hosting backups restore and association acceptance"
+  ],
+  "owner_decisions": [
+    "2026-10-24: no pull request, neither on the fork nor upstream; keep advancing on branches and show Data for Good / SOS later, when Guillaume decides."
   ]
 }

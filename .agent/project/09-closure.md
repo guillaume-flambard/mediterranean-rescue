@@ -10,6 +10,6 @@ Recette humaine : lire le document de départ, lancer via README, consulter cart
 
 # READY_FOR_MANUAL_ACCEPTANCE : diagnostic hors ligne des exports Sheets
 
-Résultat : contrat `contracts/sheets-v1.json`, module stdlib `backend/catalog/sheets.py`, CLI `scripts/diagnose_sheets.py`, fixtures et exemple synthétiques, ADR 0004. D1..D6 DONE, AC-D1..D5 vérifiés (EV-D0..D4). P0/P1 ouverts 0. CI GitHub de la PR à consulter avant fusion.
+Résultat : contrat `contracts/sheets-v1.json`, module stdlib `backend/catalog/sheets.py`, CLI `scripts/diagnose_sheets.py`, fixtures et exemple synthétiques, ADR 0004. D1..D6 DONE, AC-D1..D5 vérifiés (EV-D0..D4). P0/P1 ouverts 0. Pas de PR, sur décision de Guillaume du 24 octobre 2026 : on avance sur des branches et on montrera le travail à Data for Good et SOS plus tard, quand il le décidera. Le workflow ne tourne pas sur un push de cette branche : preuves locales seulement (EV-D4).
 
 Hors tranche : aucune donnée réelle, aucun import ni staging, aucun crosswalk. La recette humaine (08-manual-acceptance.md) n’est pas acquise.
