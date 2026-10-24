@@ -120,7 +120,7 @@ Les charges ci-dessous sont des ordres de grandeur de développement effectif, h
 
 | Lot | Livrable | Dépendance | Critère de sortie | Charge indicative |
 | --- | --- | --- | --- | --- |
-| L0 : fondation REST | Dépôt, modèles, admin, import local, API typée, carte/liste, CI | Décision de stack | Tests/contrat/build verts et parcours local vérifié | Tranche en cours dans ce dépôt |
+| L0 : fondation REST | Dépôt, modèles, admin, import local, API typée, carte/liste, CI | Décision de stack | Tests/contrat/build verts et parcours local vérifié | Socle vérifié, recette humaine ouverte |
 | L1 : contrat de données | Propriétaires, licences, dictionnaire signé, petit jeu autorisé, règles de comptage | Validation SOS/DfG | Une personne identifiée approuve les champs et leur usage | 2–4 jours + échanges |
 | L2 : reprise Sheets | Snapshots, adaptateur des 3 onglets, crosswalk, alias, rapport d’anomalies | L1 | Réimport sans doublon, rapprochements revus, comptages réconciliés | 5–8 jours |
 | L3 : voyages et enrichissement | Entrées de journal, relations et révisions sourcées | L2 | Un voyage choisi est traçable de bout en bout, ambiguïtés visibles | 4–7 jours |

@@ -1,5 +1,5 @@
 {
-  "phase": "VERIFYING",
+  "phase": "READY_FOR_MANUAL_ACCEPTANCE",
   "milestone": "rest-foundation-and-project-charter",
   "product_status": "IN_PROGRESS",
   "requirements": {
@@ -8,22 +8,22 @@
   },
   "todos": {
     "p0_open": 0,
-    "p1_open": 2,
-    "done": 3,
+    "p1_open": 0,
+    "done": 5,
     "p2_open": 2
   },
   "acceptance": {
     "total": 5,
-    "verified": 3,
+    "verified": 5,
     "failed": 0,
-    "pending": 2
+    "pending": 0
   },
   "risks": {
     "critical_open": 0,
     "high_open": 0
   },
   "verification": {
-    "status": "RUNNING",
+    "status": "PASS",
     "backend_postgis_tests": 19,
     "frontend_tests": 2,
     "openapi_codegen": "PASS",
@@ -32,11 +32,16 @@
     "production_settings_check": "PASS",
     "migration_drift": "PASS",
     "browser": "loading/empty/map/filter/invalid dates/reset PASS; positive detail visual on real data deferred",
-    "independent_review": "final re-review pending",
-    "github_actions": "pending current revision",
+    "independent_review": "PASS with stated scope",
+    "github_actions": {
+      "status": "PASS",
+      "run_id": 40093284881,
+      "checked_code_revision": "87b7d39",
+      "url": "https://github.com/guillaume-flambard/mediterranean-rescue/actions/runs/40093284881"
+    },
     "evidence": "07-evidence.md"
   },
-  "ready_for_manual_acceptance": false,
+  "ready_for_manual_acceptance": true,
   "human_acceptance": false,
   "next_product_milestones": [
     "rights and source contracts approved",

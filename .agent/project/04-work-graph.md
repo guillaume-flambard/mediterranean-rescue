@@ -22,7 +22,9 @@ Clôture F10/F11 : EV-F11, CI complète verte sur cd69cc4 ; la dernière mise à
 
 ## Tranche REST et cadrage, 24 octobre 2026
 REST-1 P1 DONE spécification ADR0003, preuve : décision utilisateur et contrat écrit.
-REST-2 P1 VERIFYING API publique REST/OpenAPI ; R-REST-1/2/3.
-REST-3 P1 VERIFYING client généré et interface ; dépend REST-2, R-REST-3/4.
-REST-4 P1 IN_PROGRESS tests et CI ; dépend REST-2/3.
-REST-5 P1 IN_PROGRESS document de départ, revue indépendante et clôture ; R-DOC-1, dépend REST-4.
+REST-2 P1 DONE API publique REST/OpenAPI ; R-REST-1/2/3.
+REST-3 P1 DONE client généré et interface ; dépend REST-2, R-REST-3/4.
+REST-4 P1 DONE tests et CI ; dépend REST-2/3.
+REST-5 P1 DONE document de départ, revue indépendante et clôture ; R-DOC-1, dépend REST-4.
+
+Preuves tranche REST : REST-2 EV-R1/R3 ; REST-3 EV-R2/R4 ; REST-4 EV-R2/R3/R6 ; REST-5 EV-R0/R5/R6. Les cinq tâches sont vérifiées ; le produit reste IN_PROGRESS (L1..L5).
