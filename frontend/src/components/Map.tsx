@@ -62,6 +62,13 @@ export function EventMap({
   const degrade = useEffectEvent(() => setDegraded(true));
   // Read once at creation: changing language must not rebuild the map and lose the view.
   const attribution = useEffectEvent(() => t("map.attribution"));
+  // The map's own buttons in the reader's language (MapLibre's locale option).
+  const controls = useEffectEvent(() => ({
+    "Map.Title": t("map.ui.title"),
+    "NavigationControl.ZoomIn": t("map.ui.zoomIn"),
+    "NavigationControl.ZoomOut": t("map.ui.zoomOut"),
+    "AttributionControl.ToggleAttribution": t("map.ui.attribution"),
+  }));
 
   useEffect(() => {
     if (failed || !element.current) return;
@@ -85,6 +92,7 @@ export function EventMap({
           ],
         },
         attributionControl: { customAttribution: attribution() },
+        locale: controls(),
       });
     } catch {
       // The external map failed to start (WebGL lost, driver refusal): report it like any

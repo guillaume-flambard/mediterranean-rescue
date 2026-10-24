@@ -55,6 +55,11 @@ export const fr: Messages = {
   "map.truncated":
     "Les 2 000 premiers points sont affichés. Affinez la période pour explorer le reste.",
   "map.attribution": "Natural Earth (domaine public)",
+  "map.ui.title": "Carte",
+  "map.ui.zoomIn": "Zoomer",
+  "map.ui.zoomOut": "Dézoomer",
+  "map.ui.attribution": "Afficher ou masquer les crédits de la carte",
+  "review.notForSheet": "Une évacuation médicale reste hors du fichier pour le tableur de SOS MEDITERRANEE, qui n’en contient aucune : elle déplace des personnes déjà comptées.",
 
   "detail.title": "Fiche de l’événement",
   "detail.loading": "Chargement de la fiche…",

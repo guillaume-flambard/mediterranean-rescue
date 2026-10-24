@@ -52,6 +52,11 @@ export const en = {
   "map.truncated":
     "The first 2,000 points are shown. Narrow the period to explore the rest.",
   "map.attribution": "Natural Earth (public domain)",
+  "map.ui.title": "Map",
+  "map.ui.zoomIn": "Zoom in",
+  "map.ui.zoomOut": "Zoom out",
+  "map.ui.attribution": "Show or hide the map credits",
+  "review.notForSheet": "A medical evacuation stays out of the file for the SOS MEDITERRANEE sheet, which has none: it moves people already counted.",
 
   "detail.title": "Event record",
   "detail.loading": "Loading the record…",

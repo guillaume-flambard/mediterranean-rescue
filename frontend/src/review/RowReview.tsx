@@ -265,7 +265,6 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
       onClose();
       return;
     }
-    setNavigationGuard(null);
     try {
       await decide.mutateAsync({
         params: { path: { id: rowId } },
@@ -274,6 +273,8 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
             ? { action: "create_identity", reason }
             : { action: "link", identity: chosenIdentity ?? "", reason },
       });
+      // Only a saved decision lifts the guard: after a failure the typed reason stays protected.
+      setNavigationGuard(null);
       await queryClient.invalidateQueries({ queryKey: ["get", "/api/private/v1/review/rows/"] });
       if (!alive.current) return;
       setOutcome("saved");
@@ -331,7 +332,10 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
       {/* Outside the form: after a conflict the row may be linked and the form gone. */}
       {serverError && <InlineMessage tone="error">{t(serverMessageKey(serverError))}</InlineMessage>}
 
-      {fromLogbook ? (
+      {fromLogbook && (row.interpreted as { kind?: string } | null)?.kind === "medevac" ? (
+        // A medical evacuation is never exported to the sheet: no columns to show.
+        <p className="review-note">{t("review.notForSheet")}</p>
+      ) : fromLogbook ? (
         // The sheet's columns matter to whoever pastes the row; the sentence is what a volunteer reads.
         <Disclosure title={t("review.sheetColumns")}>
           <Received row={row} />

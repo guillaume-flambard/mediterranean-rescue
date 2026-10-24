@@ -223,11 +223,11 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     show(id);
     if (items.some((item) => item.id === id)) {
       setPinnedId(null);
-      requestAnimationFrame(() => document.getElementById(`event-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+      requestAnimationFrame(() => document.getElementById(`event-${id}`)?.scrollIntoView({ behavior: motion(), block: "nearest" }));
     } else {
       setPinnedId(id);
       setPinnedFrom("map");
-      requestAnimationFrame(() => document.getElementById("pinned-event")?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+      requestAnimationFrame(() => document.getElementById("pinned-event")?.scrollIntoView({ behavior: motion(), block: "nearest" }));
     }
   };
 
@@ -426,7 +426,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
             </div>
           )}
 
-          {feed.error ? (
+          {feed.error && !feed.data ? (
             <div className="explore-state" role="alert">
               <Icon name="alert" size={22} />
               <p>{t("events.loadError")}</p>
@@ -492,6 +492,15 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                 />
               ))}
             </ol>
+          )}
+          {/* A failed "More" or refresh keeps the cards already loaded (frontend audit). */}
+          {feed.error && feed.data && (
+            <p className="explore-state__inline" role="alert">
+              {t("events.loadError")}{" "}
+              <BaseButton className="link-button" onClick={() => void (feed.isFetchNextPageError ? feed.fetchNextPage() : feed.refetch())}>
+                {t("ui.retry")}
+              </BaseButton>
+            </p>
           )}
           {feed.hasNextPage && (
             <BaseButton className="pill-button feed-more" disabled={feed.isFetchingNextPage} onClick={() => void feed.fetchNextPage()}>
@@ -652,6 +661,11 @@ function PinnedCard({ id, from, preview, onClose }: { id: string; from: "link" |
       </div>
     </div>
   );
+}
+
+/** Smooth scrolling unless the reader asked the system to reduce motion. */
+function motion(): ScrollBehavior {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 }
 
 /** A control reached with the keyboard in a strip that scrolls sideways is brought out from
