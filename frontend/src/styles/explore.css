@@ -365,7 +365,7 @@
 /* Team view embedded in the team space: no own bar, the workspace frame around it. */
 .review--wide { max-width: 1440px; }
 /* The whole data page sits on the reading ground, so the embedded view shows no seam. */
-body:has(.explore--team) { background: var(--ground); }
+body:has(.explore--team) { background: #eeedf2; }
 .explore--team { --bar-height: 0px; min-height: 0; background: transparent; }
 .explore--team .explore-feed { padding-left: 0; padding-right: 0; }
 @media (min-width: 960px) {
