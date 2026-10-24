@@ -278,6 +278,18 @@ class SourceIdentity(UUIDModel):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
     )
     reason = models.TextField()
+    # Draft event created from this identity (ADR 0006); never overwritten once set.
+    event = models.OneToOneField(
+        Event, null=True, blank=True, on_delete=models.PROTECT, related_name="source_identity"
+    )
+    drafted_from = models.ForeignKey(
+        "SheetRow", null=True, blank=True, on_delete=models.PROTECT, related_name="+"
+    )
+    drafted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
+    )
+    drafted_at = models.DateTimeField(null=True, blank=True)
+    draft_reason = models.TextField(blank=True)
 
     class Meta:
         permissions = [
@@ -286,7 +298,24 @@ class SourceIdentity(UUIDModel):
         constraints = [
             models.CheckConstraint(
                 condition=~Q(reason__regex=r"^\s*$"), name="source_identity_has_reason"
-            )
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(event__isnull=True)
+                    & Q(drafted_from__isnull=True)
+                    & Q(drafted_by__isnull=True)
+                    & Q(drafted_at__isnull=True)
+                    & Q(draft_reason="")
+                )
+                | (
+                    Q(event__isnull=False)
+                    & Q(drafted_from__isnull=False)
+                    & Q(drafted_by__isnull=False)
+                    & Q(drafted_at__isnull=False)
+                    & ~Q(draft_reason__regex=r"^\s*$")
+                ),
+                name="source_identity_draft_traced",
+            ),
         ]
 
     @property

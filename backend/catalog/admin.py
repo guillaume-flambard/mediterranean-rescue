@@ -39,6 +39,13 @@ class EventAdmin(admin.ModelAdmin):
     readonly_fields = ["status", "published_at", "reviewed_by"]
     actions = ["publish_reviewed", "withdraw_reviewed"]
 
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None and hasattr(obj, "source_identity"):
+            # A draft from a source identity keeps the identity's source and external id.
+            fields += ["source", "external_id"]
+        return fields
+
     def has_change_permission(self, request, obj=None):
         return super().has_change_permission(request, obj) and (
             obj is None or obj.status != "published"

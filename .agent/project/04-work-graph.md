@@ -47,3 +47,10 @@ X2 P1 DONE identités et liens approuvés, propositions calculées ; AC-X2, AC-X
 X3 P1 DONE référentiel des ports et lectures de libellés (ports, navire, pas un port) ; AC-X4.
 X4 P1 DONE revue indépendante, régressions, essai privé sur l'export réel ; AC-X5.
 Suite : interface de revue (application React), brouillons d'événements depuis les identités, revue humaine des 29 libellés non résolus et des 3 ports ambigus.
+
+## Tranche B : brouillons d'événements depuis les identités, 24 octobre 2026
+Spécification : docs/decisions/0006-event-drafts-from-identities.md. Branche feat/event-drafts, empilée sur feat/ports-and-crosswalk, développée dans un worktree séparé parce qu'une autre session écrivait le design system dans le checkout principal.
+B1 P1 DONE traçabilité brouillon sur l'identité (migration 0003, contrainte tout ou rien).
+B2 P1 DONE plan et création des brouillons, lignes écartées toujours listées ; AC-D1 à AC-D4.
+B3 P1 DONE revue indépendante, régressions, essai privé ; AC-D5.
+Suite : révisions revues d'un brouillon (`revision_needed`), preuves documentaires, voyages et navires, écrans de revue dans l'application React.

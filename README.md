@@ -77,6 +77,10 @@ docker compose exec api uv run --no-sync python backend/manage.py stage_sheet --
 
 La commande affiche seulement des compteurs de propositions (`new`, `exact_carry`, `candidates`, `blocked`, `linked`, ou pour les ports `new_port`, `existing_port`). Les approbations passent par les services de `backend/catalog/crosswalk.py` ; l’administration montre ces enregistrements en lecture seule. Aucune proposition ne crée de lien, aucun événement n’est créé ni publié.
 
+## Brouillons d’événements
+
+Une identité approuvée devient un brouillon privé avec `catalog.drafts.create_drafts` (permission `catalog.add_event`, motif obligatoire) ; `plan_drafts` montre d’abord l’issue de chaque ligne sans rien écrire. Les lignes écartées (non liées, déjà en brouillon, à réviser, effectifs incohérents) sont toujours listées. Un brouillon existant n’est jamais écrasé, et la publication reste celle de l’administration (droits de la source, motif, audit). Voir [ADR 0006](docs/decisions/0006-event-drafts-from-identities.md).
+
 ## Contrat REST, types et vérification
 
 ```sh
