@@ -22,6 +22,26 @@ def exception_handler(exc, context):
     response = default_exception_handler(exc, context)
     if response is not None:
         original = response.data
+        view = context.get("view")
+        if getattr(view, "private_api", False):
+            # Private API: explicit codes the interface acts on (ADR 0009).
+            from .private_api import private_error_code
+
+            code = private_error_code(exc)
+            detail = (
+                str(original.get("detail"))
+                if isinstance(original, dict) and "detail" in original
+                else "Request rejected"
+            )
+            errors = (
+                None if isinstance(original, dict) and set(original) == {"detail"} else original
+            )
+            response.data = {
+                "code": code,
+                "detail": detail,
+                **({"errors": errors} if errors else {}),
+            }
+            return response
         response.data = {
             "code": f"http_{response.status_code}",
             "detail": "Request rejected",

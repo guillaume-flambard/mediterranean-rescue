@@ -89,6 +89,7 @@ def stage_snapshot(*, source, sheet, content, actor):
             "source_read": status,
             "byte_count": result["snapshot"]["bytes"],
             "row_count": len(result["rows"]),
+            "header_cells": result["header"]["cells"],
             "staged_by": actor,
         },
     )
@@ -226,12 +227,22 @@ def approve_link(*, row, actor, reason, identity=None, _exact_carry=False):
 
 
 @transaction.atomic
-def approve_exact_carries(*, snapshot, actor, reason):
-    """Approve, in one human action, every exact_carry proposal of a snapshot."""
+def approve_exact_carries(*, snapshot, actor, reason, rows=None):
+    """Approve, in one human action, the exact_carry proposals of a snapshot.
+
+    With `rows` (row ids), only that explicit selection is approved, and every selected row
+    must still be an exact carry when the request runs; otherwise nothing is written.
+    """
     _require(actor, REVIEW_PERMISSION)
     _require_reason(reason)
     snapshot = SheetSnapshot.objects.select_for_update().get(pk=snapshot.pk)
     carries = [p for p in propose_links(snapshot) if p.kind == "exact_carry"]
+    if rows is not None:
+        selected = {str(row_id) for row_id in rows}
+        eligible = {str(p.row_id) for p in carries}
+        if not selected or not selected <= eligible:
+            raise ValidationError("Some selected rows are no longer unambiguous exact carries")
+        carries = [p for p in carries if str(p.row_id) in selected]
     identities = {
         i.pk: i for i in SourceIdentity.objects.filter(pk__in=[p.identity_ids[0] for p in carries])
     }

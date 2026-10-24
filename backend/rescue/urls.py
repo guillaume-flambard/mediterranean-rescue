@@ -1,4 +1,13 @@
 from catalog.api import EventsView, EventView, EvidenceView, MapPointsView
+from catalog.private_api import (
+    ExactCarriesView,
+    IdentitiesView,
+    MeView,
+    ReviewDecisionView,
+    ReviewRowsView,
+    ReviewRowView,
+    SnapshotsView,
+)
 from django.contrib import admin
 from django.db import connection
 from django.http import JsonResponse
@@ -33,6 +42,13 @@ urlpatterns = [
     path("api/v1/events/<uuid:id>/", EventView.as_view()),
     path("api/v1/events/<uuid:id>/evidence/", EvidenceView.as_view()),
     path("api/v1/map-points/", MapPointsView.as_view()),
+    path("api/private/v1/me/", MeView.as_view()),
+    path("api/private/v1/snapshots/", SnapshotsView.as_view()),
+    path("api/private/v1/review/rows/", ReviewRowsView.as_view()),
+    path("api/private/v1/review/rows/<uuid:id>/", ReviewRowView.as_view()),
+    path("api/private/v1/review/rows/<uuid:id>/decision/", ReviewDecisionView.as_view()),
+    path("api/private/v1/review/snapshots/<uuid:id>/exact-carries/", ExactCarriesView.as_view()),
+    path("api/private/v1/review/identities/", IdentitiesView.as_view()),
     path(
         "api/v1/schema/",
         SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),

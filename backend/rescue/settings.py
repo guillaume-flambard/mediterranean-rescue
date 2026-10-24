@@ -117,4 +117,12 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    # Tags come from the first segment after the version, for public and private paths alike.
+    "SCHEMA_PATH_PREFIX": r"/api/(?:private/)?v1",
+    # Stable enum names: KindEnum is used by the frontend; the private API adds its own.
+    "ENUM_NAME_OVERRIDES": {
+        "KindEnum": "catalog.models.EventKind",
+        "ReviewProposalEnum": "catalog.private_api.PROPOSAL_KINDS",
+        "ReviewStatusEnum": "catalog.private_api.STATUSES",
+    },
 }

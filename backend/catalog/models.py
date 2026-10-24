@@ -232,6 +232,8 @@ class SheetSnapshot(UUIDModel):
     source_read = models.CharField(max_length=16)
     byte_count = models.PositiveIntegerField()
     row_count = models.PositiveIntegerField()
+    # Header row as received, so a row can be shown with its exact column names.
+    header_cells = models.JSONField(default=list, blank=True)
     staged_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
 
     class Meta:

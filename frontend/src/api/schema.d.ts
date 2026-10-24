@@ -4,6 +4,118 @@
  */
 
 export interface paths {
+    "/api/private/v1/me/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/review/identities/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_search_identities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/review/rows/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_list_review_rows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/review/rows/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_retrieve_review_row"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/review/rows/{id}/decision/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["private_decide_review_row"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/review/snapshots/{id}/exact-carries/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["private_approve_exact_carries"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/snapshots/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_list_snapshots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events/": {
         parameters: {
             query?: never;
@@ -73,11 +185,39 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * @description * `create_identity` - create_identity
+         *     * `link` - link
+         * @enum {string}
+         */
+        ActionEnum: "create_identity" | "link";
+        Candidate: {
+            /** Format: uuid */
+            id: string;
+            external_id: string;
+            summary: components["schemas"]["Summary"];
+        };
+        /**
          * @description * `production` - production
          *     * `training` - training
          * @enum {string}
          */
         DataModeEnum: "production" | "training";
+        Decision: {
+            /** Format: uuid */
+            identity: string;
+            external_id: string;
+            match: string;
+            approved_by: string;
+            /** Format: date-time */
+            approved_at: string;
+            reason: string;
+        };
+        DecisionRequestRequest: {
+            action: components["schemas"]["ActionEnum"];
+            /** Format: uuid */
+            identity?: string;
+            reason: string;
+        };
         Error: {
             code: string;
             detail: string;
@@ -120,6 +260,16 @@ export interface components {
             total_count: number;
             has_next: boolean;
         };
+        ExactCarriesRequestRequest: {
+            rows: string[];
+            reason: string;
+        };
+        ExactCarriesResult: {
+            carried: number;
+        };
+        IdentityPage: {
+            items: components["schemas"]["Candidate"][];
+        };
         /**
          * @description * `rescue` - Sauvetage
          *     * `transfer` - Transfert
@@ -144,6 +294,13 @@ export interface components {
             located_count: number;
             truncated: boolean;
         };
+        Me: {
+            username: string;
+            permissions: components["schemas"]["Permissions"];
+        };
+        Permissions: {
+            review_identity: boolean;
+        };
         Port: {
             /** Format: uuid */
             readonly id: string;
@@ -157,6 +314,90 @@ export interface components {
             latitude: number;
             precision: string;
         };
+        Proposal: {
+            kind: components["schemas"]["ReviewProposalEnum"];
+            candidates: components["schemas"]["Candidate"][];
+        };
+        QueueCounts: {
+            to_review: number;
+            blocked: number;
+            linked: number;
+        };
+        QueueItem: {
+            /** Format: uuid */
+            id: string;
+            line: number;
+            status: components["schemas"]["ReviewStatusEnum"];
+            proposal: components["schemas"]["ReviewProposalEnum"];
+            candidate_count: number;
+            occurred_on: string | null;
+            kind: string | null;
+            people: number | null;
+            deaths: number | null;
+            error_codes: string[];
+        };
+        QueuePage: {
+            items: components["schemas"]["QueueItem"][];
+            total_count: number;
+            has_next: boolean;
+            counts: components["schemas"]["QueueCounts"];
+        };
+        Received: {
+            headers: string[];
+            cells: string[];
+        };
+        /**
+         * @description * `new` - new
+         *     * `exact_carry` - exact_carry
+         *     * `candidates` - candidates
+         *     * `blocked` - blocked
+         *     * `linked` - linked
+         * @enum {string}
+         */
+        ReviewProposalEnum: "new" | "exact_carry" | "candidates" | "blocked" | "linked";
+        /**
+         * @description * `to_review` - to_review
+         *     * `blocked` - blocked
+         *     * `linked` - linked
+         * @enum {string}
+         */
+        ReviewStatusEnum: "to_review" | "blocked" | "linked";
+        RowDetail: {
+            /** Format: uuid */
+            id: string;
+            line: number;
+            row_ref: string;
+            snapshot: components["schemas"]["SnapshotRef"];
+            status: components["schemas"]["ReviewStatusEnum"];
+            received: components["schemas"]["Received"];
+            interpreted: unknown;
+            error_codes: string[];
+            proposal: components["schemas"]["Proposal"];
+            decision: components["schemas"]["Decision"] | null;
+        };
+        Snapshot: {
+            /** Format: uuid */
+            id: string;
+            source: components["schemas"]["SourceRef"];
+            sheet: string;
+            /** Format: date-time */
+            created_at: string;
+            row_count: number;
+            source_read: string;
+            contract_version: string;
+        };
+        SnapshotPage: {
+            items: components["schemas"]["Snapshot"][];
+            total_count: number;
+            has_next: boolean;
+        };
+        SnapshotRef: {
+            /** Format: uuid */
+            id: string;
+            sheet: string;
+            sha256: string;
+            contract_version: string;
+        };
         Source: {
             /** Format: uuid */
             readonly id: string;
@@ -165,6 +406,16 @@ export interface components {
             readonly url: string;
             readonly license_note: string;
             readonly synthetic: boolean;
+        };
+        SourceRef: {
+            key: string;
+            name: string;
+        };
+        Summary: {
+            occurred_on: string | null;
+            kind: string | null;
+            people: number | null;
+            deaths: number | null;
         };
         Vessel: {
             /** Format: uuid */
@@ -192,6 +443,512 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    private_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_search_identities: {
+        parameters: {
+            query: {
+                limit?: number;
+                q?: string;
+                snapshot: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_list_review_rows: {
+        parameters: {
+            query: {
+                limit?: number;
+                offset?: number;
+                snapshot: string;
+                /**
+                 * @description * `to_review` - to_review
+                 *     * `blocked` - blocked
+                 *     * `linked` - linked
+                 */
+                status?: "to_review" | "blocked" | "linked";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueuePage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_retrieve_review_row: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RowDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_decide_review_row: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RowDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_approve_exact_carries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExactCarriesRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExactCarriesResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_list_snapshots: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                /**
+                 * @description * `Data_operations` - Data_operations
+                 *     * `Other_data` - Other_data
+                 *     * `Data_ports` - Data_ports
+                 */
+                sheet?: "Data_operations" | "Other_data" | "Data_ports";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     list_events: {
         parameters: {
             query?: {

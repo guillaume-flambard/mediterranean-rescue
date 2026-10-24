@@ -3,6 +3,472 @@ info:
   title: Mediterranean Rescue public API
   version: 1.0.0
 paths:
+  /api/private/v1/me/:
+    get:
+      operationId: private_me
+      tags:
+      - me
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/identities/:
+    get:
+      operationId: private_search_identities
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 20
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 36
+      - in: query
+        name: snapshot
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/rows/:
+    get:
+      operationId: private_list_review_rows
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: snapshot
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: status
+        schema:
+          enum:
+          - to_review
+          - blocked
+          - linked
+          type: string
+          default: to_review
+          minLength: 1
+        description: |-
+          * `to_review` - to_review
+          * `blocked` - blocked
+          * `linked` - linked
+      tags:
+      - review
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueuePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/rows/{id}/:
+    get:
+      operationId: private_retrieve_review_row
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RowDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/rows/{id}/decision/:
+    post:
+      operationId: private_decide_review_row
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequestRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RowDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/snapshots/{id}/exact-carries/:
+    post:
+      operationId: private_approve_exact_carries
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExactCarriesRequestRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExactCarriesResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/snapshots/:
+    get:
+      operationId: private_list_snapshots
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: sheet
+        schema:
+          enum:
+          - Data_operations
+          - Other_data
+          - Data_ports
+          type: string
+          minLength: 1
+        description: |-
+          * `Data_operations` - Data_operations
+          * `Other_data` - Other_data
+          * `Data_ports` - Data_ports
+      tags:
+      - snapshots
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
   /api/v1/events/:
     get:
       operationId: list_events
@@ -271,6 +737,28 @@ paths:
           description: ''
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - create_identity
+      - link
+      type: string
+      description: |-
+        * `create_identity` - create_identity
+        * `link` - link
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+        summary:
+          $ref: '#/components/schemas/Summary'
+      required:
+      - external_id
+      - id
+      - summary
     DataModeEnum:
       enum:
       - production
@@ -279,6 +767,45 @@ components:
       description: |-
         * `production` - production
         * `training` - training
+    Decision:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+        match:
+          type: string
+        approved_by:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+      required:
+      - approved_at
+      - approved_by
+      - external_id
+      - identity
+      - match
+      - reason
+    DecisionRequestRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        identity:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - action
+      - reason
     Error:
       type: object
       properties:
@@ -412,6 +939,39 @@ components:
       - has_next
       - items
       - total_count
+    ExactCarriesRequestRequest:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+          minItems: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - reason
+      - rows
+    ExactCarriesResult:
+      type: object
+      properties:
+        carried:
+          type: integer
+      required:
+      - carried
+    IdentityPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+      required:
+      - items
     KindEnum:
       enum:
       - rescue
@@ -462,6 +1022,23 @@ components:
       - located_count
       - points
       - truncated
+    Me:
+      type: object
+      properties:
+        username:
+          type: string
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+      required:
+      - permissions
+      - username
+    Permissions:
+      type: object
+      properties:
+        review_identity:
+          type: boolean
+      required:
+      - review_identity
     Port:
       type: object
       properties:
@@ -494,6 +1071,226 @@ components:
       - latitude
       - longitude
       - precision
+    Proposal:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/ReviewProposalEnum'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+      required:
+      - candidates
+      - kind
+    QueueCounts:
+      type: object
+      properties:
+        to_review:
+          type: integer
+        blocked:
+          type: integer
+        linked:
+          type: integer
+      required:
+      - blocked
+      - linked
+      - to_review
+    QueueItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        line:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ReviewStatusEnum'
+        proposal:
+          $ref: '#/components/schemas/ReviewProposalEnum'
+        candidate_count:
+          type: integer
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        deaths:
+          type: integer
+          nullable: true
+        error_codes:
+          type: array
+          items:
+            type: string
+      required:
+      - candidate_count
+      - deaths
+      - error_codes
+      - id
+      - kind
+      - line
+      - occurred_on
+      - people
+      - proposal
+      - status
+    QueuePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueueItem'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+        counts:
+          $ref: '#/components/schemas/QueueCounts'
+      required:
+      - counts
+      - has_next
+      - items
+      - total_count
+    Received:
+      type: object
+      properties:
+        headers:
+          type: array
+          items:
+            type: string
+        cells:
+          type: array
+          items:
+            type: string
+      required:
+      - cells
+      - headers
+    ReviewProposalEnum:
+      enum:
+      - new
+      - exact_carry
+      - candidates
+      - blocked
+      - linked
+      type: string
+      description: |-
+        * `new` - new
+        * `exact_carry` - exact_carry
+        * `candidates` - candidates
+        * `blocked` - blocked
+        * `linked` - linked
+    ReviewStatusEnum:
+      enum:
+      - to_review
+      - blocked
+      - linked
+      type: string
+      description: |-
+        * `to_review` - to_review
+        * `blocked` - blocked
+        * `linked` - linked
+    RowDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        line:
+          type: integer
+        row_ref:
+          type: string
+        snapshot:
+          $ref: '#/components/schemas/SnapshotRef'
+        status:
+          $ref: '#/components/schemas/ReviewStatusEnum'
+        received:
+          $ref: '#/components/schemas/Received'
+        interpreted:
+          nullable: true
+        error_codes:
+          type: array
+          items:
+            type: string
+        proposal:
+          $ref: '#/components/schemas/Proposal'
+        decision:
+          allOf:
+          - $ref: '#/components/schemas/Decision'
+          nullable: true
+      required:
+      - decision
+      - error_codes
+      - id
+      - interpreted
+      - line
+      - proposal
+      - received
+      - row_ref
+      - snapshot
+      - status
+    Snapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        sheet:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        row_count:
+          type: integer
+        source_read:
+          type: string
+        contract_version:
+          type: string
+      required:
+      - contract_version
+      - created_at
+      - id
+      - row_count
+      - sheet
+      - source
+      - source_read
+    SnapshotPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Snapshot'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+      - total_count
+    SnapshotRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sheet:
+          type: string
+        sha256:
+          type: string
+        contract_version:
+          type: string
+      required:
+      - contract_version
+      - id
+      - sha256
+      - sheet
     Source:
       type: object
       properties:
@@ -520,6 +1317,36 @@ components:
       - name
       - synthetic
       - url
+    SourceRef:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+      required:
+      - key
+      - name
+    Summary:
+      type: object
+      properties:
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        deaths:
+          type: integer
+          nullable: true
+      required:
+      - deaths
+      - kind
+      - occurred_on
+      - people
     Vessel:
       type: object
       properties:
@@ -566,3 +1393,8 @@ components:
       - logbook_url
       - started_on
       - title
+  securitySchemes:
+    privateSession:
+      type: apiKey
+      in: cookie
+      name: sessionid
