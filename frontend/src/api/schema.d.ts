@@ -310,6 +310,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/private/v1/sync/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_sync_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/vessels/": {
         parameters: {
             query?: never;
@@ -628,6 +644,14 @@ export interface components {
             key: string;
             name: string;
         };
+        /**
+         * @description * `new_data` - new_data
+         *     * `unchanged` - unchanged
+         *     * `refused` - refused
+         *     * `failed` - failed
+         * @enum {string}
+         */
+        LastStatusEnum: "new_data" | "unchanged" | "refused" | "failed";
         MapPoint: {
             /** Format: uuid */
             id: string;
@@ -910,6 +934,22 @@ export interface components {
             kind: string | null;
             people: number | null;
             deaths: number | null;
+        };
+        SyncSheet: {
+            sheet: components["schemas"]["SheetEnum"];
+            source: string;
+            /** Format: date-time */
+            last_checked_at: string;
+            last_status: components["schemas"]["LastStatusEnum"];
+            last_message: string;
+            /** Format: date-time */
+            last_change_at: string | null;
+            last_change: {
+                [key: string]: number;
+            };
+        };
+        SyncStatus: {
+            sheets: components["schemas"]["SyncSheet"][];
         };
         UploadRequest: {
             /** Format: uuid */
@@ -2574,6 +2614,81 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SnapshotPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_sync_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncStatus"];
                 };
             };
             400: {

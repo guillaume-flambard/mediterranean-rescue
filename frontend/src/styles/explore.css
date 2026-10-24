@@ -362,3 +362,25 @@
   .card__facts { font-size: 14px; gap: 2px var(--space-3); }
   .card__origin { font-size: 12px; }
 }
+
+/* Team view embedded in the team space: no own bar, the workspace frame around it. */
+.review--wide { max-width: 1440px; }
+.explore--team { --bar-height: 0px; min-height: 0; background: transparent; }
+.explore--team .explore-feed { padding-left: 0; padding-right: 0; }
+@media (min-width: 960px) {
+  .explore--team .explore-map--side { top: var(--space-4); height: calc(100vh - 2 * var(--space-4)); }
+}
+
+/* Freshness of the SOS sheet, at the top of the team's data page. */
+.sync-card { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border-radius: 20px; background: var(--sos-white); box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22); }
+.sync-card h2 { margin: 0; font-size: 18px; font-weight: 800; }
+.sync-card p { margin: 0; }
+.sync-card__lead { color: var(--color-text-secondary); font-size: 14px; max-width: 70ch; }
+.sync-card__list { display: grid; gap: var(--space-2); margin: var(--space-1) 0 0; padding: 0; list-style: none; }
+.sync-card__item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--space-3); padding: var(--space-2) var(--space-3); border-radius: 14px; background: var(--color-canvas); font-size: 14px; font-variant-numeric: lining-nums tabular-nums; }
+.sync-card__item svg { vertical-align: -2px; color: var(--color-success); }
+.sync-card__item--warn svg { color: var(--color-error); }
+.sync-card__name { font-weight: 800; }
+.sync-card__change { color: var(--color-text-secondary); }
+.sync-card--error { color: var(--color-error); }
+.sync-card__name::first-letter { text-transform: uppercase; }

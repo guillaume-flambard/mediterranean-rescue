@@ -104,6 +104,9 @@ CSRF_TRUSTED_ORIGINS = [
     if value
 ]
 
+# JSON file naming the source key and the CSV export URL of each tab (ADR 0012); local, not committed.
+SHEETS_SYNC_CONFIG = os.environ.get("SHEETS_SYNC_CONFIG", "")
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],

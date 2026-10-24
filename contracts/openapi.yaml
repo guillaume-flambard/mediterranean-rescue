@@ -1493,6 +1493,62 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: ''
+  /api/private/v1/sync/:
+    get:
+      operationId: private_sync_status
+      tags:
+      - sync
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatus'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
   /api/private/v1/vessels/:
     get:
       operationId: private_list_vessels
@@ -2475,6 +2531,18 @@ components:
       required:
       - key
       - name
+    LastStatusEnum:
+      enum:
+      - new_data
+      - unchanged
+      - refused
+      - failed
+      type: string
+      description: |-
+        * `new_data` - new_data
+        * `unchanged` - unchanged
+        * `refused` - refused
+        * `failed` - failed
     MapPoint:
       type: object
       properties:
@@ -3206,6 +3274,45 @@ components:
       - kind
       - occurred_on
       - people
+    SyncSheet:
+      type: object
+      properties:
+        sheet:
+          $ref: '#/components/schemas/SheetEnum'
+        source:
+          type: string
+        last_checked_at:
+          type: string
+          format: date-time
+        last_status:
+          $ref: '#/components/schemas/LastStatusEnum'
+        last_message:
+          type: string
+        last_change_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_change:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+      - last_change
+      - last_change_at
+      - last_checked_at
+      - last_message
+      - last_status
+      - sheet
+      - source
+    SyncStatus:
+      type: object
+      properties:
+        sheets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncSheet'
+      required:
+      - sheets
     UploadRequest:
       type: object
       properties:

@@ -248,6 +248,35 @@ class SheetSnapshot(UUIDModel):
         return f"{self.sheet}@{self.sha256[:12]}"
 
 
+class SheetSync(UUIDModel):
+    """One scheduled reading of a Google Sheets tab and what it found (ADR 0012)."""
+
+    source = models.ForeignKey(Source, on_delete=models.PROTECT, related_name="sheet_syncs")
+    sheet = models.CharField(max_length=32, choices=SHEETS)
+    status = models.CharField(
+        max_length=16,
+        choices=[
+            ("new_data", "New data saved"),
+            ("unchanged", "Unchanged"),
+            ("refused", "Refused by the checks"),
+            ("failed", "Could not read"),
+        ],
+    )
+    snapshot = models.ForeignKey(
+        SheetSnapshot, on_delete=models.PROTECT, null=True, blank=True, related_name="syncs"
+    )
+    sha256 = models.CharField(max_length=64, blank=True)
+    # Counts only (to look at, unchanged, to fix); never source values.
+    summary = models.JSONField(default=dict, blank=True)
+    message = models.CharField(max_length=300, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["source", "sheet", "-created_at"])]
+
+    def __str__(self):
+        return f"{self.sheet} {self.status} {self.created_at:%Y-%m-%d %H:%M}"
+
+
 class SheetRow(UUIDModel):
     snapshot = models.ForeignKey(SheetSnapshot, on_delete=models.PROTECT, related_name="rows")
     line = models.PositiveIntegerField(validators=[MinValueValidator(2)])

@@ -9,6 +9,7 @@ const Catalog = import.meta.env.DEV ? lazy(() => import("./dev/Catalog")) : null
 const ReviewWorkspace = lazy(async () => ({ default: (await import("./review/ReviewWorkspace")).ReviewWorkspace }));
 const ImportsWorkspace = lazy(async () => ({ default: (await import("./imports/ImportsWorkspace")).ImportsWorkspace }));
 const PortsWorkspace = lazy(async () => ({ default: (await import("./ports/PortsWorkspace")).PortsWorkspace }));
+const TeamData = lazy(async () => ({ default: (await import("./workspace/TeamData")).TeamData }));
 const WorkspaceHome = lazy(async () => ({ default: (await import("./workspace/WorkspaceHome")).WorkspaceHome }));
 
 const within = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
@@ -49,6 +50,8 @@ function Routes() {
     <ReviewWorkspace />
   ) : within(pathname, "/workspace/imports") ? (
     <ImportsWorkspace />
+  ) : within(pathname, "/workspace/data") ? (
+    <TeamData />
   ) : within(pathname, "/workspace/ports") ? (
     <PortsWorkspace />
   ) : pathname === "/workspace" || pathname === "/workspace/" ? (

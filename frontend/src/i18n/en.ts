@@ -530,6 +530,18 @@ export const en = {
   "explore.sheet.Data_operations": "rescue operations sheet",
   "explore.sheet.Other_data": "other events sheet",
   "review.col.event": "Event",
+  "workspace.section.data": "Latest data",
+  "sync.title": "Data from the SOS sheet",
+  "sync.lead": "The app reads SOS MEDITERRANEE's Google Sheets every 5 minutes. What is shown here is private: nothing reaches the public site without a decision from the team.",
+  "sync.never": "The sheet has not been read yet. Ask the person who runs the app to start the automatic reading.",
+  "sync.loadError": "The reading status could not be loaded.",
+  "sync.status.new_data": "Read {when}: new information saved",
+  "sync.status.unchanged": "Read {when}: nothing has changed",
+  "sync.status.refused": "Read {when}: the sheet has an error and was not taken",
+  "sync.status.failed": "Tried {when}: the sheet could not be reached",
+  "sync.lastChange": "Last change {when}:",
+  "sync.counts": "{look} to look at, {fix} to fix in the sheet, {same} unchanged.",
+  "explore.sheet.Data_ports": "ports list",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

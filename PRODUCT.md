@@ -10,6 +10,8 @@ web
 - **Primary (main screen): the public.** Visitors, journalists and teachers who want to understand a period of actions at sea in the Mediterranean and cite a source. They arrive on a phone as often as on a laptop. Confirmed by Guillaume on 24 October 2026: the main screen is designed for the public first.
 - **The data team (private layer).** Volunteers who import the Google Sheets exports, check rows, read port names and prepare drafts. On the main screen they get a private preview of the latest export; their work happens in the private workspace (`/workspace`).
 - **Editorial lead.** Decides what becomes public, with a reason; can correct or withdraw.
+- Non-technical people on both sides (confirmed by Guillaume on 24 October 2026): the people who provide the data are not necessarily the people in the association who use it, and neither group should need technical knowledge. The team screens are written for non-technical users exactly like the public pages.
+- Public and team are kept clearly apart: the public page shows only what a visitor sees (published events); everything the team works on lives in the team space.
 - These audiences are hypotheses to confirm with SOS MEDITERRANEE and Data for Good, not interview results.
 
 ## Product Purpose
@@ -42,6 +44,7 @@ An independent, open-source interface (fork of Data for Good's `mediterranean-re
 - No photography, testimonies or press assets are cleared for use yet; none may be invented.
 
 ## Product Principles
+0. Anyone can be onboarded without knowing the field: each screen explains in a sentence what it is for and what to do, and no step assumes knowledge of sea rescue or data work (Guillaume, 24 October 2026).
 1. Provenance before polish: every figure shows where it comes from.
 2. Unknown is shown as unknown, never filled.
 3. Nothing becomes public without a named human decision.

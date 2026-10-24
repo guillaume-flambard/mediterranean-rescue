@@ -9,9 +9,10 @@ import { InlineMessage, PendingState } from "../ui/Feedback";
 
 export const ME_QUERY = ["get", "/api/private/v1/me/"] as const;
 
-type Section = "imports" | "review" | "ports";
+type Section = "data" | "imports" | "review" | "ports";
 
 const SECTIONS: readonly { key: Section; path: string; allowed: (me: Me) => boolean }[] = [
+  { key: "data", path: "/workspace/data", allowed: (me) => me.permissions.review_identity },
   { key: "imports", path: "/workspace/imports", allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity },
   { key: "review", path: "/workspace/review", allowed: (me) => me.permissions.review_identity },
   { key: "ports", path: "/workspace/ports", allowed: (me) => me.permissions.review_identity },

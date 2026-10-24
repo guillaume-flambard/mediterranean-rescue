@@ -4,6 +4,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
+import { Explore } from "../explore/Explore";
 import { fakeServer } from "../test/fakeServer";
 import { renderWithI18n } from "../test/render";
 
@@ -40,13 +41,9 @@ const EMPTY_PUBLIC = {
   "GET /api/v1/map-points/": () => ({ body: { points: [], located_count: 0, truncated: false } }),
 };
 
-function renderApp() {
+function renderApp(ui = <App />) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return renderWithI18n(
-    <QueryClientProvider client={client}>
-      <App />
-    </QueryClientProvider>,
-  );
+  return renderWithI18n(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 beforeEach(() => window.history.replaceState(null, "", "/"));
@@ -65,8 +62,20 @@ describe("main screen preview", () => {
     expect(calls.some((call) => call.path.startsWith("/api/private/v1/preview/"))).toBe(false);
   });
 
-  it("a signed-in reviewer sees the latest export, clearly marked private, and opens a row in place", async () => {
+  it("the public page stays public even for a signed-in team member", async () => {
     const { calls } = fakeServer({
+      ...EMPTY_PUBLIC,
+      "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
+    });
+    renderApp();
+    expect(await screen.findByText("No published event")).toBeTruthy();
+    expect(await screen.findByRole("link", { name: /Team space/ })).toBeTruthy();
+    expect(screen.queryByText(/latest data received/)).toBeNull();
+    expect(calls.some((call) => call.path.startsWith("/api/private/v1/preview/"))).toBe(false);
+  });
+
+  it("the team view shows the latest data, clearly marked private, and opens an event in place", async () => {
+    fakeServer({
       ...EMPTY_PUBLIC,
       "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
       "GET /api/private/v1/preview/events/": () => ({
@@ -77,7 +86,7 @@ describe("main screen preview", () => {
       }),
       "GET /api/private/v1/preview/events/:id/": () => ({ body: ITEM }),
     });
-    renderApp();
+    renderApp(<Explore audience="team" />);
     expect(await screen.findByText(/latest data received/)).toBeTruthy();
     expect((await screen.findAllByText("1 map points")).length).toBeGreaterThan(0);
     const card = await screen.findByRole("button", { name: /Port fictif/ });
@@ -88,10 +97,6 @@ describe("main screen preview", () => {
     expect((await within(region).findByRole("link", { name: /Verify this event/ })).getAttribute("href")).toBe(
       `/workspace/review/${SNAPSHOT}/rows/${ROW}`,
     );
-    // Published events stay one click away, through the public endpoints.
-    await userEvent.click(screen.getByRole("button", { name: "Public view" }));
-    expect((await screen.findAllByText("0 map points")).length).toBeGreaterThan(0);
-    expect(calls.some((call) => call.path === "/api/v1/events/")).toBe(true);
   });
 
   it("search words and kind chips reach the server", async () => {

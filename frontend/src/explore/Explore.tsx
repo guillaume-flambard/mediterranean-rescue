@@ -13,7 +13,6 @@ import { MiniMap } from "./MiniMap";
 const EventMap = lazy(async () => ({ default: (await import("../components/Map")).EventMap }));
 const PAGE = 25;
 const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
-type Mode = "preview" | "public";
 // Three ways to read the same events; only the feed is built so far, the others say so.
 type View = "feed" | "logbook" | "timeline";
 const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor"; ready: boolean }[] = [
@@ -77,15 +76,15 @@ function useDebounced<T>(value: T, delay: number) {
   return current;
 }
 
-export function Explore() {
+// The same reading screen for two audiences, never mixed: "public" shows only published events;
+// "team" (inside the team space) shows the latest data received, with its review state.
+export function Explore({ audience = "public" }: { audience?: "public" | "team" }) {
   const i18n = useI18n();
   const { t } = i18n;
   const me = api.useQuery("get", "/api/private/v1/me/", {}, { retry: false });
-  const canPreview = me.data?.permissions.review_identity === true;
-  const [modeChoice, setModeChoice] = useState<Mode | null>(null);
-  const mode: Mode = canPreview ? (modeChoice ?? "preview") : "public";
-  const preview = mode === "preview";
-  const { query } = useLocation();
+  const signedIn = me.data?.permissions.review_identity === true;
+  const preview = audience === "team";
+  const { pathname, query } = useLocation();
   const requested = VIEWS.find((item) => item.value === query.get("view") && item.ready);
   const view: View = requested?.value ?? "feed";
 
@@ -196,7 +195,8 @@ export function Explore() {
   };
 
   return (
-    <div className="explore">
+    <div className={`explore${preview ? " explore--team" : ""}`}>
+      {!preview && (
       <header className="explore-bar">
         <a href="/" className="explore-bar__brand">
           {t("app.brand")}
@@ -212,10 +212,11 @@ export function Explore() {
           />
           <Link to="/workspace" className="explore-bar__workspace">
             <Icon name="lock" size={16} />
-            <span className="explore-bar__workspace-label">{canPreview ? t("preview.workspace") : t("preview.signIn")}</span>
+            <span className="explore-bar__workspace-label">{signedIn ? t("preview.workspace") : t("preview.signIn")}</span>
           </Link>
         </div>
       </header>
+      )}
 
       <div className="explore-body">
         <section className="explore-feed" aria-labelledby="explore-title">
@@ -232,7 +233,7 @@ export function Explore() {
                   className="views__option"
                   aria-pressed={view === item.value}
                   disabled={!item.ready}
-                  onClick={() => navigate(withQuery("/", { view: item.value === "feed" ? null : item.value }), { replace: true })}
+                  onClick={() => navigate(withQuery(pathname, { view: item.value === "feed" ? null : item.value }), { replace: true })}
                 >
                   <Icon name={item.icon} size={16} />
                   {t(`explore.view.${item.value}`)}
@@ -301,24 +302,8 @@ export function Explore() {
             )}
           </div>
 
-          {canPreview && (
+          {preview && (
             <div className="preview-strip">
-              <div className="segmented" role="group" aria-label={t("preview.modeLabel")}>
-                {(["preview", "public"] as const).map((value) => (
-                  <BaseButton
-                    key={value}
-                    className="segmented__option"
-                    aria-pressed={mode === value}
-                    onClick={() => {
-                      setModeChoice(value);
-                      resetView();
-                    }}
-                  >
-                    {value === "preview" && <Icon name="lock" size={15} />}
-                    {t(`preview.mode.${value}`)}
-                  </BaseButton>
-                ))}
-              </div>
               {preview && (
                 <div className="notice-preview" role="status">
                   <Icon name="lock" size={18} />

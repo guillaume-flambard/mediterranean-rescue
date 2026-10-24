@@ -23,6 +23,7 @@ from catalog.private_ports import (
     VesselsView,
 )
 from catalog.private_preview import PreviewEventsView, PreviewEventView, PreviewMapView
+from catalog.private_sync import SyncStatusView
 from django.contrib import admin
 from django.db import connection
 from django.http import JsonResponse
@@ -77,6 +78,7 @@ urlpatterns = [
     path("api/private/v1/preview/events/", PreviewEventsView.as_view()),
     path("api/private/v1/preview/events/<uuid:id>/", PreviewEventView.as_view()),
     path("api/private/v1/preview/map-points/", PreviewMapView.as_view()),
+    path("api/private/v1/sync/", SyncStatusView.as_view()),
     path(
         "api/v1/schema/",
         SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),
