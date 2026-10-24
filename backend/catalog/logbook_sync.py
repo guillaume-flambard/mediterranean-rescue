@@ -8,6 +8,7 @@ entry, quote, what to check).
 """
 
 import logging
+from collections import defaultdict
 from datetime import date
 
 from django.core.exceptions import ValidationError
@@ -62,17 +63,42 @@ def sheet_last_date():
     """The last operation in the association's sheet, as the team sees how far it lags. Fictitious
     training sources never count (acceptance of 24 October 2026, D3)."""
     last = None
-    snapshots = (
+    for snapshot in _latest_real_sheets():
+        for value in snapshot.rows.values_list("candidate__occurred_on", flat=True):
+            if value and (last is None or value > last):
+                last = value
+    return date.fromisoformat(last) if last else SHEET_LAST_KNOWN
+
+
+def _latest_real_sheets():
+    # The association's own sheets, latest reading of each: never the logbook nor training data.
+    return (
         SheetSnapshot.objects.filter(sheet=SHEET, source__synthetic=False)
         .exclude(source__key=LOGBOOK_SOURCE_KEY)
         .order_by("source_id", "-created_at")
         .distinct("source_id")
     )
-    for snapshot in snapshots:
-        for value in snapshot.rows.values_list("candidate__occurred_on", flat=True):
-            if value and (last is None or value > last):
-                last = value
-    return date.fromisoformat(last) if last else SHEET_LAST_KNOWN
+
+
+def rows_already_in_sheet(logbook_rows):
+    """Rebuilt rows the association has since pasted into its sheet: row id -> sheet line.
+
+    A rescue matches a sheet row of the same day and number of people, each sheet row at most
+    once, so two rescues of the same size need two rows in the sheet (audit of 25 October 2026).
+    """
+    lines = defaultdict(list)
+    for snapshot in _latest_real_sheets():
+        for line, candidate in snapshot.rows.order_by("line").values_list("line", "candidate"):
+            candidate = candidate or {}
+            if candidate.get("kind") == "rescue" and candidate.get("nb_survivor"):
+                lines[(candidate.get("occurred_on"), candidate["nb_survivor"])].append(line)
+    found = {}
+    for row in sorted(logbook_rows, key=lambda row: row.line):
+        candidate = row.candidate or {}
+        key = (candidate.get("occurred_on"), candidate.get("nb_survivor"))
+        if candidate.get("kind") == "rescue" and lines.get(key):
+            found[row.pk] = lines[key].pop(0)
+    return found
 
 
 def _try_lock():

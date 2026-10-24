@@ -22,6 +22,7 @@ from .crosswalk import (
     approve_link,
     propose_links,
 )
+from .logbook_sync import rows_already_in_sheet
 from .models import SHEETS, RowIdentityLink, SheetRow, SheetSnapshot, SourceIdentity
 
 PROPOSAL_KINDS = ("new", "exact_carry", "candidates", "blocked", "repeat", "linked")
@@ -415,15 +416,22 @@ class LogbookEvidenceSerializer(serializers.Serializer):
     logged_at = serializers.CharField()
     quote = serializers.CharField()
     to_check = serializers.ListField(child=serializers.CharField())
+    sheet_line = serializers.IntegerField(
+        allow_null=True, help_text="Line of the association's sheet that already holds this row."
+    )
 
 
-def logbook_evidence(row):
-    """The logbook page and quote a rebuilt row comes from (ADR 0014); None for a sheet row."""
+def logbook_evidence(row, in_sheet=None):
+    """The logbook page and quote a rebuilt row comes from (ADR 0014); None for a sheet row.
+    `in_sheet` maps rebuilt rows to the sheet line that holds them (rows_already_in_sheet)."""
     try:
         found = row.logbook
     except SheetRow.logbook.RelatedObjectDoesNotExist:
         return None
+    if in_sheet is None:
+        in_sheet = rows_already_in_sheet(row.snapshot.rows.all())
     return {
+        "sheet_line": in_sheet.get(row.pk),
         "url": found.source_url,
         "rotation": found.rotation,
         "logged_at": found.logged_at,

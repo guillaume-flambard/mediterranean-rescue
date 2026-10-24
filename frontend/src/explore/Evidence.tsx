@@ -19,6 +19,7 @@ const CHECKS = [
   "grouped",
   "count_unknown",
   "merged_repeat",
+  "same_size_twice",
   "rotation_total",
 ];
 
@@ -26,6 +27,8 @@ export function checkText(i18n: I18n, point: string) {
   const [code = "", value = "", raw = ""] = point.split(":");
   if (!CHECKS.includes(code)) return point;
   if (code === "position_read") return i18n.t(`logbook.check.position_read.${value}` as Key, { value: raw });
+  // A time keeps its colon: "merged_repeat:07:20".
+  if (code === "merged_repeat") return i18n.t("logbook.check.merged_repeat", { value: point.slice(code.length + 1) });
   if (code === "date_outside") return i18n.t("logbook.check.date_outside", { value: i18n.date(value) });
   if (code === "rotation_total") {
     const [stated = "", found = ""] = value.split("/");
@@ -66,6 +69,11 @@ export function EvidenceBlock({ evidence }: { evidence: Evidence }) {
         {t(news ? "logbook.evidence.newsLabel" : "logbook.evidence.label", { when: when(i18n, evidence.logged_at) })}
       </p>
       <blockquote lang={news ? "fr" : "en"}>{evidence.quote}</blockquote>
+      {evidence.sheet_line !== null && (
+        <p className="logbook-evidence__in-sheet">
+          <Icon name="check" size={16} /> {t("logbook.evidence.inSheet", { line: evidence.sheet_line })}
+        </p>
+      )}
       {checks.length > 0 && (
         <div className="logbook-evidence__check">
           <p>

@@ -18,7 +18,13 @@ from rest_framework.response import Response
 from .api import parameters
 from .crosswalk import propose_links
 from .logbook import SHEET_HEADER
-from .logbook_sync import LOGBOOK_SOURCE_KEY, SHEET, current_logbook_snapshot, sheet_last_date
+from .logbook_sync import (
+    LOGBOOK_SOURCE_KEY,
+    SHEET,
+    current_logbook_snapshot,
+    rows_already_in_sheet,
+    sheet_last_date,
+)
 from .models import SheetSnapshot, SheetSync
 from .private_api import ERRORS, STATUS_BY_PROPOSAL, CanStageOrReview, PrivateView
 
@@ -41,6 +47,9 @@ def row_statuses(snapshot):
 # sheet plus the rebuilt rows against (sosmediterranee.fr/publications, read 24 October 2026).
 REPORTED_PEOPLE = {2024: 1948, 2025: 1358}
 REPORTS_URL = "https://sosmediterranee.fr/publications/"
+# People rescued since 2016 as the association's home page gave them (sosmediterranee.fr, read
+# 24 October 2026). Rows after this date are not part of the comparison.
+REPORTED_CUMULATIVE = ("2026-10-02", 43641)
 
 
 class LogbookYearSerializer(serializers.Serializer):
@@ -48,6 +57,16 @@ class LogbookYearSerializer(serializers.Serializer):
     in_sheet = serializers.IntegerField()
     from_logbook = serializers.IntegerField()
     reported = serializers.IntegerField(allow_null=True)
+
+
+class LogbookCumulativeSerializer(serializers.Serializer):
+    as_of = serializers.DateField()
+    reported = serializers.IntegerField()
+    in_sheet = serializers.IntegerField()
+    from_logbook = serializers.IntegerField(help_text="Rebuilt rescues up to as_of.")
+    after = serializers.IntegerField(
+        help_text="People in rebuilt rescues after as_of, not compared."
+    )
 
 
 class LogbookOverviewSerializer(serializers.Serializer):
@@ -62,8 +81,13 @@ class LogbookOverviewSerializer(serializers.Serializer):
     to_verify = serializers.IntegerField()
     to_fix = serializers.IntegerField()
     to_check = serializers.IntegerField(help_text="Rows whose evidence asks for a human check.")
+    in_sheet = serializers.IntegerField(
+        help_text="Rebuilt rows the association's sheet now holds; left out of the export."
+    )
+    ready = serializers.IntegerField(help_text="Verified rows not in the sheet yet: the export.")
     snapshot = serializers.UUIDField(allow_null=True)
     years = LogbookYearSerializer(many=True)
+    cumulative = LogbookCumulativeSerializer(allow_null=True)
     reports_url = serializers.URLField()
 
 
@@ -77,8 +101,7 @@ def _people_by_year(rows, kinds=("rescue", "transfer")):
     return totals
 
 
-def year_totals(logbook_rows):
-    """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them."""
+def _sheet_people_by_year():
     sheet = {}
     for snapshot in (
         # Fictitious training sources never count against SOS's reports.
@@ -89,6 +112,33 @@ def year_totals(logbook_rows):
     ):
         for year, people in _people_by_year(snapshot.rows.all()).items():
             sheet[year] = sheet.get(year, 0) + people
+    return sheet
+
+
+def cumulative_total(logbook_rows, sheet):
+    """Everyone in the sheet plus the rescues rebuilt up to the date of SOS's published total."""
+    as_of, reported = REPORTED_CUMULATIVE
+    before = after = 0
+    for row in logbook_rows:
+        candidate = row.candidate or {}
+        day, people = candidate.get("occurred_on"), candidate.get("nb_survivor")
+        if day and people and candidate.get("kind") == "rescue":
+            if day <= as_of:
+                before += people
+            else:
+                after += people
+    return {
+        "as_of": as_of,
+        "reported": reported,
+        "in_sheet": sum(sheet.values()),
+        "from_logbook": before,
+        "after": after,
+    }
+
+
+def year_totals(logbook_rows, sheet=None):
+    """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them."""
+    sheet = _sheet_people_by_year() if sheet is None else sheet
     rebuilt = _people_by_year(logbook_rows, kinds=("rescue",))
     return [
         {
@@ -125,8 +175,11 @@ class LogbookOverviewView(PrivateView):
             "to_verify": 0,
             "to_fix": 0,
             "to_check": 0,
+            "in_sheet": 0,
+            "ready": 0,
             "snapshot": None,
             "years": [],
+            "cumulative": None,
             "reports_url": REPORTS_URL,
         }
         if snapshot is not None:
@@ -149,8 +202,16 @@ class LogbookOverviewView(PrivateView):
                     1 for row in rows if hasattr(row, "logbook") and row.logbook.to_check.strip()
                 ),
                 snapshot=snapshot.pk,
-                years=year_totals(rows),
             )
+            in_sheet = rows_already_in_sheet(rows)
+            payload.update(
+                in_sheet=len(in_sheet),
+                ready=sum(
+                    1 for row in rows if statuses[row.pk] == "linked" and row.pk not in in_sheet
+                ),
+            )
+            sheet = _sheet_people_by_year()
+            payload.update(years=year_totals(rows, sheet), cumulative=cumulative_total(rows, sheet))
         return Response(LogbookOverviewSerializer(payload).data)
 
 
@@ -174,9 +235,12 @@ class LogbookExportView(PrivateView):
         writer.writerow(snapshot.header_cells if snapshot else SHEET_HEADER)
         if snapshot is not None:
             statuses = row_statuses(snapshot)
-            # Only rows a volunteer verified, as the logbook rebuilt them, in date order.
-            for row in snapshot.rows.order_by("line"):
-                if statuses[row.pk] == "linked":
+            rows = list(snapshot.rows.order_by("line"))
+            in_sheet = rows_already_in_sheet(rows)
+            # Only rows a volunteer verified, as the logbook rebuilt them, in date order, and never
+            # a row the association has already pasted into its sheet.
+            for row in rows:
+                if statuses[row.pk] == "linked" and row.pk not in in_sheet:
                     writer.writerow([sheet_cell(cell) for cell in row.raw_cells])
         response = HttpResponse(buffer.getvalue(), content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = (

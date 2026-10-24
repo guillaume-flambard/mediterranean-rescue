@@ -575,6 +575,7 @@ body:has(.explore--team) { background: #eeedf2; }
 .logbook-evidence__check p { display: flex; align-items: center; gap: 6px; margin: 0; color: #8a5a00; font-weight: 700; font-size: 14px; }
 .logbook-evidence__check ul { margin: 4px 0 0; padding-left: 20px; color: var(--color-text-secondary); font-size: 14px; }
 .logbook-evidence .card__provenance a { color: var(--sos-navy); font-weight: 700; }
+.logbook-evidence__in-sheet { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--color-success); font-weight: 700; font-size: 14px; }
 .chip--logbook svg { color: var(--sos-navy); }
 .chip--logbook[aria-pressed="true"] svg { color: var(--sos-white); }
 

@@ -412,7 +412,7 @@ MEDEVAC = re.compile(r"medical evacuation|medevac", re.I)
 
 def find_rescues(rotation: Rotation, window):
     """One row per recovery completed by the Ocean Viking, with the boat described before it."""
-    rows = []
+    rows, repeats = [], []
     start, end = window
     last_boat = ""
     last_position = None
@@ -459,8 +459,9 @@ def find_rescues(rotation: Rotation, window):
         people = int(people_match.group(1))
         if REPORTED.search(lead):
             flags.append("reported_in_message")
-        # The same recovery is often logged twice on the same day with the same number: one row,
-        # which says it merged a repeat, so two distinct rescues of equal size are not hidden.
+        # The same recovery is often logged twice on the same day with the same number. The repeat
+        # is kept aside, not dropped: the mission's stated total decides below whether it was a
+        # second rescue of the same size.
         twin = next(
             (
                 row
@@ -469,14 +470,11 @@ def find_rescues(rotation: Rotation, window):
             ),
             None,
         )
-        if twin is not None:
-            if "merged_repeat" not in twin[5]:
-                twin[5].append("merged_repeat")
-            continue
         # "RHIBs complete the recovery of 111", then "Ocean Viking completes the recovery all 129":
         # the second, saying all, is the whole recovery and replaces the partial count.
         if (
-            re.search(r"\ball\s+\d", text, re.I)
+            twin is None
+            and re.search(r"\ball\s+\d", text, re.I)
             and rows
             and rows[-1][0] == "Rescue"
             and rows[-1][1].day == entry.day
@@ -493,9 +491,36 @@ def find_rescues(rotation: Rotation, window):
             flags.append(f"position_read:{where[2]}:{where[3]}")
         if re.search(r"two (?:simultaneous rescues|boats)|from two", text, re.I):
             flags.append("two_boats")
-        rows.append(("Rescue", entry, people, where, last_boat, flags))
+        row = ("Rescue", entry, people, where, last_boat, flags)
+        if twin is not None:
+            twin[5].append(f"merged_repeat:{entry.time}")
+            repeats.append((twin, row))
+        else:
+            rows.append(row)
         last_boat = ""
-    return rows
+    return restore_same_size_rescues(rotation, rows, repeats)
+
+
+def restore_same_size_rescues(rotation, rows, repeats):
+    """Two mentions of the same number on the same day are one rescue logged twice, unless the
+    mission's stated total is short of exactly those people: then they were two rescues of the same
+    size, and both rows stay, marked for a human check (audit of 25 October 2026)."""
+    if not repeats or rotation.survivors is None:
+        return rows
+    missing = rotation.survivors - sum(row[2] or 0 for row in rows if row[0] == "Rescue")
+    if missing <= 0:
+        return rows
+    if sum(repeat[2] for _, repeat in repeats) == missing:
+        restored = repeats
+    else:
+        restored = [pair for pair in repeats if pair[1][2] == missing][:1]
+    order = {id(entry): index for index, entry in enumerate(rotation.entries)}
+    for twin, repeat in restored:
+        twin[5][:] = [flag for flag in twin[5] if not flag.startswith("merged_repeat")]
+        twin[5].append("same_size_twice")
+        repeat[5].append("same_size_twice")
+        rows.append(repeat)
+    return sorted(rows, key=lambda row: order.get(id(row[1]), 0))
 
 
 def _same_rescue(previous: Entry, entry: Entry) -> bool:
@@ -539,11 +564,11 @@ def french_rotations(get: Callable[[str], str | None], after: date):
 # Codes for what a person should check, translated by the interface. Each is "code" or
 # "code:value": date_outside:<day>, medevac, reported_in_message, partial_replaced:<n>, no_position,
 # position_read:<text|compact|swapped>:<as written>, two_boats, news_site, grouped:<operations>,
-# count_unknown, merged_repeat, rotation_total:<stated>/<found>.
+# count_unknown, merged_repeat:<time of the repeat>, same_size_twice, rotation_total:<stated>/<found>.
 CHECK_CODES = (
     "date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position",
     "position_read", "two_boats", "news_site", "grouped", "count_unknown", "merged_repeat",
-    "rotation_total",
+    "same_size_twice", "rotation_total",
 )  # fmt: skip
 
 FR_RESCUE = re.compile(

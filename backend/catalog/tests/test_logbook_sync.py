@@ -99,6 +99,24 @@ class LogbookSyncTests(PrivateApiTestCase):
         self.assertTrue(lines[1].startswith("13/03/2025,Rescue,1,40"))
         self.assertEqual(self.get("logbook/").json()["verified"], 1)
 
+    def test_rows_the_association_pasted_into_its_sheet_leave_the_export(self):
+        # Audit of 25 October 2026: the fixed start must not make SOS paste a row twice.
+        run = self.read()
+        for row in run.snapshot.rows.all():
+            approve_link(row=row, actor=self.reviewer, reason="Checked")
+        real = Source.objects.create(key="sos-real", name="SOS sheet", url="https://example.org")
+        self.stage(
+            ops_csv(ops_row(date="06/02/2024"), ops_row(date="13/03/2025", nb_survivor="40")),
+            source=real,
+        )
+        overview = self.get("logbook/").json()
+        self.assertEqual((overview["verified"], overview["in_sheet"], overview["ready"]), (2, 1, 1))
+        lines = self.get("logbook/export/").content.decode().splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertTrue(lines[1].startswith("14/03/2025,Rescue,1,25"))
+        pasted = run.snapshot.rows.get(line=2)
+        self.assertEqual(self.get(f"review/rows/{pasted.pk}/").json()["evidence"]["sheet_line"], 3)
+
     def test_reviewers_only(self):
         self.assertEqual(self.get("logbook/", client=Client()).status_code, 401)
         outsider = Client()
@@ -176,6 +194,17 @@ class LogbookPresentationTests(PrivateApiTestCase):
         self.assertEqual(
             overview["years"],
             [{"year": 2025, "in_sheet": 0, "from_logbook": 65, "reported": 1358}],
+        )
+        # The fixture source is fictitious: nothing of the sheet counts against SOS's total.
+        self.assertEqual(
+            overview["cumulative"],
+            {
+                "as_of": "2026-10-02",
+                "reported": 43641,
+                "in_sheet": 0,
+                "from_logbook": 65,
+                "after": 0,
+            },
         )
         sync = self.get("sync/").json()["sheets"]
         self.assertIn(LOGBOOK_SOURCE_KEY, {sheet["source_key"] for sheet in sync})

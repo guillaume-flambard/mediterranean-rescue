@@ -1,4 +1,5 @@
 import { api } from "../api/client";
+import type { components } from "../api/schema";
 import { Explore } from "../explore/Explore";
 import { useI18n, type I18n } from "../i18n/I18nProvider";
 import { Link } from "../router";
@@ -71,6 +72,67 @@ function SyncStatus() {
   );
 }
 
+type Overview = components["schemas"]["LogbookOverview"];
+
+// The rebuilt rows against the figures SOS published. Green only when every compared figure
+// is the same; a gap is shown as a gap to reconcile, never as checked (audit of 25 October 2026).
+function FiguresCheck({ data }: { data: Overview }) {
+  const i18n = useI18n();
+  const { t } = i18n;
+  const yearGaps = data.years.map((year) => (year.reported === null ? 0 : year.reported - year.in_sheet - year.from_logbook));
+  const total = data.cumulative ? data.cumulative.in_sheet + data.cumulative.from_logbook : 0;
+  const totalGap = data.cumulative ? data.cumulative.reported - total : 0;
+  const gap = data.cumulative ? totalGap : yearGaps.reduce((sum, value) => sum + Math.abs(value), 0);
+  const matches = gap === 0 && yearGaps.every((value) => value === 0);
+  const sameOrGap = (reported: number, difference: number, same: Key, differs: Key) =>
+    difference === 0 ? t(same) : t(differs, { reported: i18n.number(reported), gap: i18n.number(difference) });
+  return (
+    <div className={`logbook-card__check${matches ? "" : " logbook-card__check--gap"}`}>
+      <p className="logbook-card__check-title">
+        <Icon name={matches ? "check" : "alert"} size={16} />{" "}
+        {matches ? t("logbook.card.checkMatches") : t("logbook.card.checkGapTitle", { count: Math.abs(gap) })}
+      </p>
+      <ul>
+        {data.years.map((year, index) => (
+          <li key={year.year}>
+            {t("logbook.card.checkYear", {
+              year: String(year.year),
+              total: i18n.number(year.in_sheet + year.from_logbook),
+              sheet: i18n.number(year.in_sheet),
+              logbook: i18n.number(year.from_logbook),
+            })}
+            {" · "}
+            {year.reported === null
+              ? t("logbook.card.checkNone")
+              : sameOrGap(year.reported, yearGaps[index]!, "logbook.card.checkSame", "logbook.card.checkGap")}
+          </li>
+        ))}
+        {data.cumulative && (
+          <li>
+            {t("logbook.card.checkTotal", {
+              date: i18n.date(data.cumulative.as_of),
+              total: i18n.number(total),
+              sheet: i18n.number(data.cumulative.in_sheet),
+              logbook: i18n.number(data.cumulative.from_logbook),
+            })}
+            {" · "}
+            {sameOrGap(data.cumulative.reported, totalGap, "logbook.card.checkTotalSame", "logbook.card.checkTotalGap")}
+          </li>
+        )}
+      </ul>
+      {!matches && <p className="logbook-card__check-note">{t("logbook.card.checkGapNote")}</p>}
+      {data.cumulative && data.cumulative.after > 0 && (
+        <p className="logbook-card__check-note">
+          {t("logbook.card.checkAfter", { count: data.cumulative.after, date: i18n.date(data.cumulative.as_of) })}
+        </p>
+      )}
+      <a href={data.reports_url} target="_blank" rel="noreferrer">
+        {t("logbook.card.reports")}
+      </a>
+    </div>
+  );
+}
+
 // The public logbook as the way to bring SOS's map up to date (ADR 0014): how far the sheet lags,
 // what was rebuilt, what is verified, and the verified rows to paste into the sheet.
 export function LogbookCard() {
@@ -97,43 +159,14 @@ export function LogbookCard() {
           {data.to_check > 0 && ` ${t("logbook.card.toCheck", { count: data.to_check })}`}
         </li>
         <li>
-          <b>{t("logbook.card.step2")}</b> {t("logbook.card.step2Body", { count: data.verified })}
+          <b>{t("logbook.card.step2")}</b> {t("logbook.card.step2Body", { count: data.ready })}
+          {data.in_sheet > 0 && ` ${t("logbook.card.inSheet", { count: data.in_sheet })}`}
         </li>
         <li>
           <b>{t("logbook.card.step3")}</b> {t("logbook.card.step3Body")}
         </li>
       </ol>
-      {data.years.length > 0 && (
-        <div className="logbook-card__check">
-          <p className="logbook-card__check-title">
-            <Icon name="check" size={16} /> {t("logbook.card.checkTitle")}
-          </p>
-          <ul>
-            {data.years.map((year) => {
-              const total = year.in_sheet + year.from_logbook;
-              return (
-                <li key={year.year}>
-                  {t("logbook.card.checkYear", {
-                    year: String(year.year),
-                    total: i18n.number(total),
-                    sheet: i18n.number(year.in_sheet),
-                    logbook: i18n.number(year.from_logbook),
-                  })}
-                  {" · "}
-                  {year.reported === null
-                    ? t("logbook.card.checkNone")
-                    : year.reported === total
-                      ? t("logbook.card.checkSame")
-                      : t("logbook.card.checkGap", { reported: i18n.number(year.reported), gap: i18n.number(year.reported - total) })}
-                </li>
-              );
-            })}
-          </ul>
-          <a href={data.reports_url} target="_blank" rel="noreferrer">
-            {t("logbook.card.reports")}
-          </a>
-        </div>
-      )}
+      {data.years.length > 0 && <FiguresCheck data={data} />}
       <div className="logbook-card__actions">
         {data.to_verify > 0 && data.snapshot && (
           <Link to={`/workspace/review?snapshot=${data.snapshot}`} className="pill-button pill-button--primary">
@@ -145,10 +178,10 @@ export function LogbookCard() {
           <Icon name="map" size={16} />
           {t("logbook.card.show")}
         </Link>
-        {data.verified > 0 ? (
+        {data.ready > 0 ? (
           <a className="pill-button" href="/api/private/v1/logbook/export/" download>
             <Icon name="download" size={16} />
-            {t("logbook.card.download", { count: data.verified })}
+            {t("logbook.card.download", { count: data.ready })}
           </a>
         ) : (
           <span className="logbook-card__disabled">{t("logbook.card.nothingToDownload")}</span>

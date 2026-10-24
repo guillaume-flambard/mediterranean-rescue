@@ -3134,6 +3134,28 @@ components:
         * `unchanged` - unchanged
         * `refused` - refused
         * `failed` - failed
+    LogbookCumulative:
+      type: object
+      properties:
+        as_of:
+          type: string
+          format: date
+        reported:
+          type: integer
+        in_sheet:
+          type: integer
+        from_logbook:
+          type: integer
+          description: Rebuilt rescues up to as_of.
+        after:
+          type: integer
+          description: People in rebuilt rescues after as_of, not compared.
+      required:
+      - after
+      - as_of
+      - from_logbook
+      - in_sheet
+      - reported
     LogbookEvidence:
       type: object
       properties:
@@ -3150,10 +3172,15 @@ components:
           type: array
           items:
             type: string
+        sheet_line:
+          type: integer
+          nullable: true
+          description: Line of the association's sheet that already holds this row.
       required:
       - logged_at
       - quote
       - rotation
+      - sheet_line
       - to_check
       - url
     LogbookOverview:
@@ -3187,6 +3214,13 @@ components:
         to_check:
           type: integer
           description: Rows whose evidence asks for a human check.
+        in_sheet:
+          type: integer
+          description: Rebuilt rows the association's sheet now holds; left out of
+            the export.
+        ready:
+          type: integer
+          description: 'Verified rows not in the sheet yet: the export.'
         snapshot:
           type: string
           format: uuid
@@ -3195,15 +3229,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LogbookYear'
+        cumulative:
+          allOf:
+          - $ref: '#/components/schemas/LogbookCumulative'
+          nullable: true
         reports_url:
           type: string
           format: uri
       required:
+      - cumulative
       - first_date
+      - in_sheet
       - last_date
       - last_read_at
       - last_read_status
       - people
+      - ready
       - reports_url
       - rows
       - sheet_last_date

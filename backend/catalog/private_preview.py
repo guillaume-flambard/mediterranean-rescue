@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from .api import parameters
 from .crosswalk import propose_links
-from .logbook_sync import LOGBOOK_SOURCE_KEY, current_logbook_snapshot
+from .logbook_sync import LOGBOOK_SOURCE_KEY, current_logbook_snapshot, rows_already_in_sheet
 from .models import SheetRow, SheetSnapshot, Source
 from .private_api import (
     ERRORS,
@@ -84,7 +84,7 @@ def position(candidate):
     }
 
 
-def item(row, snapshot, status):
+def item(row, snapshot, status, in_sheet=None):
     candidate = row.candidate or {}
     images = candidate.get("image_src") or []
     return {
@@ -107,7 +107,7 @@ def item(row, snapshot, status):
         "boat_type": candidate.get("boat_type"),
         "position": position(candidate),
         "image_count": len(images) if isinstance(images, list) else 0,
-        "evidence": logbook_evidence(row),
+        "evidence": logbook_evidence(row, in_sheet),
     }
 
 
@@ -118,10 +118,14 @@ def preview_items(values):
         if "source" in values and snapshot.source.key != values["source"]:
             continue
         statuses = {p.row_id: STATUS_BY_PROPOSAL[p.kind] for p in propose_links(snapshot)}
-        for row in snapshot.rows.select_related("logbook").only(
-            "id", "line", "candidate", "error_codes", "logbook"
-        ):
-            entry = item(row, snapshot, statuses[row.pk])
+        rows = list(
+            snapshot.rows.select_related("logbook").only(
+                "id", "line", "candidate", "error_codes", "logbook"
+            )
+        )
+        in_sheet = rows_already_in_sheet(rows) if snapshot.source.key == LOGBOOK_SOURCE_KEY else {}
+        for row in rows:
+            entry = item(row, snapshot, statuses[row.pk], in_sheet)
             day = entry["occurred_on"]
             if "start" in values and (day is None or day < values["start"].isoformat()):
                 continue

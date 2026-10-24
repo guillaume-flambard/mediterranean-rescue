@@ -31,9 +31,11 @@ Disembarkation of the 65 survivors starts.</div></article>
 
 
 class ReaderTests(SimpleTestCase):
-    def rows(self):
+    def rows(self, survivors=None):
         rotation = lb.Rotation(
-            slug="operation-12-19-march-2025", url="https://www.sosmediterranee.org/operation/x/"
+            slug="operation-12-19-march-2025",
+            url="https://www.sosmediterranee.org/operation/x/",
+            survivors=survivors,
         )
         rotation.entries = lb.parse_rotation_page(PAGE)
         window = lb.rotation_window(rotation.slug, rotation.entries)
@@ -58,6 +60,20 @@ class ReaderTests(SimpleTestCase):
         flags = rows[1][5]
         self.assertIn("partial_replaced:20", flags)
         self.assertIn("position_read:text:34 23 N 012 59 E", flags)
+
+    def test_a_repeat_is_counted_once_when_the_mission_total_agrees(self):
+        _, rows = self.rows(survivors=65)
+        self.assertEqual([people for _, _, people, *_ in rows], [40, 25])
+        self.assertIn("merged_repeat:07:20", rows[0][5])
+
+    def test_two_rescues_of_the_same_size_stay_two_when_the_mission_total_says_so(self):
+        # Audit of 25 October 2026: a second boat with as many people must never vanish.
+        _, rows = self.rows(survivors=105)
+        self.assertEqual([people for _, _, people, *_ in rows], [40, 40, 25])
+        self.assertEqual([row[1].time for row in rows], ["07:00", "07:20", "12:30"])
+        for row in rows[:2]:
+            self.assertIn("same_size_twice", row[5])
+            self.assertFalse(any(flag.startswith("merged_repeat") for flag in row[5]))
 
     def test_positions_in_every_format_and_nothing_outside_the_region(self):
         self.assertEqual(lb.parse_position("Latitude: 3426 / Longitude: 01209")[2], "compact")

@@ -804,6 +804,16 @@ export interface components {
          * @enum {string}
          */
         LastStatusEnum: "new_data" | "unchanged" | "refused" | "failed";
+        LogbookCumulative: {
+            /** Format: date */
+            as_of: string;
+            reported: number;
+            in_sheet: number;
+            /** @description Rebuilt rescues up to as_of. */
+            from_logbook: number;
+            /** @description People in rebuilt rescues after as_of, not compared. */
+            after: number;
+        };
         LogbookEvidence: {
             /** Format: uri */
             url: string;
@@ -811,6 +821,8 @@ export interface components {
             logged_at: string;
             quote: string;
             to_check: string[];
+            /** @description Line of the association's sheet that already holds this row. */
+            sheet_line: number | null;
         };
         LogbookOverview: {
             /** Format: date */
@@ -827,9 +839,14 @@ export interface components {
             to_fix: number;
             /** @description Rows whose evidence asks for a human check. */
             to_check: number;
+            /** @description Rebuilt rows the association's sheet now holds; left out of the export. */
+            in_sheet: number;
+            /** @description Verified rows not in the sheet yet: the export. */
+            ready: number;
             /** Format: uuid */
             snapshot: string | null;
             years: components["schemas"]["LogbookYear"][];
+            cumulative: components["schemas"]["LogbookCumulative"] | null;
             /** Format: uri */
             reports_url: string;
         };

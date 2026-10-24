@@ -176,6 +176,9 @@
 .logbook-card__check { display: grid; gap: 4px; padding: var(--space-3) var(--space-4); border-radius: 16px; background: var(--color-success-background); font-variant-numeric: lining-nums tabular-nums; }
 .logbook-card__check-title { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--color-success); font-weight: 800; }
 .logbook-card__check ul { margin: 0; padding-left: 20px; line-height: 1.5; }
+.logbook-card__check--gap { background: var(--color-warning-background); }
+.logbook-card__check--gap .logbook-card__check-title { color: var(--color-warning); }
+.logbook-card__check-note { margin: 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
 .logbook-card__check a { justify-self: start; color: var(--sos-navy); font-weight: 700; font-size: 14px; }
 .logbook-card__disabled { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); color: var(--color-text-muted); font-size: 14px; font-weight: 600; }
 .review-compare { padding: var(--space-3) var(--space-4); border-radius: 16px; background: rgb(27 39 71 / 0.05); }
