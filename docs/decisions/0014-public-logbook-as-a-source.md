@@ -19,6 +19,6 @@ La carte publique de SOS MEDITERRANEE (CartONG) lit un tableur dont la dernière
 - L'API WordPress de sosmediterranee.org est fermée (401) ; le sitemap et les pages HTML sont publics.
 
 ## Limites
-- La lecture repose sur des formulations : sur les 38 rotations qui ont des sauvetages, 2 n'ont pas une somme égale au total annoncé par SOS et le disent dans leur note ; 31 lignes sur 67 portent une note à vérifier (codes traduits dans l'interface), trois cas n'ont pas de chiffre exploitable (81 personnes). Un changement de mise en page du site peut casser la lecture : il serait vu comme une lecture vide ou en échec, jamais comme des données inventées.
+- La lecture repose sur des formulations : un audit ligne à ligne du 25 octobre 2026 a trouvé 15 erreurs sur 67 lignes (types, positions, opérations manquantes), corrigées dans le lecteur ; les nombres de personnes étaient justes et les totaux concordent désormais avec les rapports 2024 et 2025, à 2 personnes près au 2 octobre 2026 ; 35 lignes sur 69 portent une note à vérifier (codes traduits dans l'interface), Un changement de mise en page du site peut casser la lecture : il serait vu comme une lecture vide ou en échec, jamais comme des données inventées.
 - Les sorties connues seulement par le site français (mai, septembre et octobre 2026) sont reprises de ses articles, une ligne par sortie, sans position et marquées comme telles.
 - Le site de SOS n'affiche aucune licence : les faits (dates, nombres) sont repris avec leur source, rien n'est publié sans l'accord de l'association.
