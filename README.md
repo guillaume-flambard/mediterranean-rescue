@@ -1,87 +1,77 @@
-# Mediterranée Rescue : POC de cartographie historique
+# Mediterranée Rescue
 
-Contribution expérimentale construite sur le [dépôt Data for Good](https://github.com/dataforgoodfr/mediterranean-rescue). Le besoin métier, les données et le lien avec la carte CartONG restent à confirmer avec l’équipe. Ce fork n’est pas un produit officiel de SOS MEDITERRANEE.
+Fondations d’une plateforme de cartographie historique des actions en Méditerranée : React, Base UI, MapLibre, Django, Strawberry GraphQL et PostgreSQL/PostGIS.
 
-## Essayer la carte
+Ce fork est une contribution en cours. Son périmètre et sa future adoption doivent être discutés avec Data for Good et SOS MEDITERRANEE. L’ancienne démonstration statique est conservée dans web/ comme historique ; elle n’est plus la base de l’application.
 
-Depuis la racine du dépôt :
+## Décisions et données
 
-```sh
-python3 -m http.server 8765 --bind 127.0.0.1 --directory web
-```
+- [Architecture et limites de la première tranche](docs/architecture.md)
+- [Inventaire réel des sources et dictionnaire des trois onglets](docs/data-catalog.md)
+- [Décision GraphQL et typage backend/frontend](docs/decisions/0002-graphql-types.md)
+- [Suivi et preuves](.agent/project/state.json)
 
-Ouvrir http://127.0.0.1:8765/. On peut également ouvrir directement `web/index.html` dans un navigateur. Aucune installation, clé ou connexion Internet nécessaire à l’exécution. Le serveur doit rester lié à 127.0.0.1 pour cet usage local.
+L’existant [CartONG/SOSMedDashboard](https://github.com/CartONG/SOSMedDashboard) a une carte et des données Sheets accessibles. Sa licence et les droits de republication des données ne sont pas établis. Aucun code ou dataset CartONG n’a été recopié dans cette plateforme. Le fond Natural Earth est du domaine public ; la provenance est conservée dans web/PROVENANCE.md.
 
-La carte affiche **six événements entièrement fictifs** : les dates, positions, navires et effectifs sont inventés. Les filtres date et navire mettent à jour la carte et le journal. Cliquer sur un point ou un événement affiche son détail. Les boutons de zoom se centrent sur la sélection ; Vue complète rétablit le cadre méditerranéen. La liste donne un accès clavier aux mêmes informations.
+## Démarrer en local
 
-## Importer et exporter
-
-Voir [le contrat de données](web/DATA.md) et [l’exemple JSON](web/exemple-import.json). Le POC accepte uniquement des exemples fictifs explicitement marqués. Il ne faut pas changer cette étiquette pour faire passer des données réelles pour fictives. Une intégration réelle nécessite un contrat approuvé avec l’association.
-
-L’import remplace le jeu complet après validation. En cas d’erreur, le jeu précédent reste affiché. Limites : 2 Mio et 2 000 événements. Aucun fichier n’est envoyé ; rien n’est stocké après rechargement. Exporter la sélection télécharge un JSON, en conservant l’étiquette fictive. Restaurer la démo annule les lectures de fichier encore en cours et rétablit les six exemples.
-
-## Vérifier
-
-Node 24 ou plus récent :
+Prérequis : Docker Desktop/Engine avec Compose, Node 24+, pnpm 12.10.1, Python 3.12+ pour le petit script de configuration. Pas de base de données, de GDAL ou de SDK à installer sur l’hôte.
 
 ```sh
-node --test web/model.test.cjs web/app.test.cjs
-node --check web/app.js
+python3 scripts/init_local.py
+docker compose build
+docker compose up -d db
+docker compose run --rm api uv run --no-sync python backend/manage.py migrate --noinput
+docker compose up -d api
+cd frontend
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-Les tests couvrent validation, calendriers, bornes, doublons, URL, filtres, états vides, import atomique, restauration pendant une lecture, focus et lancement d’export. Les tests d’interface utilisent un DOM minimal et ne remplacent pas une recette navigateur.
+Interface : http://127.0.0.1:5173/. Backend : http://127.0.0.1:8010/graphql/. La base initiale est vide, sans exemple synthétique chargé automatiquement. Le mode production de données et le mode d’entraînement sont explicitement séparés par DATA_MODE. Aucun événement réel ne doit être étiqueté fictif pour contourner cette séparation.
 
-Recette manuelle : filtrer Navire B (2 événements, 89 personnes fictives), sélectionner un événement, vérifier sa fiche, choisir une période vide, restaurer ; importer le JSON fourni puis un JSON invalide ; exporter et recharger. Vérifier aussi le confort sur téléphone avant tout usage public.
+Le script crée .env avec permissions privées, sans afficher ses secrets ni remplacer un fichier existant. Ne pas le committer. La base n’a pas de port publié ; seul l’API est accessible sur l’interface locale. L’image PostGIS officielle amd64 est exécutée sous émulation sur Mac ARM. Les volumes persistent entre redémarrages ; ne pas les supprimer pour résoudre une erreur.
 
-## Sources et limites
+## Administration et publication
 
-Fond [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/), domaine public, résolution 1:110m. Voir web/PROVENANCE.md. Projection équirectangulaire simplifiée, destinée à une vue historique. Pas de routes, frontières maritimes, position courante, suivi AIS ou aide à la navigation. Le fond est trop grossier pour l’analyse côtière. Les libellés géographiques sont indicatifs. Les liens externes ne sont chargés que si l’utilisateur les ouvre.
+Créer un compte local sans mot de passe par défaut :
 
-L’[existant CartONG](https://www.cartong.org/en/projet/mapping-for-sos-mediterranee-sea-rescues/) doit être étudié avant toute décision de migration. Aucun besoin d’IA n’est présumé.
-
-La base Python et les workflows hérités sont conservés. Le nom `13_pollution_eau` dans pyproject.toml et le parcours Poetry/py310 dans tox.ini proviennent du template ; ils ne sont pas la configuration de ce POC statique. Aucun service n’a été déployé.
-
-## Base Python héritée
-
-# Template DataForGood
-
-This file will become your README and also the index of your
-documentation.
-
-# Contributing
-
-
-## Installation
-
-- [Installation de Python](#installation-de-python)
-
-Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python. Il est préréquis pour l'installation de ce projet.
-
-Une fois installé, il suffit de lancer la commande suivante pour installer la version de Python adéquate, créer un environnement virtuel et installer les dépendances du projet.
-
-```bash
-uv sync
+```sh
+docker compose exec api uv run --no-sync python backend/manage.py createsuperuser
+docker compose exec api uv run --no-sync python backend/manage.py collectstatic --noinput
 ```
 
-A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement activé lorsque vous ouvrirez le projet. Sinon, il suffit de l'activer manuellement avec la commande suivante :
+L’administration Django est à /admin/. Le serveur de développement local sert ses fichiers statiques ; le serveur WSGI de production requiert un proxy pour /static/. Voir infra/README.md. Un éditeur peut préparer des brouillons, mais la permission catalog.publish_event est requise pour publier/retirer. Les droits de la source et sa licence doivent avoir été approuvés. Une publication crée un audit ; les relations d’un événement publié sont gelées dans l’administration. Retirer puis corriger et revoir avant republication. Il n’existe pas de mutation GraphQL publique d’écriture dans cette tranche.
 
-```bash
-source .venv/bin/activate
+## Importer un export autorisé
+
+Créer une Source dans l’administration, puis placer le fichier local dans data/local/. Contrat canonique v1 : tableau JSON avec external_id stable, kind (rescue/transfer/medevac/incident/shipwreck/dead_missing), occurred_on (YYYY-MM-DD), title, source_url, people (entier ou null), longitude/latitude (nombres ou null ensemble), location_precision (unknown/approximate/reported), summary facultatif. Limite : 5 Mio, 10 000 lignes. Les inconnus restent null.
+
+```sh
+docker compose exec api uv run --no-sync python backend/manage.py import_events --source ma-source --file /app/data/local/export.json
+docker compose exec api uv run --no-sync python backend/manage.py import_events --source ma-source --file /app/data/local/export.json --apply
 ```
 
-Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lancer un script Python. Par exemple:
+La première commande valide et conserve un staging privé. --apply crée seulement des brouillons, atomiquement. Rejouer le même fichier ne duplique pas le lot ; rejouer un lot appliqué ne duplique pas les événements. Une identité existante exige une révision revue, pas un écrasement implicite. Le connecteur Sheets et son crosswalk font partie de la tranche suivante ; ils ne sont pas simulés ici.
 
-```bash
-uv run pipelines/run.py run build_database
+## Types GraphQL et vérification
+
+```sh
+docker compose run --rm api uv run --no-sync python backend/manage.py test catalog.tests --noinput
+docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
+docker compose run --rm api uv run --no-sync python backend/manage.py export_schema catalog.schema --path contracts/schema.graphql
+cd frontend
+pnpm codegen
+pnpm test
+pnpm build
+cd ..
+python3 scripts/check_contract_negative.py
 ```
 
+Le schéma est généré par le backend. Les types de résultats et variables sont générés depuis les opérations frontend et ce schéma, puis consommés par urql. Les scalaires sont mappés explicitement et TypeScript est strict. Ne pas éditer manuellement contracts/schema.graphql ni frontend/src/gql/. La CI refait cette chaîne et refuse les fichiers générés désynchronisés.
 
-## Lancer les precommit-hook localement
+Les tests backend tournent sur une vraie base PostGIS distincte, pas SQLite. Le compte DB local est non-superuser mais a CREATEDB pour ces tests ; ce privilège doit être retiré du rôle d’application en production. Les tests contiennent uniquement des fixtures indépendantes. Le test négatif prouve qu’une requête frontend sur un champ inexistant est refusée à la génération.
 
-[Installer les precommit](https://pre-commit.com/)
+## Avant toute mise en service
 
-    pre-commit run --all-files
-
-## Utiliser Tox pour tester votre code
-
-    tox -vv
+L’application est une fondation de développement vérifiée, pas une plateforme déjà validée et exploitée par l’association. Restent notamment licence/contrat des données, migration Sheets, rapprochements, recette métier et accessibilité, contrôles d’identité/accès de production, sauvegarde/restauration testée, proxy TLS/static et supervision. Les étapes sont documentées dans l’architecture et ne sont pas déclarées réalisées. Aucun déploiement ni message vers l’association effectué.

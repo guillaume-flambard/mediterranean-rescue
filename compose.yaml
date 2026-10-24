@@ -1,0 +1,39 @@
+name: mediterranean-rescue
+services:
+  db:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.db
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: rescue
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Run scripts/init_local.py}
+      DB_PASSWORD: ${DB_PASSWORD:?Run scripts/init_local.py}
+    volumes:
+      - rescue_pg17_postgis36:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rescue"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uv", "run", "--no-sync", "python", "backend/manage.py", "runserver", "0.0.0.0:8000", "--noreload"]
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_USER: rescue
+      POSTGRES_DB: rescue
+    ports: ["127.0.0.1:8010:8000"]
+    volumes:
+      - ./backend:/app/backend
+      - ./contracts:/app/contracts
+      - ./data:/app/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  rescue_pg17_postgis36:

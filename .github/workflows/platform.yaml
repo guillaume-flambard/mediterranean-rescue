@@ -1,0 +1,45 @@
+name: Platform foundation
+on:
+  push:
+    branches: [main, feat/platform-foundation]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install package manager
+        run: npm install --global pnpm@12.10.1
+      - name: Prepare isolated environment
+        run: python3 scripts/init_local.py
+      - name: Build backend and database
+        run: docker compose build
+      - name: Backend integration tests on PostGIS
+        run: docker compose run --rm api uv run --no-sync python backend/manage.py test catalog.tests --noinput
+      - name: Migration contract
+        run: docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
+      - name: Production configuration checks (without deployment)
+        run: docker compose run --rm -e DJANGO_ENV=production -e DJANGO_ALLOWED_HOSTS=rescue.invalid api uv run --no-sync python backend/manage.py check --deploy --fail-level WARNING
+      - name: Export backend GraphQL schema
+        run: docker compose run --rm api uv run --no-sync python backend/manage.py export_schema catalog.schema --path contracts/schema.graphql
+      - name: Install locked frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Generate types from real operations
+        working-directory: frontend
+        run: pnpm codegen
+      - name: Refuse generated contract drift
+        run: git diff --exit-code -- contracts/schema.graphql frontend/src/gql
+      - name: Prove invalid operations fail generation
+        run: python3 scripts/check_contract_negative.py
+      - name: Frontend checks
+        working-directory: frontend
+        run: pnpm test && pnpm build
+      - name: Stop test services, preserve volume until runner cleanup
+        if: always()
+        run: docker compose down

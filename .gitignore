@@ -161,3 +161,9 @@ cython_debug/
 
 # Precommit hooks: ruff cache
 .ruff_cache
+# Platform local artifacts
+frontend/node_modules/
+frontend/dist/
+backend/staticfiles/
+data/local/
+.env
