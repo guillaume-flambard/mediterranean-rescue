@@ -1,9 +1,9 @@
 import { api } from "../api/client";
-import { useI18n } from "../i18n/I18nProvider";
+import { useI18n, type I18n } from "../i18n/I18nProvider";
 import { Link } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
-import { sheetName } from "./labels";
+import { sheetName, type Key } from "./labels";
 
 // The opened record of one event, shared by every view of the main screen.
 function Fact({ label, value }: { label: string; value: string }) {
@@ -13,6 +13,16 @@ function Fact({ label, value }: { label: string; value: string }) {
       <dd>{value}</dd>
     </div>
   );
+}
+
+// The reader's notes are codes ("position_read:compact", "grouped:3"): said in the reader's language.
+const CHECKS = ["date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position", "position_read", "two_boats", "news_site", "grouped"];
+function checkText(i18n: I18n, point: string) {
+  const [code = "", value = ""] = point.split(":");
+  if (!CHECKS.includes(code)) return point;
+  if (code === "position_read") return i18n.t(`logbook.check.position_read.${value}` as Key);
+  if (code === "date_outside") return i18n.t("logbook.check.date_outside", { value: i18n.date(value) });
+  return i18n.t(`logbook.check.${code}` as Key, { value });
 }
 
 export function PreviewBody({ id }: { id: string }) {
@@ -55,9 +65,7 @@ export function PreviewBody({ id }: { id: string }) {
               </p>
               <ul>
                 {row.evidence.to_check.map((point) => (
-                  <li key={point} lang="en">
-                    {point}
-                  </li>
+                  <li key={point}>{checkText(i18n, point)}</li>
                 ))}
               </ul>
             </div>

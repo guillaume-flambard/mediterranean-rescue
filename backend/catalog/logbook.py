@@ -142,7 +142,9 @@ def to_sheet_coordinate(value: float) -> str:
 
 
 def parse_position(text: str) -> tuple[float, float, str] | None:
-    """Latitude and longitude in decimal degrees, with how they were read.
+    """Latitude and longitude in decimal degrees, with how they were read: "decimal", "text"
+    (degrees and minutes written in the entry), "compact" (DDMM) or "swapped" (latitude and
+    longitude inverted in the source).
 
     The logbook mixes formats: decimal degrees, degrees and minutes in the entry text
     ("34 23 N 012 59 E"), and compact DDMM ("3426 01209"). Central Mediterranean positions are
@@ -156,7 +158,7 @@ def parse_position(text: str) -> tuple[float, float, str] | None:
     if match:
         lat = int(match.group(1)) + float(match.group(2).replace(",", ".")) / 60
         lon = int(match.group(3)) + float(match.group(4).replace(",", ".")) / 60
-        candidates.append((lat, lon, "degrees and minutes in the text"))
+        candidates.append((lat, lon, "text"))
     match = re.search(r"Latitude:\s*([\d.,]+)\s*/?\s*Longitude:\s*([\d.,]+)", text)
     if match:
         raw_lat, raw_lon = (part.replace(",", ".") for part in match.groups())
@@ -166,7 +168,7 @@ def parse_position(text: str) -> tuple[float, float, str] | None:
         if 30 <= lat <= 40 and 8 <= lon <= 25:
             return lat, lon, how
         if 30 <= lon <= 40 and 8 <= lat <= 25:
-            return lon, lat, how + ", latitude and longitude swapped in the source"
+            return lon, lat, "swapped"
     return None
 
 
@@ -176,13 +178,13 @@ def _read_pair(raw_lat: str, raw_lon: str):
     except ValueError:
         return
     if "." in raw_lat or "." in raw_lon:
-        yield lat, lon, "decimal degrees"
+        yield lat, lon, "decimal"
     # Compact DDMM (3426 = 34° 26'), DDDMM for longitude (01209 = 12° 09').
     if raw_lat.isdigit() and raw_lon.isdigit() and len(raw_lat) == 4 and len(raw_lon) in (4, 5):
         yield (
             int(raw_lat[:2]) + int(raw_lat[2:]) / 60,
             int(raw_lon[:-2]) + int(raw_lon[-2:]) / 60,
-            "compact degrees and minutes",
+            "compact",
         )
 
 
@@ -341,7 +343,7 @@ def find_rescues(rotation: Rotation, window):
             last_position = (position, entry)
         flags = []
         if entry.day and start and end and not (start <= entry.day <= end):
-            flags.append(f"date {entry.day} outside the rotation window {start} to {end}")
+            flags.append(f"date_outside:{entry.day}")
         lead = entry.title or text
         if OTHERS.search(lead[:80]):
             continue
@@ -353,7 +355,7 @@ def find_rescues(rotation: Rotation, window):
                     None,
                     None,
                     "",
-                    flags + ["medical evacuation: check who and how many"],
+                    flags + ["medevac"],
                 )
             )
             continue
@@ -373,7 +375,7 @@ def find_rescues(rotation: Rotation, window):
             continue
         people = int(people_match.group(1))
         if REPORTED.search(lead):
-            flags.append("only reported in a message from the ship: check it is not a duplicate")
+            flags.append("reported_in_message")
         # The same recovery is often logged twice on the same day with the same number.
         if any(row[0] == "Rescue" and row[1].day == entry.day and row[2] == people for row in rows):
             continue
@@ -387,18 +389,16 @@ def find_rescues(rotation: Rotation, window):
             and (rows[-1][2] or 0) < people
         ):
             previous = rows.pop()
-            flags.append(f"replaces a partial count of {previous[2]} logged just before")
+            flags.append(f"partial_replaced:{previous[2]}")
         where = position or (
             last_position[0] if last_position and last_position[1].day == entry.day else None
         )
         if not where:
-            flags.append("position not stated in the logbook")
-        elif where[2] != "decimal degrees":
-            flags.append(f"position read as {where[2]}")
+            flags.append("no_position")
+        elif where[2] != "decimal":
+            flags.append(f"position_read:{where[2]}")
         if re.search(r"two (?:simultaneous rescues|boats)|from two", text, re.I):
-            flags.append(
-                "one entry for two boats: split it into two rows if the sheet counts boats"
-            )
+            flags.append("two_boats")
         rows.append(("Rescue", entry, people, where, last_boat, flags))
         last_boat = ""
     return rows
@@ -437,13 +437,119 @@ def french_rotations(get: Callable[[str], str | None], after: date):
     return items
 
 
+# Codes for what a person should check, translated by the interface. Each is "code" or
+# "code:value": date_outside:<day>, medevac, reported_in_message, partial_replaced:<n>, no_position,
+# position_read:<text|compact|swapped>, two_boats, news_site, grouped:<operations>.
+CHECK_CODES = (
+    "date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position",
+    "position_read", "two_boats", "news_site", "grouped",
+)  # fmt: skip
+
 FR_RESCUE = re.compile(
-    r"(?:porté secours|secouru|secourues?)\D{0,40}?(\d{1,4})\s+personnes?(?:[^.]{0,80}?(?:lors d['’]|en)\s+(\w+)\s+opérations?)?",
+    r"(?:(?:porté secours|portée? secouru|secouru|secourues?)\D{0,40}?(\d{1,4})\s+personnes?|"
+    r"(\d{1,4})\s+personnes\s+secourues)"
+    r"(?:[^.]{0,80}?(?:lors\s+de|lors\s+d['’]|au\s+cours\s+de)\s+(\w+)\s+opérations?)?",
     re.I,
 )
 FR_PORT = re.compile(
-    r"débarqu\w+\s+(?:à|au port de)\s+([A-Z][\w' -]+?)(?:[.,;]|\s+(?:en|le|ce|dans|après))", re.I
+    r"débarqu\w+[^.]{0,40}?\s(?:à|au port d['’]|au port de|dans le port de)\s*"
+    r"([A-ZÉ][\w' -]+?)(?:[.,;(]|\s+(?:en|le|ce|dans|après|sur|au|,))",
 )
+FR_DATE = re.compile(
+    r"(?:le|les|du|nuit du)\s+(\d{1,2})(?:er)?(?:\s+et\s+\d{1,2})?\s+(janvier|février|mars|avril|mai|"
+    r"juin|juillet|août|septembre|octobre|novembre|décembre)(?:\s+(\d{4}))?",
+    re.I,
+)
+FR_MONTHS = (
+    "janvier", "fevrier", "février", "mars", "avril", "mai", "juin", "juillet", "aout", "août",
+    "septembre", "octobre", "novembre", "decembre", "décembre",
+)  # fmt: skip
+FR_WOMEN = re.compile(
+    r"\b(\d{1,3}|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+femmes\b", re.I
+)
+FR_MINORS = re.compile(
+    r"\b(\d{1,3}|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+(?:enfants|mineur\.?e?\.?s|mineurs)\b",
+    re.I,
+)
+FR_UNACCOMPANIED = re.compile(
+    r"\b(\d{1,3}|un|une|deux|trois)\s+mineur\.?e?\.?s?\s+non\s+accompagn", re.I
+)
+FR_PREGNANT = re.compile(r"\b(\d{1,3}|une|deux|trois|quatre|cinq)\s+enceintes?\b", re.I)
+FR_BOAT = {
+    "pneumatique": "Rubber boat",
+    "fibre de verre": "Fiberglass boat",
+    "en fer": "Iron boat",
+    "métallique": "Metal boat",
+    "en bois": "Wooden boat",
+}
+# The sheet writes Italian port names; the French site writes them in French.
+FR_PORTS = {
+    "ancône": "Ancona", "ravenne": "Ravenna", "savone": "Savona", "salerne": "Salerno",
+    "naples": "Napoli", "gênes": "Genova", "livourne": "Livorno", "syracuse": "Siracusa",
+    "tarente": "Taranto", "pouzzoles": "Pozzuoli",
+}  # fmt: skip
+
+
+def french_row(published: date, title: str, link: str, body: str):
+    """One row for a rotation the logbook does not hold, from its French news post.
+
+    The post gives the rescue day, the people, the number of operations and often women and
+    minors, the boat and the port, but no position: the row says so, and how many operations it
+    groups, for a person to split or complete.
+    """
+    summary = body.split("Dernière mise à jour")[0]
+    rescue = FR_RESCUE.search(summary) or FR_RESCUE.search(body)
+    if not rescue:
+        return None
+    # The rescue day: in the post's address when it names one ("sauvetage-8-septembre"), else in
+    # its first lines ("Le 24 mai 2026", "les 12 et 13 mai", "la nuit du 1er mai").
+    slug = re.search(r"(\d{1,2})(?:er)?-(" + "|".join(FR_MONTHS) + r")(?:-(\d{4}))?", link.lower())
+    day = slug or FR_DATE.search(summary)
+    occurred = None
+    if day:
+        year = int(day.group(3)) if day.group(3) else published.year
+        occurred = date(year, MONTHS[day.group(2).lower()], int(day.group(1)))
+        if occurred > published:
+            occurred = date(year - 1, occurred.month, occurred.day)
+    people = rescue.group(1) or rescue.group(2)
+    operations = count(rescue.group(3)) if rescue.group(3) else None
+    row = dict.fromkeys(SHEET_HEADER, "")
+    row["date"] = (occurred or published).strftime("%d/%m/%Y")
+    row["type_ops"] = "Rescue"
+    row["nb_ops"] = str(operations or 1)
+    row["nb_survivor"] = people
+    for name, pattern in (
+        ("female", FR_WOMEN),
+        ("under_18", FR_MINORS),
+        ("under_18_unacc", FR_UNACCOMPANIED),
+        ("pregnant_women", FR_PREGNANT),
+    ):
+        match = pattern.search(summary)
+        if match:
+            row[name] = str(count(match.group(1)))
+    for words, boat in FR_BOAT.items():
+        if words in body.lower():
+            row["boat_type"] = boat
+            break
+    port = FR_PORT.search(summary) or FR_PORT.search(body)
+    if port:
+        name = port.group(1).strip()
+        row["Port_disembarkation"] = FR_PORTS.get(name.lower(), name)
+    flags = ["news_site", "no_position"]
+    if (operations or 1) > 1:
+        flags.append(f"grouped:{operations}")
+    if not occurred:
+        flags.append(f"date_outside:{published}")
+    if occurred and (published - occurred).days > 10:
+        flags.append(f"date_outside:{occurred}")
+    provenance = {
+        "rotation": title,
+        "source_url": link,
+        "entry": str(occurred or published),
+        "quote": summary.strip()[:240],
+        "to_check": "; ".join(flags),
+    }
+    return row, provenance
 
 
 # Main -----------------------------------------------------------------------------------------
@@ -575,26 +681,22 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
             }
         )
 
-    # Rotations the French site reports but the logbook does not hold.
+    # Rotations the French site reports but the logbook does not hold: one row each, flagged.
     covered = [(item["first_day"], item["last_day"]) for item in summary if item["first_day"]]
     gaps = []
-    for published, title, link, body in french_rotations(get, after):
+    for published, title, link, body in sorted(french_rotations(get, after)):
         if any(
             start <= published <= date.fromordinal(end.toordinal() + 10) for start, end in covered
         ):
             continue
-        rescue = FR_RESCUE.search(body)
-        port = FR_PORT.search(body)
-        gaps.append(
-            {
-                "published": published,
-                "title": title,
-                "source_url": link,
-                "people_rescued": rescue.group(1) if rescue else "",
-                "operations": (count(rescue.group(2)) or "") if rescue and rescue.group(2) else "",
-                "port": port.group(1).strip() if port else "",
-            }
-        )
+        made = french_row(published, title, link, body)
+        if made is None:
+            # Not a rescue (a body recovered, a statement): listed for a person, never a row.
+            gaps.append({"published": published, "title": title, "source_url": link})
+            continue
+        row, origin = made
+        sheet_rows.append(row)
+        provenance.append({"row": len(sheet_rows), **origin})
 
     return Extraction(sheet_rows, provenance, summary, others, gaps)
 

@@ -6,7 +6,7 @@ Writes to data/local/backfill (ignored by Git; the data belongs to SOS MEDITERRA
 - Data_operations-backfill.csv: rows in the exact column order of the map's sheet;
 - backfill-provenance.csv: for every row, the page, entry and quote, and what to check;
 - backfill-rotations.csv: each rotation's stated total next to the sum of its rows;
-- backfill-gaps.csv: rotations announced on the French site but absent from the logbook;
+- backfill-gaps.csv: French-site posts that are not rescues (left to a person);
 - backfill-other-events.csv: events that are not rows of the sheet (transfers off the ship).
 
 Usage: python3 scripts/logbook_backfill.py [--after 2024-02-06] [--out data/local/backfill]
@@ -55,7 +55,7 @@ def main() -> int:
     )
     write(
         out / "backfill-gaps.csv",
-        ["published", "title", "source_url", "people_rescued", "operations", "port"],
+        ["published", "title", "source_url"],
         result.gaps,
     )
     matching = sum(1 for item in result.summary if item["matches"] == "yes")
@@ -66,7 +66,7 @@ def main() -> int:
     print(f"rotations whose rows match the stated total: {matching}/{len(result.summary)}")
     print(
         f"rows to check: {sum(1 for p in result.provenance if p['to_check'])}, "
-        f"rotations only on the French site: {len(result.gaps)}"
+        f"French posts that are not rescues: {len(result.gaps)}"
     )
     print(f"written to {out}")
     return 0

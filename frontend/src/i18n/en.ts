@@ -744,6 +744,17 @@ export const en = {
   "logbook.card.step3Body": "With the association’s agreement, the existing map then shows them again, with nothing rebuilt. The logbook is read again every few hours.",
   "logbook.card.show": "See them on the map",
   "logbook.card.download": { one: "Download {count} verified row", other: "Download {count} verified rows" },
+  "logbook.check.date_outside": "The date ({value}) falls outside this mission’s dates: check the day.",
+  "logbook.check.medevac": "Medical evacuation: check who left the ship and how many.",
+  "logbook.check.reported_in_message": "Only reported in a message from the ship: check it is not counted twice.",
+  "logbook.check.partial_replaced": "A partial count of {value} was logged just before; this line keeps the full count.",
+  "logbook.check.no_position": "The position is not written: leave it empty or add it from another source.",
+  "logbook.check.position_read.text": "Position read from degrees and minutes written in the sentence: compare with the page.",
+  "logbook.check.position_read.compact": "Position written in a compact form (3426 01209): compare with the page.",
+  "logbook.check.position_read.swapped": "Latitude and longitude were inverted on the page and have been put back: check.",
+  "logbook.check.two_boats": "One sentence for two boats: split into two lines if the sheet counts each boat.",
+  "logbook.check.news_site": "This mission is not in the logbook: the line comes from the French news article.",
+  "logbook.check.grouped": "The article groups {value} rescues in one line: split it if the details are known.",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

@@ -34,7 +34,7 @@ const LOGBOOK_ROW = {
     rotation: "OPERATION 12-19 March 2025 (fictitious)",
     logged_at: "2025-03-13 07:00",
     quote: "Ocean Viking completes the recovery of 40 shipwrecked persons.",
-    to_check: ["position read as compact degrees and minutes"],
+    to_check: ["position_read:compact"],
   },
 };
 
@@ -87,7 +87,7 @@ describe("operations rebuilt from the public logbook", () => {
     });
     render(<PreviewBody id={ROW} />);
     expect(await screen.findByText("Ocean Viking completes the recovery of 40 shipwrecked persons.")).toBeTruthy();
-    expect(screen.getByText("position read as compact degrees and minutes")).toBeTruthy();
+    expect(screen.getByText("Position written in a compact form (3426 01209): compare with the page.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open the logbook page ↗" }).getAttribute("href")).toBe(LOGBOOK_ROW.evidence.url);
     expect(screen.queryByText(/row 2 of/)).toBeNull();
   });

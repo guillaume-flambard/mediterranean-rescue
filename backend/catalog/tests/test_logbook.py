@@ -56,13 +56,11 @@ class ReaderTests(SimpleTestCase):
     def test_a_total_saying_all_replaces_the_partial_count_before_it(self):
         _, rows = self.rows()
         flags = rows[1][5]
-        self.assertTrue(any("partial count of 20" in flag for flag in flags))
-        self.assertTrue(any("degrees and minutes" in flag for flag in flags))
+        self.assertIn("partial_replaced:20", flags)
+        self.assertIn("position_read:text", flags)
 
     def test_positions_in_every_format_and_nothing_outside_the_region(self):
-        self.assertEqual(
-            lb.parse_position("Latitude: 3426 / Longitude: 01209")[2], "compact degrees and minutes"
-        )
+        self.assertEqual(lb.parse_position("Latitude: 3426 / Longitude: 01209")[2], "compact")
         swapped = lb.parse_position("Latitude: 13.75 / Longitude: 34.27")
         self.assertEqual((swapped[0], swapped[1]), (34.27, 13.75))
         self.assertIsNone(lb.parse_position("Latitude: 48.85 / Longitude: 2.35"))
@@ -76,4 +74,78 @@ class ReaderTests(SimpleTestCase):
         self.assertEqual(
             lb.rotation_window("25-june-06-july-2024", entries),
             (date(2025, 7, 1), date(2025, 7, 6)),
+        )
+
+    def test_every_note_is_a_known_code(self):
+        _, rows = self.rows()
+        for *_, flags in rows:
+            for flag in flags:
+                self.assertIn(flag.split(":")[0], lb.CHECK_CODES)
+
+
+class FrenchPostTests(SimpleTestCase):
+    """Rotations absent from the logbook, read from the French news posts (fictitious text)."""
+
+    def test_a_post_becomes_one_flagged_row(self):
+        body = (
+            "Le 7 octobre, les équipes à bord de l’ Ocean Viking ont porté secours à 101 personnes "
+            "lors de deux opérations distinctes. Parmi elles se trouvent 28 femmes, dont cinq "
+            "enceintes, et 28 enfants, dont 16 mineur.e.s non accompagné.e.s, à bord d’une "
+            "embarcation pneumatique. L’ Ocean Viking a débarqué les personnes rescapées à Naples "
+            "le 10 octobre. Dernière mise à jour le 10/10/2026 ..."
+        )
+        row, origin = lb.french_row(
+            date(2026, 10, 7),
+            "Fictitious post",
+            "https://sosmediterranee.fr/sauvetages/sauvetage-7-octobre/",
+            body,
+        )
+        self.assertEqual(
+            {
+                key: row[key]
+                for key in (
+                    "date",
+                    "nb_ops",
+                    "nb_survivor",
+                    "female",
+                    "under_18",
+                    "under_18_unacc",
+                    "pregnant_women",
+                )
+            },
+            {
+                "date": "07/10/2026",
+                "nb_ops": "2",
+                "nb_survivor": "101",
+                "female": "28",
+                "under_18": "28",
+                "under_18_unacc": "16",
+                "pregnant_women": "5",
+            },
+        )
+        self.assertEqual(
+            (row["boat_type"], row["Port_disembarkation"], row["latitude"]),
+            ("Rubber boat", "Napoli", ""),
+        )
+        self.assertEqual(origin["to_check"], "news_site; no_position; grouped:2")
+
+    def test_the_rescue_day_comes_from_the_address_and_a_statement_is_not_a_row(self):
+        body = "Vendredi 11 septembre, les 78 personnes secourues par l’Ocean Viking, lors de trois opérations de sauvetage, ont débarqué à Salerne."
+        row, _ = lb.french_row(
+            date(2026, 9, 9),
+            "x",
+            "https://sosmediterranee.fr/sauvetages/sauvetage-8-septembre/",
+            body,
+        )
+        self.assertEqual(
+            (row["date"], row["nb_ops"], row["nb_survivor"], row["Port_disembarkation"]),
+            ("08/09/2026", "3", "78", "Salerno"),
+        )
+        self.assertIsNone(
+            lb.french_row(
+                date(2026, 1, 30),
+                "x",
+                "https://sosmediterranee.fr/x/",
+                "Un corps sans vie a été récupéré.",
+            )
         )
