@@ -5,6 +5,7 @@ from django.db import transaction
 
 from .models import (
     Event,
+    EventRevision,
     Evidence,
     ImportBatch,
     Port,
@@ -142,6 +143,7 @@ admin.site.register(SheetRow, ReadOnlyAdmin)
 admin.site.register(SourceIdentity, ReadOnlyAdmin)
 admin.site.register(RowIdentityLink, ReadOnlyAdmin)
 admin.site.register(PortAlias, ReadOnlyAdmin)
+admin.site.register(EventRevision, ReadOnlyAdmin)
 
 
 class FrozenPublishedRelationAdmin(admin.ModelAdmin):

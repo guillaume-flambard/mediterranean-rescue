@@ -81,6 +81,10 @@ La commande affiche seulement des compteurs de propositions (`new`, `exact_carry
 
 Une identité approuvée devient un brouillon privé avec `catalog.drafts.create_drafts` (permission `catalog.add_event`, motif obligatoire) ; `plan_drafts` montre d’abord l’issue de chaque ligne sans rien écrire. Les lignes écartées (non liées, déjà en brouillon, à réviser, effectifs incohérents) sont toujours listées. Un brouillon existant n’est jamais écrasé, et la publication reste celle de l’administration (droits de la source, motif, audit). Voir [ADR 0006](docs/decisions/0006-event-drafts-from-identities.md).
 
+## Révisions revues des brouillons
+
+Quand un export plus récent corrige une ligne déjà convertie (`revision_needed`), `catalog.revisions.propose_revision` montre les champs qui changeraient et ceux qu’un éditeur a modifiés à la main (conflit). `apply_revision` applique la correction si rien ne bloque ni n’entre en conflit ; `reject_revision` garde le refus tant que l’export porte ce contenu. Permission `catalog.change_event` et motif obligatoires ; un événement publié n’est jamais révisé (le retirer d’abord), un événement retiré le reste. Chaque décision est tracée (`EventRevision`). Voir [ADR 0007](docs/decisions/0007-reviewed-draft-revisions.md).
+
 ## Contrat REST, types et vérification
 
 ```sh

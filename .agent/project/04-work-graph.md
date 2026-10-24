@@ -54,3 +54,10 @@ B1 P1 DONE traçabilité brouillon sur l'identité (migration 0003, contrainte t
 B2 P1 DONE plan et création des brouillons, lignes écartées toujours listées ; AC-D1 à AC-D4.
 B3 P1 DONE revue indépendante, régressions, essai privé ; AC-D5.
 Suite : révisions revues d'un brouillon (`revision_needed`), preuves documentaires, voyages et navires, écrans de revue dans l'application React.
+
+## Tranche R : révisions revues des brouillons, 24 octobre 2026
+Spécification : docs/decisions/0007-reviewed-draft-revisions.md. Branche feat/draft-revisions, empilée sur feat/event-drafts, développée dans un worktree séparé.
+R1 P1 DONE trace EventRevision et état de référence `drafted_values` (migration 0004).
+R2 P1 DONE proposition, conflits, application et refus ; AC-R1 à AC-R4.
+R3 P1 DONE revue indépendante, régressions, essai privé ; AC-R5.
+Suite : application React avec écrans de revue (identités, ports, brouillons, révisions), puis preuves documentaires, voyages et navires.

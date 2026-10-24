@@ -11,7 +11,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from .models import Event, PortAlias, SheetSnapshot, SourceIdentity
+from .models import Event, EventRevision, PortAlias, SheetSnapshot, SourceIdentity
 
 DRAFT_PERMISSION = "catalog.add_event"
 EVENT_SHEETS = ("Data_operations", "Other_data")
@@ -25,11 +25,42 @@ TITLES = {
 }
 
 
+# Event fields filled from a source row; their values at drafting time are kept on the identity.
+DRAFT_FIELDS = (
+    "kind",
+    "occurred_on",
+    "title",
+    "location",
+    "location_precision",
+    "people",
+    "women",
+    "minors",
+    "port",
+)
+
+
+def comparable_value(event, name):
+    """JSON-friendly value used to compare and record a draft field."""
+    if name == "port":
+        return str(event.port_id) if event.port_id else None
+    value = getattr(event, name)
+    if name == "location":
+        return [round(value.x, 10), round(value.y, 10)] if value else None
+    if name == "occurred_on":
+        return str(value)
+    return value
+
+
+def drafted_values(event):
+    return {name: comparable_value(event, name) for name in DRAFT_FIELDS}
+
+
 @dataclass(frozen=True)
 class DraftPlan:
     row_id: object
     line: int
-    # ready | not_linked | already_drafted | revision_needed | inconsistent_counts
+    # ready | not_linked | already_drafted | revision_needed | revision_rejected
+    # | inconsistent_counts
     # | position_to_review | row_already_drafted | invalid_draft | stale_snapshot
     # | not_an_event_sheet
     outcome: str
@@ -98,7 +129,17 @@ def _plan_row(row):
     identity = link.identity
     if identity.event_id is not None:
         unchanged = identity.drafted_from.fingerprint == row.fingerprint
-        outcome = "already_drafted" if unchanged else "revision_needed"
+        rejected = EventRevision.objects.filter(
+            identity=identity,
+            decision="rejected",
+            from_row__fingerprint=identity.drafted_from.fingerprint,
+            to_row__fingerprint=row.fingerprint,
+        ).exists()
+        if unchanged:
+            outcome = "already_drafted"
+        else:
+            # A rejected correction stays rejected while the export keeps that content.
+            outcome = "revision_rejected" if rejected else "revision_needed"
         return DraftPlan(row.pk, row.line, outcome, identity.pk), None
     if SourceIdentity.objects.filter(drafted_from=row).exclude(pk=identity.pk).exists():
         # A row relinked to another identity must not describe a second event.
@@ -171,6 +212,7 @@ def create_drafts(*, snapshot, actor, reason):
             drafted_by=actor,
             drafted_at=now,
             draft_reason=reason,
+            drafted_values=drafted_values(event),
             updated_at=now,
         )
         if traced != 1:

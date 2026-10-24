@@ -290,6 +290,9 @@ class SourceIdentity(UUIDModel):
     )
     drafted_at = models.DateTimeField(null=True, blank=True)
     draft_reason = models.TextField(blank=True)
+    # Translated field values the draft holds from its source row (after the last applied
+    # revision); a later difference on the event means a hand edit.
+    drafted_values = models.JSONField(default=dict, blank=True)
 
     class Meta:
         permissions = [
@@ -420,4 +423,33 @@ class PortAliasPort(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["alias", "port"], name="port_alias_port_once")
+        ]
+
+
+class EventRevision(UUIDModel):
+    """Reviewed decision on a corrected source row for an existing draft (ADR 0007)."""
+
+    event = models.ForeignKey(Event, on_delete=models.PROTECT, related_name="revisions")
+    identity = models.ForeignKey(SourceIdentity, on_delete=models.PROTECT, related_name="revisions")
+    from_row = models.ForeignKey(SheetRow, on_delete=models.PROTECT, related_name="+")
+    to_row = models.ForeignKey(SheetRow, on_delete=models.PROTECT, related_name="+")
+    # {field: [value before, value after]} for the translated fields that differ.
+    changes = models.JSONField(default=dict, blank=True)
+    decision = models.CharField(
+        max_length=16, choices=[("applied", "Applied"), ("rejected", "Rejected")]
+    )
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    reason = models.TextField()
+
+    class Meta:
+        ordering = ["created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~Q(reason__regex=r"^\s*$"), name="event_revision_has_reason"
+            ),
+            models.CheckConstraint(
+                condition=Q(decision__in=["applied", "rejected"]), name="event_revision_decision"
+            ),
         ]

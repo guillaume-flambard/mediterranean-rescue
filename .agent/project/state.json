@@ -1,6 +1,6 @@
 {
   "phase": "READY_FOR_MANUAL_ACCEPTANCE",
-  "milestone": "event-drafts-from-identities",
+  "milestone": "reviewed-draft-revisions",
   "product_status": "IN_PROGRESS",
   "requirements": {
     "total": 5,
@@ -9,8 +9,8 @@
   "todos": {
     "p0_open": 0,
     "p1_open": 0,
-    "done": 14,
-    "p2_open": 3
+    "done": 17,
+    "p2_open": 5
   },
   "acceptance": {
     "total": 5,
@@ -25,7 +25,7 @@
   "verification": {
     "status": "PASS",
     "diagnostic_host_tests": 46,
-    "backend_postgis_tests": 110,
+    "backend_postgis_tests": 127,
     "frontend_tests": 2,
     "openapi_codegen": "PASS (unchanged)",
     "negative_contract_test": "PASS",
@@ -46,13 +46,16 @@
     "real_export_crosswalk_trial": "rolled back: 370 identities, 21 ports, 30 port labels to read (EV-X5)",
     "drafts_review": "PASS after fixes (P0 0, P1 1 fixed)",
     "mutation_checks_drafts": "8/8 killed",
-    "real_export_drafts_trial": "rolled back: 371 drafts, 6 inconsistent counts skipped, 0 public (EV-B4)"
+    "real_export_drafts_trial": "rolled back: 371 drafts, 6 inconsistent counts skipped, 0 public (EV-B4)",
+    "revisions_review": "PASS after fixes (P0 0, P1 0)",
+    "mutation_checks_revisions": "11/11 killed",
+    "real_export_revisions_trial": "rolled back: 1 simulated correction proposed and applied, 0 published (EV-R10)"
   },
   "ready_for_manual_acceptance": true,
   "human_acceptance": false,
   "next_product_milestones": [
     "human reading of the 30 unresolved port labels, 3 ambiguous ports and 6 rows with inconsistent counts",
-    "reviewed revisions of existing drafts (revision_needed), evidence links, voyages and vessels",
+    "evidence links, voyages and vessels",
     "React + Base UI application in English with French translation: design system, reusable components, animations, review screens, accessible map/list/detail",
     "authorized extract and approved field contract with SOS / Data for Good, when Guillaume decides to show the work",
     "identity hosting backups restore and association acceptance"
