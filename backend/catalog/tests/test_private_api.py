@@ -1,7 +1,9 @@
 """Private review API (ADR 0009): sessions, CSRF, permissions, errors and decisions."""
 
 import json
+from unittest import mock
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import Client, override_settings
 
@@ -268,3 +270,76 @@ class IdentitySearchTests(PrivateApiTestCase):
         self.assertEqual([item["summary"]["occurred_on"] for item in items], ["2024-03-10"])
         everything = self.get(f"review/identities/?snapshot={snapshot.pk}").json()["items"]
         self.assertEqual(len(everything), 2)
+
+
+class SignInTests(PrivateApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.reviewer.set_password("correct horse battery staple")
+        self.reviewer.save()
+        self.anonymous = Client(enforce_csrf_checks=True)
+        self.anonymous_token = self.anonymous.get("/api/csrf/").json()["csrfToken"]
+
+    def sign_in(self, username, password, token=True):
+        headers = {"HTTP_X_CSRFTOKEN": self.anonymous_token} if token else {}
+        return self.anonymous.post(
+            f"{BASE}/session/",
+            data=json.dumps({"username": username, "password": password}),
+            content_type="application/json",
+            **headers,
+        )
+
+    def test_sign_in_opens_a_session_and_sign_out_closes_it(self):
+        response = self.sign_in("reviewer", "correct horse battery staple")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["username"], "reviewer")
+        self.assertEqual(self.anonymous.get(f"{BASE}/me/").status_code, 200)
+        token = self.anonymous.get("/api/csrf/").json()["csrfToken"]
+        self.assertEqual(
+            self.anonymous.delete(f"{BASE}/session/", HTTP_X_CSRFTOKEN=token).status_code, 204
+        )
+        self.assertEqual(self.anonymous.get(f"{BASE}/me/").status_code, 401)
+
+    def test_failures_share_one_message(self):
+        inactive = get_user_model().objects.create_user(username="gone", password="x")
+        inactive.is_active = False
+        inactive.save()
+        bodies = [
+            self.sign_in("reviewer", "wrong").json(),
+            self.sign_in("nobody", "wrong").json(),
+            self.sign_in("gone", "x").json(),
+        ]
+        self.assertEqual({body["code"] for body in bodies}, {"invalid_credentials"})
+        self.assertEqual(len({body["detail"] for body in bodies}), 1)
+
+    def test_sign_in_requires_the_csrf_token(self):
+        response = self.sign_in("reviewer", "correct horse battery staple", token=False)
+        self.assertEqual((response.status_code, response.json()["code"]), (403, "csrf_failed"))
+        self.assertEqual(self.anonymous.get(f"{BASE}/me/").status_code, 401)
+
+    def test_sign_in_attempts_are_rate_limited(self):
+        from django.core.cache import cache
+        from rest_framework.throttling import ScopedRateThrottle
+
+        cache.clear()
+        # DRF reads the rates when the class is defined: patch them on the class.
+        with mock.patch.object(ScopedRateThrottle, "THROTTLE_RATES", {"sign_in": "2/min"}):
+            self.sign_in("reviewer", "wrong")
+            self.sign_in("reviewer", "wrong")
+            response = self.sign_in("reviewer", "correct horse battery staple")
+        cache.clear()
+        self.assertEqual((response.status_code, response.json()["code"]), (429, "throttled"))
+
+
+class ReviewScopeTests(PrivateApiTestCase):
+    def test_port_snapshots_are_not_identity_review_and_404_names_nothing(self):
+        from catalog.tests.test_crosswalk import ports_csv
+
+        ports, _ = self.stage(ports_csv("Port fictif A,36° 48.0,10° 12.0"), sheet="Data_ports")
+        events, _ = self.stage(ops_csv(ops_row()))
+        self.assertEqual(
+            [item["id"] for item in self.get("snapshots/").json()["items"]], [str(events.pk)]
+        )
+        self.assertEqual(self.get(f"review/rows/?snapshot={ports.pk}").json()["code"], "invalid")
+        missing = self.get("review/rows/00000000-0000-0000-0000-000000000000/").json()
+        self.assertEqual(missing, {"code": "not_found", "detail": "Not found."})

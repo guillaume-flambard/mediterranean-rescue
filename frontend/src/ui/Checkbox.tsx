@@ -6,9 +6,11 @@ export interface CheckboxProps {
   onCheckedChange: (checked: boolean) => void;
   indeterminate?: boolean;
   disabled?: boolean;
+  /** Keeps the label for assistive technologies only (e.g. a checkbox in a table row). */
+  hideLabel?: boolean;
 }
 
-export function Checkbox({ label, checked, onCheckedChange, indeterminate, disabled }: CheckboxProps) {
+export function Checkbox({ label, checked, onCheckedChange, indeterminate, disabled, hideLabel }: CheckboxProps) {
   return (
     <label className="ui-checkbox">
       <BaseCheckbox.Root
@@ -22,7 +24,7 @@ export function Checkbox({ label, checked, onCheckedChange, indeterminate, disab
           {indeterminate ? "−" : "✓"}
         </BaseCheckbox.Indicator>
       </BaseCheckbox.Root>
-      <span>{label}</span>
+      <span className={hideLabel ? "sr-only" : undefined}>{label}</span>
     </label>
   );
 }

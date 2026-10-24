@@ -6,6 +6,7 @@ from catalog.private_api import (
     ReviewDecisionView,
     ReviewRowsView,
     ReviewRowView,
+    SessionView,
     SnapshotsView,
 )
 from django.contrib import admin
@@ -43,6 +44,7 @@ urlpatterns = [
     path("api/v1/events/<uuid:id>/evidence/", EvidenceView.as_view()),
     path("api/v1/map-points/", MapPointsView.as_view()),
     path("api/private/v1/me/", MeView.as_view()),
+    path("api/private/v1/session/", SessionView.as_view()),
     path("api/private/v1/snapshots/", SnapshotsView.as_view()),
     path("api/private/v1/review/rows/", ReviewRowsView.as_view()),
     path("api/private/v1/review/rows/<uuid:id>/", ReviewRowView.as_view()),

@@ -1,6 +1,7 @@
 """Private review API (ADR 0009). Session authentication, CSRF on writes, permission checked on
 every request; the crosswalk services stay the only writers."""
 
+from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from drf_spectacular.authentication import SessionScheme
@@ -8,8 +9,9 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, serializers
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .api import ErrorSerializer, parameters
@@ -25,13 +27,22 @@ STATUS_BY_PROPOSAL = {
     "linked": "linked",
 }
 STATUSES = ("to_review", "blocked", "linked")
-ERRORS = {code: ErrorSerializer for code in (400, 401, 403, 404, 405, 409)}
+# Identity review concerns event sheets; Data_ports rows are read as port labels (UI2).
+REVIEW_SHEETS = ("Data_operations", "Other_data")
+ERRORS = {code: ErrorSerializer for code in (400, 401, 403, 404, 405, 409, 429)}
 
 
 class Conflict(exceptions.APIException):
     status_code = 409
     default_code = "conflict"
     default_detail = "The state changed or the rule refuses this decision; reload and decide again."
+
+
+class InvalidCredentials(exceptions.APIException):
+    status_code = 400
+    default_code = "invalid_credentials"
+    # One message whatever failed (unknown user, wrong password, inactive account).
+    default_detail = "Username or password is incorrect."
 
 
 class PrivateSessionAuthentication(SessionAuthentication):
@@ -68,6 +79,10 @@ def private_error_code(exc):
         return "method_not_allowed"
     if isinstance(exc, Conflict):
         return "conflict"
+    if isinstance(exc, InvalidCredentials):
+        return "invalid_credentials"
+    if isinstance(exc, exceptions.Throttled):
+        return "throttled"
     return (
         "not_found"
         if getattr(exc, "status_code", None) == 404 or exc.__class__.__name__ == "Http404"
@@ -113,19 +128,65 @@ class MeSerializer(serializers.Serializer):
     permissions = PermissionsSerializer()
 
 
+def me_payload(user):
+    return {
+        "username": user.get_username(),
+        "permissions": {"review_identity": user.has_perm(REVIEW_PERMISSION)},
+    }
+
+
 class MeView(PrivateView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(responses={200: MeSerializer, **ERRORS}, operation_id="private_me")
     def get(self, request):
         parameters(request, serializers.Serializer)
-        user = request.user
-        return Response(
-            {
-                "username": user.get_username(),
-                "permissions": {"review_identity": user.has_perm(REVIEW_PERMISSION)},
-            }
+        return Response(me_payload(request.user))
+
+
+class SignInSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(max_length=4096, trim_whitespace=False)
+
+
+class SessionView(PrivateView):
+    """Sign in and out with the Django session, from the application's own screen."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "sign_in"
+
+    def get_throttles(self):
+        # Only sign-in attempts are rate limited.
+        return super().get_throttles() if self.request.method == "POST" else []
+
+    @extend_schema(
+        request=SignInSerializer,
+        responses={200: MeSerializer, **ERRORS},
+        operation_id="private_sign_in",
+    )
+    def post(self, request):
+        # DRF checks CSRF only for authenticated users: a sign-in form must be protected too.
+        PrivateSessionAuthentication().enforce_csrf(request)
+        body = SignInSerializer(data=request.data)
+        body.is_valid(raise_exception=True)
+        user = authenticate(
+            request._request,
+            username=body.validated_data["username"],
+            password=body.validated_data["password"],
         )
+        if user is None or not user.is_active:
+            raise InvalidCredentials()
+        # Rotates the session key and the CSRF token.
+        login(request._request, user)
+        return Response(me_payload(user))
+
+    @extend_schema(request=None, responses={204: None, **ERRORS}, operation_id="private_sign_out")
+    def delete(self, request):
+        if not request.user.is_authenticated:
+            raise exceptions.NotAuthenticated()
+        logout(request._request)
+        return Response(status=204)
 
 
 # Snapshots
@@ -165,8 +226,11 @@ class SnapshotsView(PrivateView):
     def get(self, request):
         values = parameters(request, SnapshotParams)
         queryset = SheetSnapshot.objects.select_related("source").order_by("-created_at", "-pk")
-        if "sheet" in values:
-            queryset = queryset.filter(sheet=values["sheet"])
+        queryset = (
+            queryset.filter(sheet=values.get("sheet"))
+            if "sheet" in values
+            else queryset.filter(sheet__in=REVIEW_SHEETS)
+        )
         items = [
             {
                 "id": snapshot.pk,
@@ -235,6 +299,10 @@ class ReviewRowsView(PrivateView):
     def get(self, request):
         values = parameters(request, QueueParams)
         snapshot = get_object_or_404(SheetSnapshot, pk=values["snapshot"])
+        if snapshot.sheet not in REVIEW_SHEETS:
+            raise exceptions.ValidationError(
+                {"snapshot": "This sheet is not reviewed as identities."}
+            )
         proposals = propose_links(snapshot)
         rows = {row.pk: row for row in snapshot.rows.only("id", "line", "candidate", "error_codes")}
         counts = {status: 0 for status in STATUSES}

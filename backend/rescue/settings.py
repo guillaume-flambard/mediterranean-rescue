@@ -111,6 +111,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAdminUser"],
     "URL_FORMAT_OVERRIDE": None,
     "EXCEPTION_HANDLER": "catalog.api.exception_handler",
+    # Sign-in attempts per client address (LocMemCache by default, one process).
+    "DEFAULT_THROTTLE_RATES": {"sign_in": os.environ.get("SIGN_IN_RATE", "10/min")},
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "Mediterranean Rescue public API",

@@ -4,8 +4,12 @@ Statut : accepté par Guillaume le 24 octobre 2026 (« d'abord le contrat des AP
 
 ## Principes
 - Préfixe `/api/private/v1/`, URL en anglais, distinct de l'API publique `/api/v1/` qui reste sans authentification et inchangée.
-- **Session Django** : la connexion passe par la page de connexion existante (`/admin/login/`, compte `is_staff` pour l'instant) ; l'application redirige vers elle avec `next`. Aucun jeton dans le navigateur, aucun mot de passe géré par le frontend. Un écran de connexion dédié pourra venir plus tard sans changer ce contrat.
+- **Session Django** : l'application a son propre écran de connexion, qui appelle `POST session/` (nom d'utilisateur et mot de passe) ; `DELETE session/` déconnecte. Aucun jeton dans le navigateur : seul le cookie de session `HttpOnly` porte l'état. La connexion fait tourner la session et le jeton CSRF (`login()` de Django), donc le client oublie son jeton et le relit.
 - **CSRF** : toute écriture exige l'en-tête `X-CSRFToken`. Le cookie CSRF reste `HttpOnly` ; le frontend lit le jeton sur `GET /api/csrf/` et le renvoie. Origines de confiance : `CSRF_TRUSTED_ORIGINS`.
+  - `POST session/` vérifie le CSRF explicitement : DRF ne l'impose qu'aux utilisateurs déjà authentifiés, et une connexion sans jeton ouvrirait la porte au *login CSRF*.
+  - En production derrière un proxy TLS, l'origine publique doit figurer dans `CSRF_TRUSTED_ORIGINS` et `SECURE_PROXY_SSL_HEADER` doit être réglé, sinon Django compare une origine `https` à une requête qu'il croit `http` et refuse toute écriture.
+  - En développement, le proxy Vite réécrit l'en-tête `Host` (`changeOrigin`) mais garde `Origin` : l'origine du serveur de développement (et celle d'un éventuel tunnel) doit donc être déclarée dans `CSRF_TRUSTED_ORIGINS` du backend local.
+- **Connexion** : un seul message pour un nom inconnu, un mot de passe faux ou un compte inactif (`400 invalid_credentials`), pour ne pas révéler quels comptes existent. Débit limité par adresse (`ScopedRateThrottle`, portée `sign_in`, `SIGN_IN_RATE`, 10 par minute par défaut) ; au-delà, `429 throttled`.
 - **Permissions** revérifiées côté serveur à chaque requête : utilisateur actif et `catalog.review_identity` pour toute la revue. Les services de l'ADR 0005 restent les seuls à écrire ; l'API ne réimplémente aucune règle.
 - **Données privées** : réponses `Cache-Control: no-store` ; les URL ne portent que des identifiants opaques (UUID) et des critères sans valeur brute ; aucune donnée n'est conservée dans le stockage du navigateur.
 
@@ -18,13 +22,16 @@ Même enveloppe que l'API publique, `{code, detail, errors?}`, avec des codes ex
 | 401 | `not_authenticated` | Session absente ou expirée : se connecter puis relire l'état |
 | 403 | `permission_denied` | Connecté mais sans le droit : le dire, sans masquer en « aucun résultat » |
 | 403 | `csrf_failed` | Jeton absent ou périmé : le client relit le jeton et réessaie une fois |
-| 404 | `not_found` | Identifiant inconnu |
+| 404 | `not_found` | Identifiant inconnu ; `detail` reste générique (« Not found. ») et ne nomme aucun modèle |
 | 405 | `method_not_allowed` | Méthode non prévue |
+| 400 | `invalid_credentials` | Connexion refusée, message unique quel que soit le motif |
+| 429 | `throttled` | Trop de tentatives de connexion : attendre |
 | 409 | `conflict` | L'état a changé (autre relecteur, ligne déjà liée, identité déjà utilisée) ou la règle métier refuse : relire puis redécider ; `detail` explique sans valeur brute |
 
 ## Ressources
+- `POST session/` : `{username, password}` ; renvoie la même charge que `me/`. `DELETE session/` : `204`.
 - `GET me/` : nom d'utilisateur et droits utiles à l'interface (`review_identity`).
-- `GET snapshots/?sheet=&limit=&offset=` : exports enregistrés (source, onglet, date, lignes, statut de lecture), les plus récents d'abord.
+- `GET snapshots/?sheet=&limit=&offset=` : exports enregistrés (source, onglet, date, lignes, statut de lecture), les plus récents d'abord. Sans `sheet`, la liste se limite aux onglets revus (`Data_operations`, `Other_data`) ; la file refuse tout autre onglet (`400 invalid`).
 - `GET review/rows/?snapshot=<uuid>&status=to_review|blocked|linked&limit=&offset=` : file paginée (25 par défaut, 100 au plus) d'un export, avec les compteurs des trois facettes exclusives. `to_review` regroupe les propositions `new`, `exact_carry` et `candidates`.
 - `GET review/rows/<uuid>/` : la ligne reçue (en-têtes et cellules brutes, provenance), son interprétation, ses erreurs, la proposition et ses candidats résumés, ou la décision déjà enregistrée.
 - `POST review/rows/<uuid>/decision/` : `{action: "create_identity" | "link", identity: <uuid>?, reason}` ; appelle `approve_link`. Un choix manuel est enregistré `reviewed_match`.
@@ -34,4 +41,4 @@ Même enveloppe que l'API publique, `{code, detail, errors?}`, avec des codes ex
 « Examiner plus tard » n'appelle aucune API : rien n'est créé.
 
 ## Hors périmètre
-Import et diagnostic HTTP (UI2), ports (UI2), brouillons et révisions (UI3), écran de connexion dédié, limitation de débit.
+Import et diagnostic HTTP (UI2), ports (UI2), brouillons et révisions (UI3), création de comptes et réinitialisation de mot de passe.

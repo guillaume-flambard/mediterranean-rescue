@@ -28,6 +28,9 @@ def exception_handler(exc, context):
             from .private_api import private_error_code
 
             code = private_error_code(exc)
+            if code == "not_found":
+                # Never echo model names or lookups from get_object_or_404.
+                original = {"detail": "Not found."}
             detail = (
                 str(original.get("detail"))
                 if isinstance(original, dict) and "detail" in original
