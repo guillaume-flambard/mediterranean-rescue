@@ -56,7 +56,7 @@ describe("main screen preview", () => {
       "GET /api/private/v1/me/": () => ({ status: 401, body: { code: "not_authenticated", detail: "x" } }),
     });
     renderApp();
-    expect(await screen.findByText("No published event")).toBeTruthy();
+    expect(await screen.findByText("Nothing published yet")).toBeTruthy();
     await screen.findByRole("link", { name: "Team sign-in" });
     expect(screen.queryByRole("group", { name: "Data shown" })).toBeNull();
     expect(calls.some((call) => call.path.startsWith("/api/private/v1/preview/"))).toBe(false);
@@ -68,7 +68,7 @@ describe("main screen preview", () => {
       "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
     });
     renderApp();
-    expect(await screen.findByText("No published event")).toBeTruthy();
+    expect(await screen.findByText("Nothing published yet")).toBeTruthy();
     expect(await screen.findByRole("link", { name: /Team space/ })).toBeTruthy();
     expect(screen.queryByText(/latest data received/)).toBeNull();
     expect(calls.some((call) => call.path.startsWith("/api/private/v1/preview/"))).toBe(false);
@@ -105,7 +105,7 @@ describe("main screen preview", () => {
       "GET /api/private/v1/me/": () => ({ status: 401, body: { code: "not_authenticated", detail: "x" } }),
     });
     renderApp();
-    await screen.findByText("No published event");
+    await screen.findByText("Nothing published yet");
     await userEvent.click(screen.getByRole("button", { name: "Shipwrecks" }));
     await userEvent.type(screen.getByRole("searchbox"), "lampedusa");
     await waitFor(() =>

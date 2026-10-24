@@ -5,6 +5,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { AccessProblem } from "../review/AccessProblem";
 import { Link, useLocation } from "../router";
 import { Button } from "../ui/Button";
+import { BrandMark } from "../ui/BrandMark";
 import { Icon } from "../ui/Icon";
 import { InlineMessage, PendingState } from "../ui/Feedback";
 
@@ -66,6 +67,7 @@ export function WorkspaceShell({
       <header className="workspace-bar">
         <div className="workspace-bar__top">
           <p className="workspace-bar__brand">
+            <BrandMark size={28} className="workspace-bar__mark" />
             {t("app.brand")} <span>{t("workspace.teamSpace")}</span>
           </p>
           <span className="workspace-bar__user" title={t("review.signedInAs", { name: me.data.username })}>

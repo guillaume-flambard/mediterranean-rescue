@@ -15,6 +15,8 @@ const PATHS = {
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   alert: <><path d="M12 4 2.8 19.5h18.4L12 4Z" /><path d="M12 10v4.5M12 17.2v.3" /></>,
   arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
+  info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5M12 7.6v.3" /></>,
+  help: <><circle cx="12" cy="12" r="8.5" /><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.7M12 16.9v.3" /></>,
   signOut: <><path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" /><path d="M10 8l-4 4 4 4M6 12h10" /></>,
 } as const;
 

@@ -3,21 +3,20 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { api, type Kind } from "../api/client";
 import { kinds } from "../filters";
-import { LOCALES, type Locale } from "../i18n/format";
 import { useI18n } from "../i18n/I18nProvider";
 import { Link, navigate, useLocation, withQuery } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
-import { SelectField } from "../ui/SelectField";
 import { PreviewBody, PublicBody } from "./EventBody";
 import { kindLabel, kindName, peopleText, type Key } from "./labels";
 import { Logbook } from "./Logbook";
 import { MiniMap } from "./MiniMap";
+import { PublicBar } from "./PublicBar";
+import { Welcome } from "./Welcome";
 import { Timeline } from "./Timeline";
 
 const EventMap = lazy(async () => ({ default: (await import("../components/Map")).EventMap }));
 const PAGE = 25;
-const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
 // Three ways to read the same events.
 type View = "feed" | "logbook" | "timeline";
 const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor" }[] = [
@@ -68,8 +67,6 @@ function useHeight(element: HTMLElement | null) {
 export function Explore({ audience = "public" }: { audience?: "public" | "team" }) {
   const i18n = useI18n();
   const { t } = i18n;
-  const me = api.useQuery("get", "/api/private/v1/me/", {}, { retry: false });
-  const signedIn = me.data?.permissions.review_identity === true;
   const preview = audience === "team";
   const { pathname, query } = useLocation();
   const requested = VIEWS.find((item) => item.value === query.get("view"));
@@ -228,27 +225,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
 
   return (
     <div className={`explore${preview ? " explore--team" : ""} explore--view-${view}`}>
-      {!preview && (
-      <header className="explore-bar">
-        <a href="/" className="explore-bar__brand">
-          {t("app.brand")}
-        </a>
-        <span className="explore-bar__tagline">{t("app.tagline")}</span>
-        <div className="explore-bar__actions">
-          <SelectField<Locale>
-            className="explore-bar__language"
-            label={t("app.language")}
-            value={i18n.locale}
-            options={LOCALES.map((value) => ({ value, label: LANGUAGE_NAMES[value], lang: value }))}
-            onValueChange={(value) => value && i18n.setLocale(value)}
-          />
-          <Link to="/workspace" className="explore-bar__workspace">
-            <Icon name="lock" size={16} />
-            <span className="explore-bar__workspace-label">{signedIn ? t("preview.workspace") : t("preview.signIn")}</span>
-          </Link>
-        </div>
-      </header>
-      )}
+      {!preview && <PublicBar />}
 
       <div className="explore-body">
         <section className="explore-feed" aria-labelledby="explore-title">
@@ -256,6 +233,8 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
             <h1 id="explore-title">{t("app.title")}</h1>
             <p>{t("app.lead")}</p>
           </div>
+
+          {!preview && <Welcome />}
 
           <div className="composer">
             <div className="views" role="group" aria-label={t("explore.view")}>
@@ -411,10 +390,17 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
               <Icon name="search" size={22} />
               <h2>{t(filtered ? "explore.noMatch" : preview ? "preview.empty.title" : "events.empty.title")}</h2>
               <p>{t(filtered ? "explore.noMatchBody" : preview ? "preview.empty.body" : "events.empty.body")}</p>
-              {filtered && (
+              {filtered ? (
                 <BaseButton className="pill-button" onClick={clearFilters}>
                   {t("filters.reset")}
                 </BaseButton>
+              ) : (
+                !preview && (
+                  <Link to="/about" className="pill-button">
+                    <Icon name="info" size={16} />
+                    {t("events.empty.about")}
+                  </Link>
+                )
               )}
             </div>
           ) : view === "logbook" ? (

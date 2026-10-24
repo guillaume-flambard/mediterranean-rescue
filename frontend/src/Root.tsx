@@ -10,6 +10,7 @@ const ReviewWorkspace = lazy(async () => ({ default: (await import("./review/Rev
 const ImportsWorkspace = lazy(async () => ({ default: (await import("./imports/ImportsWorkspace")).ImportsWorkspace }));
 const PortsWorkspace = lazy(async () => ({ default: (await import("./ports/PortsWorkspace")).PortsWorkspace }));
 const TeamData = lazy(async () => ({ default: (await import("./workspace/TeamData")).TeamData }));
+const AboutPage = lazy(async () => ({ default: (await import("./explore/AboutPage")).AboutPage }));
 const WorkspaceHome = lazy(async () => ({ default: (await import("./workspace/WorkspaceHome")).WorkspaceHome }));
 
 const within = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
@@ -58,5 +59,11 @@ function Routes() {
     <WorkspaceHome />
   ) : null;
   if (workspace) return <Suspense fallback={null}>{workspace}</Suspense>;
+  if (pathname === "/about" || pathname === "/about/")
+    return (
+      <Suspense fallback={null}>
+        <AboutPage />
+      </Suspense>
+    );
   return <App />;
 }

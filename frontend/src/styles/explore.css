@@ -494,3 +494,73 @@ body:has(.explore--team) { background: #eeedf2; }
     box-shadow: 0 2px 6px rgb(27 39 71 / 0.1), 0 24px 48px -20px rgb(27 39 71 / 0.4);
   }
 }
+
+/* The project's mark beside the name, and the "About the data" link in the public bar. */
+.explore-bar__brand { display: inline-flex; align-items: center; gap: 10px; }
+.explore-bar__mark { flex: none; }
+.explore-bar__link {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 var(--space-3);
+  border-radius: var(--radius-pill); color: var(--sos-white); font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.explore-bar__link:hover, .explore-bar__link[aria-current="page"] { background: rgb(255 255 255 / 0.14); }
+@media (max-width: 639px) {
+  .explore-bar__mark { width: 26px; height: 26px; }
+  .explore-bar__link { width: 36px; padding: 0; justify-content: center; }
+  .explore-bar__link-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@media (max-width: 379px) { .explore-bar__brand { font-size: 0; gap: 0; } }
+
+/* About the data: one readable column of cards, in the order a newcomer asks their questions. */
+.about__body { display: grid; gap: var(--space-4); max-width: 760px; margin: 0 auto; padding: var(--space-6) var(--layout-page-gutter-mobile) var(--space-16); }
+.about__hero { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-4) 0 var(--space-2); }
+.about__eyebrow { margin: 0; color: var(--sos-orange-dark-proposed); font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.about__hero h1 { margin: 0; font-size: clamp(30px, 6vw, 44px); line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; color: var(--sos-navy); }
+.about__lead { margin: 0; max-width: 60ch; font-size: 18px; line-height: 1.55; color: var(--color-text); }
+.about__independent { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; padding: var(--space-3) var(--space-4); border-radius: 16px; background: rgb(27 39 71 / 0.06); color: var(--color-text-secondary); font-size: 14px; }
+.about__independent svg { flex: none; margin-top: 2px; color: var(--sos-navy); }
+.about__independent a { color: var(--sos-navy); font-weight: 700; }
+.about__cta { justify-self: start; text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2); }
+.about__card { display: grid; gap: var(--space-3); padding: var(--space-5); border-radius: 20px; background: var(--sos-white); box-shadow: var(--card-shadow); }
+.about__card h2 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; color: var(--sos-navy); }
+.about__card h3 { margin: var(--space-2) 0 0; font-size: 16px; font-weight: 800; }
+.about__card p { margin: 0; max-width: 64ch; line-height: 1.6; }
+.about__card--quiet { background: var(--sos-navy); color: var(--sos-white); }
+.about__card--quiet h2 { color: var(--sos-white); }
+.about__note { color: var(--color-text-muted); font-size: 14px; }
+.about__know, .about__read, .about__steps, .about__links { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.about__know li { display: flex; gap: var(--space-3); line-height: 1.55; }
+.about__know svg { flex: none; margin-top: 3px; color: var(--kind-medevac); }
+.about__read li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: var(--space-3); align-items: center; line-height: 1.5; }
+.about__legend-point { justify-self: center; width: 14px; height: 14px; border-radius: 50%; background: var(--kind-rescue); box-shadow: 0 0 0 2.5px var(--sos-white), 0 0 0 3.5px #c9ccd9; }
+.about__legend-group { justify-self: center; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--sos-navy); color: var(--sos-white); font-size: 12px; font-weight: 800; box-shadow: 0 0 0 2px var(--sos-white), 0 0 0 3px #c9ccd9; }
+.about__legend-open { justify-self: center; width: 18px; height: 18px; border-radius: 50%; background: var(--sos-orange); box-shadow: 0 0 0 3px var(--sos-white), 0 0 0 9px rgb(232 62 27 / 0.22); }
+.about__views { color: var(--color-text-secondary); font-size: 15px; }
+.about__words { display: grid; gap: var(--space-2); margin: 0; }
+.about__word { display: grid; gap: 2px; padding: var(--space-3) var(--space-4); border-radius: 14px; background: var(--color-canvas); }
+.about__word dt { display: flex; align-items: center; gap: var(--space-2); font-weight: 800; }
+.about__word dd { margin: 0; color: var(--color-text-secondary); line-height: 1.5; }
+.about__steps li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+.about__steps li > span:last-child { display: grid; gap: 2px; line-height: 1.5; }
+.about__steps li span span { color: var(--color-text-secondary); }
+.about__step-number { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--sos-navy); color: var(--sos-white); font-weight: 800; font-variant-numeric: lining-nums; }
+.about__links a { color: var(--sos-navy); font-weight: 700; }
+@media (min-width: 640px) {
+  .about__body { padding: var(--space-10) var(--space-6) var(--space-16); }
+  .about__card { padding: var(--space-6) var(--space-8); }
+  .about__words { grid-template-columns: 1fr 1fr; }
+}
+
+/* First visit: three plain facts before the first number, then the way to the full page. */
+.welcome { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5); border-radius: 20px; background: var(--sos-navy); color: var(--sos-white); box-shadow: var(--card-shadow); }
+.welcome__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.welcome h2 { margin: 0; font-size: 17px; font-weight: 800; }
+.welcome__close { width: 36px; height: 36px; color: var(--sos-white); }
+.welcome__close:hover { background: rgb(255 255 255 / 0.14); }
+.welcome :focus-visible { outline-color: var(--sos-white); }
+.welcome__points { display: grid; gap: var(--space-2); margin: 0; padding: 0 0 0 18px; font-size: 15px; line-height: 1.5; color: rgb(255 255 255 / 0.88); }
+.welcome__points li::marker { color: #ff6a47; }
+.welcome__more { display: inline-flex; align-items: center; gap: 6px; justify-self: start; margin-top: var(--space-1); color: var(--sos-white); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 639px) {
+  .welcome { order: 0; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); }
+  .welcome__points { font-size: 14px; }
+}

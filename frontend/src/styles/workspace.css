@@ -5,7 +5,7 @@
   border-radius: 20px; background: var(--sos-navy); color: var(--sos-white);
 }
 .workspace-bar__top { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
-.workspace-bar__brand { margin: 0 auto 0 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.workspace-bar__brand { display: flex; align-items: center; gap: 10px; margin: 0 auto 0 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .workspace-bar__brand span { margin-left: var(--space-1); color: rgb(255 255 255 / 0.7); font-weight: 600; }
 @media (max-width: 639px) { .workspace-bar__brand span { display: none; } }
 .workspace-bar__user { color: rgb(255 255 255 / 0.72); font-size: 13px; white-space: nowrap; }
@@ -72,3 +72,4 @@
 .ui-file__input:hover + .ui-file__button { background: var(--color-surface-hover); }
 .ui-file__name { color: var(--color-text-secondary); overflow-wrap: anywhere; }
 
+.workspace-bar__mark { flex: none; }
