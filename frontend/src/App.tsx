@@ -1,232 +1,242 @@
-import { useState, lazy, Suspense } from "react";
-import { Button } from "@base-ui/react/button";
-import { Select } from "@base-ui/react/select";
-import { Dialog } from "@base-ui/react/dialog";
+import { Button as BaseButton } from "@base-ui/react/button";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { api, type Kind } from "./api/client";
-import { dateLabel, kinds, kindLabel, makeFilter } from "./filters";
-const EventMap = lazy(async () => ({
-  default: (await import("./components/Map")).EventMap,
-}));
+import { kinds, makeFilter } from "./filters";
+import { LOCALES, type Locale } from "./i18n/format";
+import { useI18n } from "./i18n/I18nProvider";
+import { formatPosition } from "./shared/geo";
+import { Button } from "./ui/Button";
+import { Dialog } from "./ui/Dialog";
+import { Pagination } from "./ui/Pagination";
+import { SelectField } from "./ui/SelectField";
+
+const EventMap = lazy(async () => ({ default: (await import("./components/Map")).EventMap }));
+const PAGE = 25;
+// Each language is named in its own language, as language pickers usually do.
+const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
+
+function useKindLabel() {
+  const { t } = useI18n();
+  return (kind: Kind) => {
+    const key = `kind.${kind}` as const;
+    const label = t(key);
+    // A category the catalog does not know yet shows its source value.
+    return label === key ? kind : label;
+  };
+}
 
 function Detail({ id }: { id: string }) {
-  const { data: event, isPending: fetching, error, refetch: retry } = api.useQuery("get", "/api/v1/events/{id}/", { params: { path: { id } } });
+  const i18n = useI18n();
+  const { t } = i18n;
+  const { data: event, isPending, error, refetch } = api.useQuery("get", "/api/v1/events/{id}/", {
+    params: { path: { id } },
+  });
   const [evidenceOffset, setEvidenceOffset] = useState(0);
-  const evidence = api.useQuery("get", "/api/v1/events/{id}/evidence/", { params: { path: { id }, query: { limit: 25, offset: evidenceOffset } } });
-  if (fetching && !event) return <p role="status">Chargement de la fiche…</p>;
+  const evidence = api.useQuery("get", "/api/v1/events/{id}/evidence/", {
+    params: { path: { id }, query: { limit: PAGE, offset: evidenceOffset } },
+  });
+  const kindLabel = useKindLabel();
+  if (isPending && !event) return <p role="status">{t("detail.loading")}</p>;
   if (error)
     return (
       <div role="alert">
-        <p>La fiche n’a pas pu être chargée.</p>
-        <Button onClick={() => retry()}>
-          Réessayer
-        </Button>
+        <p>{t("detail.loadError")}</p>
+        <Button onClick={() => void refetch()}>{t("ui.retry")}</Button>
       </div>
     );
-  if (!event)
-    return <p>Cet événement n’est pas disponible à la publication.</p>;
+  if (!event) return <p>{t("detail.unavailable")}</p>;
+  const position = event.position;
   return (
     <>
       <div className="detail-date">
-        {dateLabel(event.occurred_on)} · {kindLabel(event.kind)}
+        {i18n.date(event.occurred_on)} · {kindLabel(event.kind)}
       </div>
       <h2>{event.title}</h2>
-      {event.source.synthetic && (
-        <p className="training">Données d’entraînement fictives</p>
-      )}
-      <p>{event.summary || "Aucune description publiée."}</p>
+      {event.source.synthetic && <p className="training">{t("detail.trainingData")}</p>}
+      <p>{event.summary || t("detail.noSummary")}</p>
       <dl>
         <div>
-          <dt>Effectif déclaré</dt>
-          <dd>{event.people ?? "Inconnu"}</dd>
+          <dt>{t("detail.people")}</dt>
+          <dd>{event.people === null ? t("detail.unknownCount") : i18n.number(event.people)}</dd>
         </div>
         <div>
-          <dt>Navire</dt>
-          <dd>{event.vessel?.name ?? "Non renseigné"}</dd>
+          <dt>{t("detail.vessel")}</dt>
+          <dd>{event.vessel?.name ?? t("detail.notProvided")}</dd>
         </div>
         <div>
-          <dt>Voyage</dt>
-          <dd>{event.voyage?.title ?? "Non renseigné"}</dd>
+          <dt>{t("detail.voyage")}</dt>
+          <dd>{event.voyage?.title ?? t("detail.notProvided")}</dd>
         </div>
         <div>
-          <dt>Port de débarquement</dt>
-          <dd>{event.port?.name ?? "Non renseigné"}</dd>
+          <dt>{t("detail.port")}</dt>
+          <dd>{event.port?.name ?? t("detail.notProvided")}</dd>
         </div>
         <div>
-          <dt>Position</dt>
+          <dt>{t("detail.position")}</dt>
           <dd>
-            {event.position
-              ? `${event.position.latitude.toFixed(3)}° N, ${event.position.longitude.toFixed(3)}° E (${event.position.precision === "approximate" ? "approximative" : "rapportée"})`
-              : "Inconnue"}
+            {position
+              ? `${formatPosition(i18n, position.latitude, position.longitude)} (${t(
+                  position.precision === "approximate" ? "detail.precision.approximate" : "detail.precision.reported",
+                )})`
+              : t("detail.unknownPosition")}
           </dd>
         </div>
       </dl>
-      <h3>Sources et provenance</h3>
+      <h3>{t("detail.sources")}</h3>
       <p>
         <a href={event.source_url} target="_blank" rel="noreferrer">
-          Consulter la source de l’événement ↗
+          {t("detail.sourceLink")}
         </a>
       </p>
       <p>{event.source.name}</p>
       <p className="muted">{event.source.license_note}</p>
-      {(evidence.data?.items ?? []).map((e) => (
-        <p key={e.url}>
-          <a href={e.url} target="_blank" rel="noreferrer">
-            {e.label} ↗
+      {(evidence.data?.items ?? []).map((item) => (
+        <p key={item.url}>
+          <a href={item.url} target="_blank" rel="noreferrer">
+            {item.label} ↗
           </a>
         </p>
       ))}
-      {evidence.error && <p role="alert">Les liens supplémentaires n’ont pas pu être chargés. <Button onClick={() => evidence.refetch()}>Réessayer</Button></p>}
-      {evidence.isPending && <p role="status">Chargement des liens…</p>}
+      {evidence.error && (
+        <p role="alert">
+          {t("detail.evidenceError")} <Button onClick={() => void evidence.refetch()}>{t("ui.retry")}</Button>
+        </p>
+      )}
+      {evidence.isPending && <p role="status">{t("detail.evidenceLoading")}</p>}
       <div className="pagination">
-        <Button disabled={evidenceOffset === 0 || evidence.isFetching} onClick={() => setEvidenceOffset(Math.max(0, evidenceOffset - 25))}>Liens précédents</Button>
-        <Button disabled={!evidence.data?.has_next || evidence.isFetching} onClick={() => setEvidenceOffset(evidenceOffset + 25)}>Liens suivants</Button>
+        <Button
+          disabled={evidenceOffset === 0 || evidence.isFetching}
+          onClick={() => setEvidenceOffset(Math.max(0, evidenceOffset - PAGE))}
+        >
+          {t("detail.evidencePrevious")}
+        </Button>
+        <Button
+          disabled={!evidence.data?.has_next || evidence.isFetching}
+          onClick={() => setEvidenceOffset(evidenceOffset + PAGE)}
+        >
+          {t("detail.evidenceNext")}
+        </Button>
       </div>
-      <p className="muted">
-        Un effectif inconnu reste inconnu. Les événements peuvent concerner
-        plusieurs fois les mêmes personnes.
-      </p>
+      <p className="muted">{t("detail.countsNote")}</p>
     </>
   );
 }
+
 export default function App() {
-  const [start, setStart] = useState(""),
-    [end, setEnd] = useState(""),
-    [kind, setKind] = useState<Kind | "">(""),
-    [offset, setOffset] = useState(0),
-    [selected, setSelected] = useState<string | null>(null);
+  const i18n = useI18n();
+  const { t } = i18n;
+  const kindLabel = useKindLabel();
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [kind, setKind] = useState<Kind | "">("");
+  const [offset, setOffset] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
   const invalid = Boolean(start && end && start > end);
   const filters = makeFilter(start, end, kind);
-  const eventsQuery = api.useQuery("get", "/api/v1/events/", { params: { query: { ...filters, limit: 25, offset } } }, { enabled: !invalid });
+  const eventsQuery = api.useQuery(
+    "get",
+    "/api/v1/events/",
+    { params: { query: { ...filters, limit: PAGE, offset } } },
+    { enabled: !invalid },
+  );
   const mapQuery = api.useQuery("get", "/api/v1/map-points/", { params: { query: filters } }, { enabled: !invalid });
   const fetching = eventsQuery.isFetching || mapQuery.isFetching;
   const error = eventsQuery.error || mapQuery.error;
-  const retry = () => { void eventsQuery.refetch(); void mapQuery.refetch(); };
-  const data = eventsQuery.data;
-  const update = () => setOffset(0),
-    reset = () => {
-      setStart("");
-      setEnd("");
-      setKind("");
-      setOffset(0);
-    };
-  const page = data;
+  const page = eventsQuery.data;
+  const retry = () => {
+    void eventsQuery.refetch();
+    void mapQuery.refetch();
+  };
+  useEffect(() => {
+    document.title = t("app.documentTitle");
+    document.querySelector('meta[name="description"]')?.setAttribute("content", t("app.metaDescription"));
+  }, [t]);
+  const reset = () => {
+    setStart("");
+    setEnd("");
+    setKind("");
+    setOffset(0);
+  };
+
   return (
     <>
       <header className="header">
         <a href="/" className="brand">
-          Mediterranée Rescue
+          {t("app.brand")}
         </a>
-        <span>Les actions en mer, documentées.</span>
+        <span>{t("app.tagline")}</span>
+        <SelectField<Locale>
+          className="language"
+          label={t("app.language")}
+          value={i18n.locale}
+          options={LOCALES.map((value) => ({ value, label: LANGUAGE_NAMES[value], lang: value }))}
+          onValueChange={(value) => value && i18n.setLocale(value)}
+        />
         <a href="https://sosmediterranee.fr/" target="_blank" rel="noreferrer">
-          SOS MEDITERRANEE ↗
+          {t("app.sosLink")}
         </a>
       </header>
       <main>
         <section className="intro">
           <div>
-            <h1>Explorer les actions en Méditerranée</h1>
-            <p>
-              Une carte, des événements et les sources qui permettent de les
-              comprendre.
-            </p>
+            <h1>{t("app.title")}</h1>
+            <p>{t("app.lead")}</p>
           </div>
-          <span className="phase">Projet en construction</span>
+          <span className="phase">{t("app.phase")}</span>
         </section>
-        <p className="context">
-          Interface indépendante en cours de développement. Le périmètre et la
-          publication des données seront validés avec les associations.
-        </p>
-        {data?.data_mode === "training" && (
+        <p className="context">{t("app.context")}</p>
+        {page?.data_mode === "training" && (
           <div className="training" role="status">
-            Mode entraînement : tous les événements et effectifs affichés sont
-            fictifs.
+            {t("app.training")}
           </div>
         )}
         <form className="filters" onSubmit={(e) => e.preventDefault()}>
           <label>
-            Du
+            {t("filters.from")}
             <input
               type="date"
               value={start}
               onChange={(e) => {
                 setStart(e.target.value);
-                update();
+                setOffset(0);
               }}
             />
           </label>
           <label>
-            Au
+            {t("filters.to")}
             <input
               type="date"
               value={end}
               onChange={(e) => {
                 setEnd(e.target.value);
-                update();
+                setOffset(0);
               }}
             />
           </label>
-          <div className="field">
-            <label id="kind-label">Type d’événement</label>
-            <Select.Root
-              value={kind}
-              onValueChange={(value) => {
-                setKind(value ?? "");
-                update();
-              }}
-            >
-              <Select.Trigger
-                className="select-trigger"
-                aria-labelledby="kind-label"
-              >
-                <Select.Value>{kind ? kindLabel(kind) : "Tous les événements"}</Select.Value>
-                <Select.Icon>⌄</Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Positioner sideOffset={6}>
-                  <Select.Popup className="select-popup">
-                    <Select.List>
-                      <Select.Item value="" className="select-item">
-                        <Select.ItemText>Tous les événements</Select.ItemText>
-                      </Select.Item>
-                      {kinds.map((k) => (
-                        <Select.Item
-                          key={k.value}
-                          value={k.value}
-                          className="select-item"
-                        >
-                          <Select.ItemText>{k.label}</Select.ItemText>
-                          <Select.ItemIndicator>✓</Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </div>
-          <Button onClick={reset}>Réinitialiser</Button>
+          <SelectField<Kind>
+            label={t("filters.kind")}
+            value={kind}
+            emptyLabel={t("filters.allKinds")}
+            options={kinds.map((value) => ({ value, label: kindLabel(value) }))}
+            onValueChange={(value) => {
+              setKind(value);
+              setOffset(0);
+            }}
+          />
+          <Button onClick={reset}>{t("filters.reset")}</Button>
           <span className="result-count" role="status">
-            {fetching
-              ? "Actualisation…"
-              : page
-                ? `${page.total_count} événements`
-                : ""}
+            {fetching ? t("filters.refreshing") : page ? t("events.count", { count: page.total_count }) : ""}
           </span>
         </form>
         {invalid && (
           <p role="alert" className="error">
-            La date de début doit précéder la date de fin.
+            {t("filters.invalidRange")}
           </p>
         )}
         {error && (
           <div className="error" role="alert">
-            <p>
-              La connexion aux données a échoué. Les résultats précédents
-              peuvent être périmés.
-            </p>
-            <Button onClick={() => retry()}>
-              Réessayer
-            </Button>
+            <p>{t("events.loadError")}</p>
+            <Button onClick={retry}>{t("ui.retry")}</Button>
           </div>
         )}
         <div className="workspace" aria-busy={fetching}>
@@ -234,130 +244,86 @@ export default function App() {
             <Suspense
               fallback={
                 <div className="map empty" role="status">
-                  Chargement de la carte…
+                  {t("map.loading")}
                 </div>
               }
             >
-              <EventMap
-                points={invalid ? [] : (mapQuery.data?.points ?? [])}
-                onSelect={setSelected}
-              />
+              <EventMap points={invalid ? [] : (mapQuery.data?.points ?? [])} onSelect={setSelected} />
             </Suspense>
             <div className="map-footer">
               <span>
-                <i /> Événement publié • points regroupés à faible zoom
+                <i /> {t("map.legend")}
               </span>
-              <span>
-                {mapQuery.data?.located_count ?? 0} événements localisés
-              </span>
+              <span>{t("map.located", { count: mapQuery.data?.located_count ?? 0 })}</span>
             </div>
-            {mapQuery.data?.truncated && (
-              <p className="notice">
-                Les 2 000 premiers points sont affichés. Affinez la période pour
-                explorer le reste.
-              </p>
-            )}
+            {mapQuery.data?.truncated && <p className="notice">{t("map.truncated")}</p>}
           </section>
           <section className="journal" aria-labelledby="journal-title">
             <div className="journal-head">
-              <h2 id="journal-title">Événements</h2>
-              <span>{page?.total_count ?? 0}</span>
+              <h2 id="journal-title">{t("events.heading")}</h2>
+              <span>{i18n.number(page?.total_count ?? 0)}</span>
             </div>
-            {!data && fetching ? (
+            {!page && fetching ? (
               <p className="empty" role="status">
-                Chargement des événements…
+                {t("events.loading")}
               </p>
             ) : !invalid && page && page.total_count === 0 ? (
               <div className="empty">
-                <h3>Aucun événement publié</h3>
-                <p>
-                  Les données apparaîtront ici après import, contrôle et
-                  validation de leur publication.
-                </p>
-                <p>Vous pouvez aussi élargir les filtres.</p>
+                <h3>{t("events.empty.title")}</h3>
+                <p>{t("events.empty.body")}</p>
+                <p>{t("events.empty.hint")}</p>
               </div>
             ) : invalid ? (
-              <p className="empty">
-                Corrigez la période pour consulter les événements.
-              </p>
+              <p className="empty">{t("filters.fixRange")}</p>
             ) : (
               <ul className="events">
                 {page?.items.map((event) => (
                   <li key={event.id}>
-                    <Button
-                      className="event"
-                      onClick={() => setSelected(event.id)}
-                    >
-                      <span className="event-date">
-                        {dateLabel(event.occurred_on)}
-                      </span>
+                    {/* Legacy list row, styled by styles.css until the public screen is rebuilt (UI4). */}
+                    <BaseButton className="event" onClick={() => setSelected(event.id)}>
+                      <span className="event-date">{i18n.date(event.occurred_on)}</span>
                       <strong>{event.title}</strong>
                       <span className="muted">
                         {kindLabel(event.kind)}
                         {event.vessel ? ` · ${event.vessel.name}` : ""}
                       </span>
                       <span>
-                        {event.people === null
-                          ? "Effectif inconnu"
-                          : `${event.people} personnes déclarées`}
+                        {event.people === null ? t("events.peopleUnknown") : t("events.people", { count: event.people })}
                       </span>
-                    </Button>
+                    </BaseButton>
                   </li>
                 ))}
               </ul>
             )}
-            <div className="pagination">
-              <Button
-                disabled={offset === 0 || fetching || invalid}
-                onClick={() => setOffset(Math.max(0, offset - 25))}
-              >
-                Précédent
-              </Button>
-              <span>
-                {page?.total_count
-                  ? `${offset + 1} à ${Math.min(offset + 25, page.total_count)}`
-                  : "0 résultat"}
-              </span>
-              <Button
-                disabled={!page?.has_next || fetching || invalid}
-                onClick={() => setOffset(offset + 25)}
-              >
-                Suivant
-              </Button>
-            </div>
+            <Pagination
+              className="pagination"
+              offset={offset}
+              limit={PAGE}
+              total={page?.total_count ?? 0}
+              hasNext={Boolean(page?.has_next)}
+              disabled={fetching || invalid}
+              onOffsetChange={setOffset}
+            />
           </section>
         </div>
         <footer>
-          <p>
-            Les effectifs décrivent des événements. Ils ne constituent pas un
-            décompte de personnes uniques.
-          </p>
-          <a
-            href="https://map.sosmediterranee.org/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Consulter la carte SOS MEDITERRANEE existante ↗
+          <p>{t("app.footer.counts")}</p>
+          <a href="https://map.sosmediterranee.org/" target="_blank" rel="noreferrer">
+            {t("app.footer.sosMap")}
           </a>
         </footer>
       </main>
-      <Dialog.Root
+      <Dialog
+        className="dialog"
+        title={t("detail.title")}
+        hideTitle
         open={selected !== null}
         onOpenChange={(open) => {
           if (!open) setSelected(null);
         }}
       >
-        <Dialog.Portal>
-          <Dialog.Backdrop className="backdrop" />
-          <Dialog.Popup className="dialog">
-            <Dialog.Title className="sr-only">
-              Fiche de l’événement
-            </Dialog.Title>
-            <Dialog.Close className="dialog-close">Fermer ×</Dialog.Close>
-            {selected && <Detail key={selected} id={selected} />}
-          </Dialog.Popup>
-        </Dialog.Portal>
-      </Dialog.Root>
+        {selected && <Detail key={selected} id={selected} />}
+      </Dialog>
     </>
   );
 }

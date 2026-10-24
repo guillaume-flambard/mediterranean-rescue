@@ -1,6 +1,6 @@
 {
   "phase": "READY_FOR_MANUAL_ACCEPTANCE",
-  "milestone": "reviewed-draft-revisions",
+  "milestone": "ui0-frontend-foundations",
   "product_status": "IN_PROGRESS",
   "requirements": {
     "total": 5,
@@ -26,7 +26,7 @@
     "status": "PASS",
     "diagnostic_host_tests": 46,
     "backend_postgis_tests": 127,
-    "frontend_tests": 2,
+    "frontend_tests": 30,
     "openapi_codegen": "PASS (unchanged)",
     "negative_contract_test": "PASS",
     "typecheck_build": "PASS",
@@ -49,7 +49,10 @@
     "real_export_drafts_trial": "rolled back: 371 drafts, 6 inconsistent counts skipped, 0 public (EV-B4)",
     "revisions_review": "PASS after fixes (P0 0, P1 0)",
     "mutation_checks_revisions": "11/11 killed",
-    "real_export_revisions_trial": "rolled back: 1 simulated correction proposed and applied, 0 published (EV-R10)"
+    "real_export_revisions_trial": "rolled back: 1 simulated correction proposed and applied, 0 published (EV-R10)",
+    "frontend_lint": "PASS (eslint-plugin-react-hooks recommended, React Compiler)",
+    "ui0_review": "PASS after fixes (P0 0, P1 2 fixed)",
+    "browser_ui0": "EV-U3"
   },
   "ready_for_manual_acceptance": true,
   "human_acceptance": false,

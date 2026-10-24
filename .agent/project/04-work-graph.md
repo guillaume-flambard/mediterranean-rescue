@@ -61,3 +61,11 @@ R1 P1 DONE trace EventRevision et état de référence `drafted_values` (migrati
 R2 P1 DONE proposition, conflits, application et refus ; AC-R1 à AC-R4.
 R3 P1 DONE revue indépendante, régressions, essai privé ; AC-R5.
 Suite : application React avec écrans de revue (identités, ports, brouillons, révisions), puis preuves documentaires, voyages et navires.
+
+## Tranche UI0 : fondations du frontend, 24 octobre 2026
+Spécification : DESIGN.md, docs/design/ (commité tel quel en db3cd3b) et docs/decisions/0008-frontend-foundations.md. Branche feat/ui-foundations, empilée sur feat/draft-revisions, développée dans un worktree séparé.
+U0-1 P1 DONE outillage React Compiler, ESLint hooks, Vite 8.3.5, étape lint en CI.
+U0-2 P1 DONE i18n anglais par défaut, traduction française typée, écran public passé aux catalogues.
+U0-3 P1 DONE tokens, police auto-hébergée, seize composants P1, page interne de catalogue.
+U0-4 P1 DONE annulation des requêtes hors query (useAbortableRequest), revue indépendante et corrections.
+Reste UI0 : SearchCombobox, NavigationDrawer, DataTable, FilterBar, FileInput ; puis UI1 (API privées de revue et écrans).

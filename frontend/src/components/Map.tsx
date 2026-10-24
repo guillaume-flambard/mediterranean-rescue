@@ -1,28 +1,52 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  Map as LibreMap,
-  NavigationControl,
-  setWorkerUrl,
-  type GeoJSONSource,
-} from "maplibre-gl";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { Map as LibreMap, NavigationControl, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
-setWorkerUrl(workerUrl);
 import type { MapPoints as Points } from "../api/client";
-export function EventMap({
-  points,
-  onSelect,
-}: {
-  points: Points;
-  onSelect: (id: string) => void;
-}) {
-  const element = useRef<HTMLDivElement>(null),
-    map = useRef<LibreMap | null>(null),
-    selection = useRef(onSelect);
-  const [failed, setFailed] = useState(false);
-  selection.current = onSelect;
+import { useI18n } from "../i18n/I18nProvider";
+
+setWorkerUrl(workerUrl);
+
+function supportsWebGL(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+    // Release the probe context: browsers cap the number of live WebGL contexts.
+    context?.getExtension("WEBGL_lose_context")?.loseContext();
+    return context !== null;
+  } catch {
+    return false;
+  }
+}
+
+function asFeatures(points: Points) {
+  return {
+    type: "FeatureCollection" as const,
+    features: points.map((p) => ({
+      type: "Feature" as const,
+      geometry: { type: "Point" as const, coordinates: [p.longitude, p.latitude] },
+      properties: { id: p.id, kind: p.kind },
+    })),
+  };
+}
+
+export function EventMap({ points, onSelect }: { points: Points; onSelect: (id: string) => void }) {
+  const { t } = useI18n();
+  const element = useRef<HTMLDivElement>(null);
+  const [map, setMap] = useState<LibreMap | null>(null);
+  // Checked once before the map exists, so a missing WebGL never needs a state update in an effect.
+  const [failed, setFailed] = useState(() => !supportsWebGL());
+  // A non-fatal map error (a tile or source fetch) keeps the map and only shows the notice.
+  const [degraded, setDegraded] = useState(false);
+  // Map listeners always call the latest callbacks without re-creating the map.
+  const select = useEffectEvent((id: string) => onSelect(id));
+  const fail = useEffectEvent(() => setFailed(true));
+  const degrade = useEffectEvent(() => setDegraded(true));
+  // Read once at creation: changing language must not rebuild the map and lose the view.
+  const attribution = useEffectEvent(() => t("map.attribution"));
+
   useEffect(() => {
-    if (!element.current) return;
+    if (failed || !element.current) return;
     let instance: LibreMap;
     try {
       instance = new LibreMap({
@@ -37,39 +61,23 @@ export function EventMap({
           version: 8,
           sources: { land: { type: "geojson", data: "/land.geojson" } },
           layers: [
-            {
-              id: "water",
-              type: "background",
-              paint: { "background-color": "#dceaf0" },
-            },
-            {
-              id: "land",
-              type: "fill",
-              source: "land",
-              paint: { "fill-color": "#f8faf9" },
-            },
-            {
-              id: "coast",
-              type: "line",
-              source: "land",
-              paint: { "line-color": "#94b1bf", "line-width": 1 },
-            },
+            { id: "water", type: "background", paint: { "background-color": "#dceaf0" } },
+            { id: "land", type: "fill", source: "land", paint: { "fill-color": "#f8faf9" } },
+            { id: "coast", type: "line", source: "land", paint: { "line-color": "#94b1bf", "line-width": 1 } },
           ],
         },
-        attributionControl: {
-          customAttribution: "Natural Earth (domaine public)",
-        },
+        attributionControl: { customAttribution: attribution() },
       });
     } catch {
-      setFailed(true);
+      // The external map failed to start (WebGL lost, driver refusal): report it like any
+      // other map event, outside the effect body, and keep the list usable.
+      queueMicrotask(fail);
       return;
     }
-    map.current = instance;
-    instance.addControl(
-      new NavigationControl({ showCompass: false }),
-      "top-left",
-    );
+    instance.addControl(new NavigationControl({ showCompass: false }), "top-left");
+    let loaded = false;
     instance.on("load", () => {
+      loaded = true;
       instance.addSource("events", {
         type: "geojson",
         data: { type: "FeatureCollection", features: [] },
@@ -82,37 +90,24 @@ export function EventMap({
         type: "circle",
         source: "events",
         filter: ["has", "point_count"],
-        paint: {
-          "circle-color": "#194b65",
-          "circle-radius": 18,
-          "circle-stroke-color": "white",
-          "circle-stroke-width": 2,
-        },
+        paint: { "circle-color": "#194b65", "circle-radius": 18, "circle-stroke-color": "white", "circle-stroke-width": 2 },
       });
       instance.addLayer({
         id: "events",
         type: "circle",
         source: "events",
         filter: ["!", ["has", "point_count"]],
-        paint: {
-          "circle-color": "#bc471c",
-          "circle-radius": 7,
-          "circle-stroke-color": "white",
-          "circle-stroke-width": 2,
-        },
+        paint: { "circle-color": "#bc471c", "circle-radius": 7, "circle-stroke-color": "white", "circle-stroke-width": 2 },
       });
       instance.on("click", "events", (e) => {
         const id = e.features?.[0]?.properties?.id;
-        if (typeof id === "string") selection.current(id);
+        if (typeof id === "string") select(id);
       });
       instance.on("click", "clusters", (e) => {
         const feature = e.features?.[0];
         if (feature?.geometry.type === "Point") {
-          const coordinates = feature.geometry.coordinates;
-          instance.easeTo({
-            center: [coordinates[0] ?? 15, coordinates[1] ?? 35],
-            zoom: Math.min(instance.getZoom() + 2, 10),
-          });
+          const [lon, lat] = feature.geometry.coordinates;
+          instance.easeTo({ center: [lon ?? 15, lat ?? 35], zoom: Math.min(instance.getZoom() + 2, 10) });
         }
       });
       instance.on("mouseenter", "events", () => {
@@ -121,47 +116,30 @@ export function EventMap({
       instance.on("mouseleave", "events", () => {
         instance.getCanvas().style.cursor = "";
       });
-      sync();
+      setMap(instance);
     });
-    instance.on("error", () => setFailed(true));
-    function sync() {
-      const source = instance.getSource<GeoJSONSource>("events");
-      if (source)
-        source.setData({
-          type: "FeatureCollection",
-          features: pointsRef.current.map((p) => ({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [p.longitude, p.latitude] },
-            properties: { id: p.id, kind: p.kind },
-          })),
-        });
-    }
-    syncRef.current = sync;
+    // Before load the map cannot work (style or WebGL failure); after load it degrades only.
+    instance.on("error", () => (loaded ? degrade() : fail()));
     return () => {
-      syncRef.current = () => {};
+      setMap(null);
       instance.remove();
-      map.current = null;
     };
-  }, []);
-  const pointsRef = useRef(points),
-    syncRef = useRef(() => {});
-  pointsRef.current = points;
-  useEffect(() => syncRef.current(), [points]);
+  }, [failed]);
+
+  // Points are pushed to the loaded map whenever they change.
+  useEffect(() => {
+    map?.getSource<GeoJSONSource>("events")?.setData(asFeatures(points));
+  }, [map, points]);
+
   return (
     <div className="map-wrap">
-      <div
-        ref={element}
-        className="map"
-        role="region"
-        aria-label="Carte des événements. La liste permet aussi de consulter chaque événement."
-      />
-      {failed && (
+      <div ref={element} className="map" role="region" aria-label={t("map.label")} />
+      {(failed || degraded) && (
         <p role="status" className="map-notice">
-          Le fond de carte est indisponible. Les événements restent consultables
-          dans la liste.
+          {t("map.unavailable")}
         </p>
       )}
-      <span className="map-caption">Méditerranée • carte historique</span>
+      <span className="map-caption">{t("map.caption")}</span>
     </div>
   );
 }

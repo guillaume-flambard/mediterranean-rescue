@@ -1,7 +1,12 @@
+/// <reference types="vitest/config" />
+import babel from "@rolldown/plugin-babel";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+
 export default defineConfig({
-  plugins: [react()],
+  // React Compiler 1.0 memoizes components and hooks at build time (react.dev, installation).
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
+  test: { setupFiles: ["./src/test/setup.ts"] },
   server: {
     port: 5173,
     strictPort: true,
