@@ -491,12 +491,12 @@ def find_rescues(rotation: Rotation, window):
             flags.append(f"position_read:{where[2]}:{where[3]}")
         if re.search(r"two (?:simultaneous rescues|boats)|from two", text, re.I):
             flags.append("two_boats")
-        row = ("Rescue", entry, people, where, last_boat, flags)
         if twin is not None:
+            # A repeat neither takes nor uses up the boat described for the next rescue.
             twin[5].append(f"merged_repeat:{entry.time}")
-            repeats.append((twin, row))
-        else:
-            rows.append(row)
+            repeats.append((twin, ("Rescue", entry, people, where, twin[4], flags)))
+            continue
+        rows.append(("Rescue", entry, people, where, last_boat, flags))
         last_boat = ""
     return restore_same_size_rescues(rotation, rows, repeats)
 
@@ -504,22 +504,36 @@ def find_rescues(rotation: Rotation, window):
 def restore_same_size_rescues(rotation, rows, repeats):
     """Two mentions of the same number on the same day are one rescue logged twice, unless the
     mission's stated total is short of exactly those people: then they were two rescues of the same
-    size, and both rows stay, marked for a human check (audit of 25 October 2026)."""
-    if not repeats or rotation.survivors is None:
-        return rows
-    missing = rotation.survivors - sum(row[2] or 0 for row in rows if row[0] == "Rescue")
-    if missing <= 0:
-        return rows
-    if sum(repeat[2] for _, repeat in repeats) == missing:
-        restored = repeats
-    else:
-        restored = [pair for pair in repeats if pair[1][2] == missing][:1]
-    order = {id(entry): index for index, entry in enumerate(rotation.entries)}
+    size, and both rows stay, marked for a human check (audit of 25 October 2026).
+
+    A repeat says "counted once, the total agrees" only when the total does agree; otherwise it
+    asks for a check (repeat_unsure). When several mentions could be the missing rescue, none is
+    chosen for the person who verifies."""
+    rows_now = {id(row) for row in rows}
+    # The repeat of a partial count that a later "all N" entry replaced goes with that count.
+    repeats = [(twin, repeat) for twin, repeat in repeats if id(twin) in rows_now]
+    found = sum(row[2] or 0 for row in rows if row[0] == "Rescue")
+    missing = None if rotation.survivors is None else rotation.survivors - found
+    restored = []
+    if repeats and missing and missing > 0:
+        if sum(repeat[2] for _, repeat in repeats) == missing:
+            restored = repeats
+        else:
+            matching = [pair for pair in repeats if pair[1][2] == missing]
+            restored = matching if len(matching) == 1 else []
     for twin, repeat in restored:
-        twin[5][:] = [flag for flag in twin[5] if not flag.startswith("merged_repeat")]
-        twin[5].append("same_size_twice")
+        twin[5].remove(f"merged_repeat:{repeat[1].time}")
+        if "same_size_twice" not in twin[5]:
+            twin[5].append("same_size_twice")
         repeat[5].append("same_size_twice")
         rows.append(repeat)
+    agrees = missing is not None and missing == sum(repeat[2] for _, repeat in restored)
+    if not agrees:
+        for twin, repeat in repeats:
+            flag = f"merged_repeat:{repeat[1].time}"
+            if flag in twin[5]:
+                twin[5][twin[5].index(flag)] = f"repeat_unsure:{repeat[1].time}"
+    order = {id(entry): index for index, entry in enumerate(rotation.entries)}
     return sorted(rows, key=lambda row: order.get(id(row[1]), 0))
 
 
@@ -564,11 +578,12 @@ def french_rotations(get: Callable[[str], str | None], after: date):
 # Codes for what a person should check, translated by the interface. Each is "code" or
 # "code:value": date_outside:<day>, medevac, reported_in_message, partial_replaced:<n>, no_position,
 # position_read:<text|compact|swapped>:<as written>, two_boats, news_site, grouped:<operations>,
-# count_unknown, merged_repeat:<time of the repeat>, same_size_twice, rotation_total:<stated>/<found>.
+# count_unknown, merged_repeat:<time of the repeat> (the mission total agrees), repeat_unsure:<time>,
+# same_size_twice, rotation_total:<stated>/<found>.
 CHECK_CODES = (
     "date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position",
     "position_read", "two_boats", "news_site", "grouped", "count_unknown", "merged_repeat",
-    "same_size_twice", "rotation_total",
+    "same_size_twice", "repeat_unsure", "rotation_total",
 )  # fmt: skip
 
 FR_RESCUE = re.compile(

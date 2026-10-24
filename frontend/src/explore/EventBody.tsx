@@ -1,4 +1,5 @@
 import { api } from "../api/client";
+import { boatLabel } from "./boat";
 import { useI18n } from "../i18n/I18nProvider";
 import { Link } from "../router";
 import { formatPosition } from "../shared/geo";
@@ -29,7 +30,7 @@ export function PreviewBody({ id }: { id: string }) {
         <Fact label={t("preview.detail.women")} value={count(row.women)} />
         <Fact label={t("preview.detail.minors")} value={count(row.minors)} />
         {row.sheet === "Other_data" && <Fact label={t("preview.detail.deaths")} value={count(row.deaths)} />}
-        <Fact label={t("preview.detail.boat")} value={row.boat_type ?? t("detail.notProvided")} />
+        <Fact label={t("preview.detail.boat")} value={boatLabel(i18n, row.boat_type) ?? t("detail.notProvided")} />
         <Fact
           label={t("detail.position")}
           value={

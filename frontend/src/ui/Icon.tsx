@@ -17,6 +17,7 @@ const PATHS = {
   arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
   info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5M12 7.6v.3" /></>,
   help: <><circle cx="12" cy="12" r="8.5" /><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.7M12 16.9v.3" /></>,
+  link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7L11.5 6.8" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.5-1.5" /></>,
   download: <><path d="M12 4v11M7 10l5 5 5-5" /><path d="M5 19.5h14" /></>,
   signOut: <><path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" /><path d="M10 8l-4 4 4 4M6 12h10" /></>,
 } as const;

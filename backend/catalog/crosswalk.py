@@ -146,11 +146,20 @@ def _linked_rows_elsewhere(snapshot):
     )
 
 
+def _two_rescues_on_purpose(row):
+    # Two logbook rescues of the same size the same day, kept apart because the mission total
+    # counts both (ADR 0014): equal cells, yet two rows.
+    evidence = getattr(row, "logbook", None)
+    return evidence is not None and "same_size_twice" in evidence.to_check
+
+
 def repeated_lines(rows):
     """Row id -> the earlier line it copies cell for cell, for rows entered twice in a sheet.
     The diagnosis reports them (exact_duplicate_row); they are never merged nor counted twice."""
     first_line, repeats = {}, {}
     for row in sorted(rows, key=lambda row: row.line):
+        if _two_rescues_on_purpose(row):
+            continue
         key = json.dumps(row.raw_cells, ensure_ascii=False)
         if key in first_line:
             repeats[row.pk] = first_line[key]
@@ -161,7 +170,7 @@ def repeated_lines(rows):
 
 def propose_links(snapshot):
     """Compute one proposal per row of the snapshot, in line order. Creates nothing."""
-    rows = list(snapshot.rows.select_related("identity_link").order_by("line"))
+    rows = list(snapshot.rows.select_related("identity_link", "logbook").order_by("line"))
     repeats = repeated_lines(rows)
     taken = {row.identity_link.identity_id for row in rows if hasattr(row, "identity_link")}
     identities_by_fingerprint = defaultdict(set)
@@ -238,7 +247,7 @@ def approve_link(*, row, actor, reason, identity=None, _exact_carry=False):
         .values_list("line", flat=True)
         .first()
     )
-    if earlier is not None:
+    if earlier is not None and not _two_rescues_on_purpose(row):
         raise ValidationError(
             f"This row repeats row {earlier} of the same update; delete the copy in the sheet"
         )

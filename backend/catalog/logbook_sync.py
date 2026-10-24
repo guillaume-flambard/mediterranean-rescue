@@ -16,7 +16,7 @@ from django.db import DatabaseError, connection, transaction
 
 from .crosswalk import stage_snapshot
 from .logbook import Fetcher, ReadFailed, extract, rows_csv
-from .models import LogbookEvidence, SheetSnapshot, SheetSync, Source
+from .models import LogbookEvidence, RowIdentityLink, SheetSnapshot, SheetSync, Source
 from .sync import summarize, sync_actor
 
 logger = logging.getLogger(__name__)
@@ -92,8 +92,13 @@ def rows_already_in_sheet(logbook_rows):
             candidate = candidate or {}
             if candidate.get("kind") == "rescue" and candidate.get("nb_survivor"):
                 lines[(candidate.get("occurred_on"), candidate["nb_survivor"])].append(line)
+    logbook_rows = list(logbook_rows)
+    # Verified rows take the sheet's lines first: the one SOS pasted is the one it was given.
+    verified = set(
+        RowIdentityLink.objects.filter(row__in=logbook_rows).values_list("row_id", flat=True)
+    )
     found = {}
-    for row in sorted(logbook_rows, key=lambda row: row.line):
+    for row in sorted(logbook_rows, key=lambda row: (row.pk not in verified, row.line)):
         candidate = row.candidate or {}
         key = (candidate.get("occurred_on"), candidate.get("nb_survivor"))
         if candidate.get("kind") == "rescue" and lines.get(key):

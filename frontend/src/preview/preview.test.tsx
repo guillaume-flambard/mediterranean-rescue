@@ -99,6 +99,29 @@ describe("main screen preview", () => {
     );
   });
 
+  it("an opened record has its own address, which opens it again", async () => {
+    const server = {
+      ...EMPTY_PUBLIC,
+      "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
+      "GET /api/private/v1/preview/events/": () => ({
+        body: { items: [ITEM], total_count: 1, has_next: false, counts: { to_review: 1, blocked: 0, linked: 0 } },
+      }),
+      "GET /api/private/v1/preview/map-points/": () => ({ body: { points: [], located_count: 0, truncated: false } }),
+      "GET /api/private/v1/preview/events/:id/": () => ({ body: ITEM }),
+    };
+    fakeServer(server);
+    const first = renderApp(<Explore audience="team" />);
+    await userEvent.click(await screen.findByRole("button", { name: /Port fictif/ }));
+    expect(window.location.search).toBe(`?event=${ROW}`);
+    expect(await screen.findByRole("button", { name: "Copy the link to this record" })).toBeTruthy();
+    first.unmount();
+
+    // Audit of 24 October 2026, D10: a record could not be linked to.
+    renderApp(<Explore audience="team" />);
+    const card = await screen.findByRole("button", { name: /Port fictif/ });
+    expect(card.getAttribute("aria-expanded")).toBe("true");
+  });
+
   it("search words and kind chips reach the server", async () => {
     const { calls } = fakeServer({
       ...EMPTY_PUBLIC,

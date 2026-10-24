@@ -82,15 +82,19 @@ function FiguresCheck({ data }: { data: Overview }) {
   const yearGaps = data.years.map((year) => (year.reported === null ? 0 : year.reported - year.in_sheet - year.from_logbook));
   const total = data.cumulative ? data.cumulative.in_sheet + data.cumulative.from_logbook : 0;
   const totalGap = data.cumulative ? data.cumulative.reported - total : 0;
-  const gap = data.cumulative ? totalGap : yearGaps.reduce((sum, value) => sum + Math.abs(value), 0);
-  const matches = gap === 0 && yearGaps.every((value) => value === 0);
-  const sameOrGap = (reported: number, difference: number, same: Key, differs: Key) =>
-    difference === 0 ? t(same) : t(differs, { reported: i18n.number(reported), gap: i18n.number(difference) });
+  // The title names the largest difference, so a matching total never hides a year that differs.
+  const gap = Math.max(Math.abs(totalGap), ...yearGaps.map(Math.abs));
+  const matches = gap === 0;
+  const sameOrGap = (reported: number, difference: number, same: Key, differs: Key, surplus: Key) =>
+    t(difference === 0 ? same : difference > 0 ? differs : surplus, {
+      reported: i18n.number(reported),
+      gap: i18n.number(Math.abs(difference)),
+    });
   return (
     <div className={`logbook-card__check${matches ? "" : " logbook-card__check--gap"}`}>
       <p className="logbook-card__check-title">
         <Icon name={matches ? "check" : "alert"} size={16} />{" "}
-        {matches ? t("logbook.card.checkMatches") : t("logbook.card.checkGapTitle", { count: Math.abs(gap) })}
+        {matches ? t("logbook.card.checkMatches") : t("logbook.card.checkGapTitle", { count: gap })}
       </p>
       <ul>
         {data.years.map((year, index) => (
@@ -104,7 +108,7 @@ function FiguresCheck({ data }: { data: Overview }) {
             {" · "}
             {year.reported === null
               ? t("logbook.card.checkNone")
-              : sameOrGap(year.reported, yearGaps[index]!, "logbook.card.checkSame", "logbook.card.checkGap")}
+              : sameOrGap(year.reported, yearGaps[index]!, "logbook.card.checkSame", "logbook.card.checkGap", "logbook.card.checkSurplus")}
           </li>
         ))}
         {data.cumulative && (
@@ -116,7 +120,7 @@ function FiguresCheck({ data }: { data: Overview }) {
               logbook: i18n.number(data.cumulative.from_logbook),
             })}
             {" · "}
-            {sameOrGap(data.cumulative.reported, totalGap, "logbook.card.checkTotalSame", "logbook.card.checkTotalGap")}
+            {sameOrGap(data.cumulative.reported, totalGap, "logbook.card.checkTotalSame", "logbook.card.checkTotalGap", "logbook.card.checkTotalSurplus")}
           </li>
         )}
       </ul>

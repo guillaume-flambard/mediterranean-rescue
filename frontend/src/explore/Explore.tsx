@@ -4,7 +4,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { api, type Kind } from "../api/client";
 import { kinds } from "../filters";
 import { useI18n } from "../i18n/I18nProvider";
-import { Link, navigate, useLocation, withQuery } from "../router";
+import { Link, navigate, useLocation, withChangedQuery } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
 import { PreviewBody, PublicBody } from "./EventBody";
@@ -81,8 +81,14 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const [end, setEnd] = useState("");
   const [periodOpen, setPeriodOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(true);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [pinnedId, setPinnedId] = useState<string | null>(null);
+  // A record can be linked to: "?event=<id>" opens it, pinned on top until the feed holds it.
+  const linkedId = eventParam(query.get("event"));
+  const [openId, setOpenId] = useState<string | null>(linkedId);
+  const [pinnedId, setPinnedId] = useState<string | null>(linkedId);
+  const show = (id: string | null) => {
+    setOpenId(id);
+    navigate(withChangedQuery(pathname, query, { event: id }), { replace: true });
+  };
   // The card under the pointer lights its point; the open card wins over it.
   const [hoverId, setHoverId] = useState<string | null>(null);
   // In the logbook, the entry being read; the map follows it.
@@ -183,13 +189,24 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const activeId = openId ?? pinnedId ?? hoverId ?? followId;
   const filtered = Boolean(kind || start || end || q || logbookOnly);
 
+  // A linked record is brought into view once, when the feed first arrives.
+  const loaded = Boolean(feed.data);
+  const broughtIntoView = useRef(false);
+  useEffect(() => {
+    if (!loaded || !linkedId || broughtIntoView.current) return;
+    broughtIntoView.current = true;
+    requestAnimationFrame(() =>
+      (document.getElementById(`event-${linkedId}`) ?? document.getElementById("pinned-event"))?.scrollIntoView?.({ block: "start" }),
+    );
+  }, [loaded, linkedId]);
+
   useEffect(() => {
     document.title = t("app.documentTitle");
     document.querySelector('meta[name="description"]')?.setAttribute("content", t("app.metaDescription"));
   }, [t]);
 
   const resetView = () => {
-    setOpenId(null);
+    show(null);
     setPinnedId(null);
   };
   const clearFilters = () => {
@@ -197,12 +214,12 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     setKind("");
     setStart("");
     setEnd("");
-    if (logbookOnly) navigate(withQuery(pathname, { source: null }), { replace: true });
+    if (logbookOnly) navigate(withChangedQuery(pathname, query, { source: null }), { replace: true });
     resetView();
   };
   // A point picked on the map opens its card in the feed, or pins it on top when it is not loaded.
   const selectFromMap = (id: string) => {
-    setOpenId(id);
+    show(id);
     if (items.some((item) => item.id === id)) {
       setPinnedId(null);
       requestAnimationFrame(() => document.getElementById(`event-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
@@ -258,7 +275,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                   key={item.value}
                   className="views__option"
                   aria-pressed={view === item.value}
-                  onClick={() => navigate(withQuery(pathname, { view: item.value === "feed" ? null : item.value }), { replace: true })}
+                  onClick={() => navigate(withChangedQuery(pathname, query, { view: item.value === "feed" ? null : item.value }), { replace: true })}
                 >
                   <Icon name={item.icon} size={16} />
                   {t(`explore.view.${item.value}`)}
@@ -307,7 +324,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                   className="chip chip--logbook"
                   aria-pressed={logbookOnly}
                   onClick={() => {
-                    navigate(withQuery(pathname, { source: logbookOnly ? null : LOGBOOK_SOURCE }), { replace: true });
+                    navigate(withChangedQuery(pathname, query, { source: logbookOnly ? null : LOGBOOK_SOURCE, event: null }), { replace: true });
                     resetView();
                   }}
                 >
@@ -395,7 +412,14 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
 
           {pinnedId && !items.some((item) => item.id === pinnedId) && (
             <div id="pinned-event" className="feed feed--pinned">
-              <PinnedCard id={pinnedId} preview={preview} onClose={() => setPinnedId(null)} />
+              <PinnedCard
+                id={pinnedId}
+                preview={preview}
+                onClose={() => {
+                  setPinnedId(null);
+                  if (openId === pinnedId) show(null);
+                }}
+              />
             </div>
           )}
 
@@ -445,7 +469,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
               period={Boolean(start || end)}
               onToggle={(id) => {
                 setPinnedId(null);
-                setOpenId(openId === id ? null : id);
+                show(openId === id ? null : id);
               }}
               onRead={setReadId}
             />
@@ -460,7 +484,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                   onHover={(hovered) => setHoverId(hovered ? item.id : null)}
                   onToggle={() => {
                     setPinnedId(null);
-                    setOpenId(openId === item.id ? null : item.id);
+                    show(openId === item.id ? null : item.id);
                   }}
                 />
               ))}
@@ -596,7 +620,12 @@ function EventCard({
         <Icon name="chevronDown" className="card__chevron" />
       </BaseButton>
       <div id={bodyId} className="card__body" role="region" aria-label={t("detail.title")} hidden={!open}>
-        {open && (preview ? <PreviewBody id={item.id} /> : <PublicBody id={item.id} />)}
+        {open && (
+          <>
+            {preview ? <PreviewBody id={item.id} /> : <PublicBody id={item.id} />}
+            <CopyLink id={item.id} />
+          </>
+        )}
       </div>
     </li>
   );
@@ -614,7 +643,42 @@ function PinnedCard({ id, preview, onClose }: { id: string; preview: boolean; on
           <Icon name="close" size={18} />
         </BaseButton>
       </div>
-      <div className="card__body">{preview ? <PreviewBody id={id} /> : <PublicBody id={id} />}</div>
+      <div className="card__body">
+        {preview ? <PreviewBody id={id} /> : <PublicBody id={id} />}
+        <CopyLink id={id} />
+      </div>
     </div>
+  );
+}
+
+/** Record ids are UUIDs; anything else in the address is ignored rather than requested. */
+function eventParam(value: string | null) {
+  return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) ? value.toLowerCase() : null;
+}
+
+// The address of one record, to share or cite. Without clipboard access the link is shown instead.
+function CopyLink({ id }: { id: string }) {
+  const { t } = useI18n();
+  const [state, setState] = useState<"idle" | "copied" | "shown">("idle");
+  const url = `${window.location.origin}${window.location.pathname}?event=${id}`;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setState("copied");
+    } catch {
+      setState("shown");
+    }
+  };
+  return (
+    <p className="card__link">
+      <BaseButton className="link-button" onClick={() => void copy()}>
+        <Icon name="link" size={16} />
+        {t("explore.copyLink")}
+      </BaseButton>
+      <span role="status">
+        {state === "copied" && t("explore.linkCopied")}
+        {state === "shown" && <a href={url}>{url}</a>}
+      </span>
+    </p>
   );
 }

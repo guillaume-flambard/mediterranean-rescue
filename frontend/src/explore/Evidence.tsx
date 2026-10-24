@@ -20,6 +20,7 @@ const CHECKS = [
   "count_unknown",
   "merged_repeat",
   "same_size_twice",
+  "repeat_unsure",
   "rotation_total",
 ];
 
@@ -28,7 +29,8 @@ export function checkText(i18n: I18n, point: string) {
   if (!CHECKS.includes(code)) return point;
   if (code === "position_read") return i18n.t(`logbook.check.position_read.${value}` as Key, { value: raw });
   // A time keeps its colon: "merged_repeat:07:20".
-  if (code === "merged_repeat") return i18n.t("logbook.check.merged_repeat", { value: point.slice(code.length + 1) });
+  if (code === "merged_repeat" || code === "repeat_unsure")
+    return i18n.t(`logbook.check.${code}` as Key, { value: point.slice(code.length + 1) });
   if (code === "date_outside") return i18n.t("logbook.check.date_outside", { value: i18n.date(value) });
   if (code === "rotation_total") {
     const [stated = "", found = ""] = value.split("/");

@@ -112,8 +112,10 @@ def _people_by_year(rows, kinds=("rescue", "transfer")):
     return totals
 
 
-def _sheet_people_by_year():
-    sheet = {}
+def _sheet_people():
+    """People in the association's sheets, by year and up to the date of SOS's published total."""
+    by_year, until = {}, 0
+    as_of = REPORTED_CUMULATIVE[0]
     for snapshot in (
         # Fictitious training sources never count against SOS's reports.
         SheetSnapshot.objects.filter(sheet=SHEET, source__synthetic=False)
@@ -121,13 +123,21 @@ def _sheet_people_by_year():
         .order_by("source_id", "-created_at")
         .distinct("source_id")
     ):
-        for year, people in _people_by_year(snapshot.rows.all()).items():
-            sheet[year] = sheet.get(year, 0) + people
-    return sheet
+        rows = list(snapshot.rows.all())
+        for year, people in _people_by_year(rows).items():
+            by_year[year] = by_year.get(year, 0) + people
+        for row in rows:
+            candidate = row.candidate or {}
+            people = candidate.get("nb_survivor")
+            if candidate.get("kind") in ("rescue", "transfer") and people:
+                if (candidate.get("occurred_on") or "") <= as_of:
+                    until += people
+    return by_year, until
 
 
-def cumulative_total(logbook_rows, sheet):
-    """Everyone in the sheet plus the rescues rebuilt up to the date of SOS's published total."""
+def cumulative_total(logbook_rows, sheet_until):
+    """Everyone in the sheet plus the rescues rebuilt up to the date of SOS's published total.
+    `logbook_rows` must leave out the rows the sheet already holds, or they count twice."""
     as_of, reported = REPORTED_CUMULATIVE
     before = after = 0
     for row in logbook_rows:
@@ -141,20 +151,20 @@ def cumulative_total(logbook_rows, sheet):
     return {
         "as_of": as_of,
         "reported": reported,
-        "in_sheet": sum(sheet.values()),
+        "in_sheet": sheet_until,
         "from_logbook": before,
         "after": after,
     }
 
 
-def year_totals(logbook_rows, sheet=None):
-    """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them."""
-    sheet = _sheet_people_by_year() if sheet is None else sheet
+def year_totals(logbook_rows, sheet_by_year):
+    """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them.
+    `logbook_rows` must leave out the rows the sheet already holds, or they count twice."""
     rebuilt = _people_by_year(logbook_rows, kinds=("rescue",))
     return [
         {
             "year": year,
-            "in_sheet": sheet.get(year, 0),
+            "in_sheet": sheet_by_year.get(year, 0),
             "from_logbook": rebuilt.get(year, 0),
             "reported": REPORTED_PEOPLE.get(year),
         }
@@ -227,8 +237,13 @@ class LogbookOverviewView(PrivateView):
                 ),
                 not_for_sheet=sum(1 for row in rows if not for_the_sheet(row)),
             )
-            sheet = _sheet_people_by_year()
-            payload.update(years=year_totals(rows, sheet), cumulative=cumulative_total(rows, sheet))
+            by_year, until = _sheet_people()
+            # A rebuilt row the association has pasted is counted once, on the sheet's side.
+            not_pasted = [row for row in rows if row.pk not in in_sheet]
+            payload.update(
+                years=year_totals(not_pasted, by_year),
+                cumulative=cumulative_total(not_pasted, until),
+            )
         return Response(LogbookOverviewSerializer(payload).data)
 
 

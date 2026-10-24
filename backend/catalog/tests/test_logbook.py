@@ -75,6 +75,68 @@ class ReaderTests(SimpleTestCase):
             self.assertIn("same_size_twice", row[5])
             self.assertFalse(any(flag.startswith("merged_repeat") for flag in row[5]))
 
+    def test_without_a_mission_total_a_repeat_asks_for_a_check(self):
+        _, rows = self.rows()
+        self.assertIn("repeat_unsure:07:20", rows[0][5])
+        self.assertFalse(any(flag.startswith("merged_repeat") for flag in rows[0][5]))
+
+    def page_rows(self, entries, survivors):
+        """Rows of a fictitious one-day rotation built from (time, text) entries."""
+        page = '<h2 class="list-term-title contain--lg">March 13, 2025</h2>' + "".join(
+            '<article class="loop-item loop-item-log"><div class="loop-item-title">'
+            f'<span class="loop-item-time">{time}</span>{text}</div></article>'
+            for time, text in entries
+        )
+        rotation = lb.Rotation(
+            slug="operation-12-19-march-2025",
+            url="https://www.sosmediterranee.org/operation/x/",
+            survivors=survivors,
+        )
+        rotation.entries = lb.parse_rotation_page(page)
+        return lb.find_rescues(rotation, lb.rotation_window(rotation.slug, rotation.entries))
+
+    def test_the_repeat_of_a_replaced_partial_count_is_never_restored(self):
+        # Review of 25 October 2026: 40 by the RHIBs, the same 40 again, then all 60.
+        rows = self.page_rows(
+            [
+                ("05:00", "RHIBs complete the recovery of 40 shipwrecked persons."),
+                ("05:10", "Recovery completed. 40 survivors on board."),
+                ("06:00", "Ocean Viking completes the recovery all 60 shipwrecked persons."),
+            ],
+            survivors=100,
+        )
+        self.assertEqual([people for _, _, people, *_ in rows], [60])
+
+    def test_a_repeat_neither_takes_nor_uses_up_the_next_boat(self):
+        rows = self.page_rows(
+            [
+                ("05:00", "Ocean Viking completes the recovery of 40 shipwrecked persons."),
+                ("06:00", "Ocean Viking observes a wooden boat."),
+                ("06:30", "Recovery completed. 40 survivors on board."),
+                ("08:00", "Ocean Viking completes the recovery of 30 shipwrecked persons."),
+            ],
+            survivors=110,
+        )
+        self.assertEqual(
+            [(people, boat) for _, _, people, _, boat, _ in rows],
+            [(40, ""), (40, ""), (30, "Wooden boat")],
+        )
+
+    def test_when_several_mentions_could_be_the_missing_rescue_none_is_chosen(self):
+        # Two repeats of 40 and 40 people missing: which one is the second boat is a human call.
+        rows = self.page_rows(
+            [
+                ("05:00", "Ocean Viking completes the recovery of 40 shipwrecked persons."),
+                ("05:30", "Recovery completed. 40 survivors on board."),
+                ("06:00", "All 40 survivors are now on board Ocean Viking, recovery completed."),
+                ("09:00", "Ocean Viking completes the recovery of 25 shipwrecked persons."),
+            ],
+            survivors=105,
+        )
+        self.assertEqual([people for _, _, people, *_ in rows], [40, 25])
+        self.assertIn("repeat_unsure:05:30", rows[0][5])
+        self.assertIn("repeat_unsure:06:00", rows[0][5])
+
     def test_positions_in_every_format_and_nothing_outside_the_region(self):
         self.assertEqual(lb.parse_position("Latitude: 3426 / Longitude: 01209")[2], "compact")
         swapped = lb.parse_position("Latitude: 13.75 / Longitude: 34.27")

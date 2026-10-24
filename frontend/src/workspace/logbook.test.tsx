@@ -3,7 +3,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { checkText } from "../explore/Evidence";
 import { PreviewBody } from "../explore/EventBody";
+import { createI18n } from "../i18n/I18nProvider";
 import { fakeServer } from "../test/fakeServer";
 import { renderWithI18n } from "../test/render";
 import { LogbookCard } from "./TeamData";
@@ -111,5 +113,51 @@ describe("operations rebuilt from the public logbook", () => {
     expect(screen.getByText("Position written in a compact form (“3426 01209”): compare with the page.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open the logbook page ↗" }).getAttribute("href")).toBe(LOGBOOK_ROW.evidence.url);
     expect(screen.queryByText(/row 2 of/)).toBeNull();
+    expect(screen.getByText("Rubber boat (white)")).toBeTruthy();
+  });
+
+  it("a rebuilt record already in the SOS sheet says so", async () => {
+    fakeServer({
+      "GET /api/private/v1/preview/events/:id/": () => ({ body: { ...LOGBOOK_ROW, evidence: { ...LOGBOOK_ROW.evidence, sheet_line: 371 } } }),
+    });
+    render(<PreviewBody id={ROW} />);
+    expect(await screen.findByText(/Already in the SOS sheet, at line 371: nothing to paste\./)).toBeTruthy();
+  });
+
+  it("a repeat says whether the mission total agrees, with its time", () => {
+    const en = createI18n("en");
+    expect(checkText(en, "merged_repeat:07:20")).toBe("The logbook gives the same number again that day, at 07:20. Counted once, because the mission total agrees.");
+    expect(checkText(en, "repeat_unsure:07:20")).toMatch(/at 07:20\. Counted once: check it is not a second rescue/);
+    expect(checkText(en, "unknown_code:1")).toBe("unknown_code:1");
+  });
+
+  it("the figures turn green only when every one matches", async () => {
+    fakeServer({
+      "GET /api/private/v1/logbook/": () => ({
+        body: {
+          sheet_last_date: "2024-02-06",
+          last_read_at: null,
+          last_read_status: "",
+          first_date: "2024-03-13",
+          last_date: "2024-12-01",
+          rows: 3,
+          people: 1616,
+          verified: 0,
+          to_verify: 3,
+          to_fix: 0,
+          to_check: 0,
+          in_sheet: 0,
+          ready: 0,
+          not_for_sheet: 0,
+          snapshot: "00000000-0000-0000-0000-0000000000c0",
+          years: [{ year: 2024, in_sheet: 332, from_logbook: 1616, reported: 1948 }],
+          cumulative: null,
+          reports_url: "https://sosmediterranee.fr/publications/",
+        },
+      }),
+    });
+    render(<LogbookCard />);
+    expect(await screen.findByText("Same figures as SOS published")).toBeTruthy();
+    expect(screen.queryByText(/still to reconcile/)).toBeNull();
   });
 });

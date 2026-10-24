@@ -116,6 +116,10 @@ class LogbookSyncTests(PrivateApiTestCase):
         self.assertTrue(lines[1].startswith("14/03/2025,Rescue,1,25"))
         pasted = run.snapshot.rows.get(line=2)
         self.assertEqual(self.get(f"review/rows/{pasted.pk}/").json()["evidence"]["sheet_line"], 3)
+        preview = self.get(f"preview/events/?source={LOGBOOK_SOURCE_KEY}").json()["items"]
+        self.assertEqual(
+            sorted(str(item["evidence"]["sheet_line"]) for item in preview), ["3", "None"]
+        )
 
     def test_a_medical_evacuation_never_reaches_the_sheet(self):
         # CartONG's chart adds nb_survivor without a guard: a row without a number breaks it.
@@ -134,6 +138,56 @@ class LogbookSyncTests(PrivateApiTestCase):
         lines = self.get("logbook/export/").content.decode().splitlines()
         self.assertEqual(len(lines), 3)
         self.assertNotIn("Medevac", "\n".join(lines))
+
+    def test_two_bare_rescues_of_the_same_size_can_both_be_verified_and_exported(self):
+        # Review of 25 October 2026: equal cells made the second one a blocked "repeat".
+        bare = """<h2 class="list-term-title contain--lg">March 13, 2025</h2>
+            <article class="loop-item loop-item-log"><div class="loop-item-title">
+            <span class="loop-item-time">09:00</span>
+            Ocean Viking completes the recovery of 40 shipwrecked persons.</div></article>"""
+        archive = SITE[f"{ORG}/operation-archived/"].replace("65 survivors", "80 survivors")
+        site = {
+            **SITE,
+            f"{ORG}/operation-archived/": archive,
+            ROTATION: SITE[ROTATION].split('<h2 class="list-term-title contain--lg">March 14')[0]
+            + bare,
+        }
+        run = sync_logbook(actor=self.reviewer, get=site.get)
+        rows = list(run.snapshot.rows.order_by("line"))
+        self.assertEqual([row.candidate["nb_survivor"] for row in rows], [40, 40])
+        self.assertEqual(rows[0].raw_cells, rows[1].raw_cells)
+        queue = self.get(f"review/rows/?snapshot={run.snapshot.pk}").json()
+        self.assertEqual(queue["counts"], {"to_review": 2, "blocked": 0, "linked": 0})
+        for row in rows:
+            approve_link(row=row, actor=self.reviewer, reason="Two boats")
+        self.assertEqual(len(self.get("logbook/export/").content.decode().splitlines()), 3)
+
+    def test_a_pasted_row_is_counted_once_in_the_figures(self):
+        run = self.read()
+        real = Source.objects.create(key="sos-real", name="SOS sheet", url="https://example.org")
+        self.stage(ops_csv(ops_row(date="13/03/2025", nb_survivor="40")), source=real)
+        years = self.get("logbook/").json()["years"]
+        self.assertEqual(
+            years, [{"year": 2025, "in_sheet": 40, "from_logbook": 25, "reported": 1358}]
+        )
+        self.assertTrue(run)
+
+    def test_the_verified_row_takes_the_sheet_line(self):
+        from catalog.logbook_sync import rows_already_in_sheet
+
+        rotation = (
+            SITE[ROTATION]
+            .replace("recovery of 25", "recovery of 40")
+            .replace("March 14, 2025", "March 13, 2025")
+        )
+        archive = SITE[f"{ORG}/operation-archived/"].replace("65 survivors", "80 survivors")
+        site = {**SITE, ROTATION: rotation, f"{ORG}/operation-archived/": archive}
+        run = sync_logbook(actor=self.reviewer, get=site.get)
+        first, second = run.snapshot.rows.order_by("line")
+        approve_link(row=second, actor=self.reviewer, reason="Checked")
+        real = Source.objects.create(key="sos-real", name="SOS sheet", url="https://example.org")
+        self.stage(ops_csv(ops_row(date="13/03/2025", nb_survivor="40")), source=real)
+        self.assertEqual(list(rows_already_in_sheet(run.snapshot.rows.all())), [second.pk])
 
     def test_reviewers_only(self):
         self.assertEqual(self.get("logbook/", client=Client()).status_code, 401)

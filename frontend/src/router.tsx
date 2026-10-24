@@ -66,6 +66,17 @@ export function withQuery(path: string, values: Record<string, string | number |
   return text ? `${path}?${text}` : path;
 }
 
+/** The current address with some query values changed (null removes one), the others kept. */
+export function withChangedQuery(path: string, query: URLSearchParams, changes: Record<string, string | null>) {
+  const next = new URLSearchParams(query);
+  for (const [key, value] of Object.entries(changes)) {
+    if (value === null || value === "") next.delete(key);
+    else next.set(key, value);
+  }
+  const text = next.toString();
+  return text ? `${path}?${text}` : path;
+}
+
 export function Link({ to, onClick, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) {
   const follow = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event);
