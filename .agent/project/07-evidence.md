@@ -23,3 +23,5 @@ AC-F1 → EV-F1 ; AC-F2 → EV-F2/F3 ; AC-F3 → EV-F2/F7 ; AC-F4 → EV-F4/F5 ;
 
 ## Limites concrètes
 Pas d’import réel des Sheets sans droits/dictionnaire/crosswalk validés. Le normaliseur canonique v1 n’est pas un connecteur Sheets caché. Pas de mutation publique, abonnement temps réel, tâche réseau autonome ou hébergement lancé. Identité de production, restauration hors site, recette associative, couches autoritatives, révisions d’effectifs et liens logbook sont la roadmap suivante. Les relations imbriquées de preuves ne sont pas paginées ; suivi P2 avant gros volumes. La carte plafonne explicitement ses points à2000 et la liste à100 par requête (UI25).
+
+EV-F9 : premier run GitHub Actions 40089304145 : tests backend, migrations et configuration prod PASS ; export SDL échoue sur permissions du bind mount Linux. Correction par export stdout puis redirection hôte, sans exécuter en root. Nouvelle CI en attente.

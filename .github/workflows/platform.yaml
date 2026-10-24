@@ -26,7 +26,7 @@ jobs:
       - name: Production configuration checks (without deployment)
         run: docker compose run --rm -e DJANGO_ENV=production -e DJANGO_ALLOWED_HOSTS=rescue.invalid api uv run --no-sync python backend/manage.py check --deploy --fail-level WARNING
       - name: Export backend GraphQL schema
-        run: docker compose run --rm api uv run --no-sync python backend/manage.py export_schema catalog.schema --path contracts/schema.graphql
+        run: docker compose run --rm -T api uv run --no-sync python backend/manage.py export_schema catalog.schema > contracts/schema.graphql
       - name: Install locked frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile

@@ -38,7 +38,6 @@ Créer un compte local sans mot de passe par défaut :
 
 ```sh
 docker compose exec api uv run --no-sync python backend/manage.py createsuperuser
-docker compose exec api uv run --no-sync python backend/manage.py collectstatic --noinput
 ```
 
 L’administration Django est à /admin/. Le serveur de développement local sert ses fichiers statiques ; le serveur WSGI de production requiert un proxy pour /static/. Voir infra/README.md. Un éditeur peut préparer des brouillons, mais la permission catalog.publish_event est requise pour publier/retirer. Les droits de la source et sa licence doivent avoir été approuvés. Une publication crée un audit ; les relations d’un événement publié sont gelées dans l’administration. Retirer puis corriger et revoir avant republication. Il n’existe pas de mutation GraphQL publique d’écriture dans cette tranche.
@@ -59,7 +58,7 @@ La première commande valide et conserve un staging privé. --apply crée seulem
 ```sh
 docker compose run --rm api uv run --no-sync python backend/manage.py test catalog.tests --noinput
 docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
-docker compose run --rm api uv run --no-sync python backend/manage.py export_schema catalog.schema --path contracts/schema.graphql
+docker compose run --rm -T api uv run --no-sync python backend/manage.py export_schema catalog.schema > contracts/schema.graphql
 cd frontend
 pnpm codegen
 pnpm test

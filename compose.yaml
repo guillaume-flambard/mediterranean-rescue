@@ -13,7 +13,7 @@ services:
     volumes:
       - rescue_pg17_postgis36:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d rescue"]
+      test: ["CMD-SHELL", 'PGPASSWORD="$$DB_PASSWORD" psql -h 127.0.0.1 -U rescue -d rescue -Atqc "SELECT 1"']
       interval: 3s
       timeout: 3s
       retries: 30

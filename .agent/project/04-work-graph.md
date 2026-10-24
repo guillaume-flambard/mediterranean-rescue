@@ -11,3 +11,5 @@ F9 P1 DONE défauts revue : édition indirecte et formulaires périmés sur cont
 
 Produit hors tranche, explicitement en cours : migration réelle/crosswalk, révisions et rapprochements logbook, alias ports/couches qualifiées, identité/hébergement/backup/restauration de production et recette associative.
 P2 : plafonnement des preuves imbriquées GraphQL, amélioration du poids cartographique chargé à la demande, filtres spatiaux pilotés par l’interface.
+
+F10 P1 VERIFYING défaut CI Linux : export SDL par stdout et écriture par l’hôte ; utilisateur conteneur non-root conservé. Readiness DB vérifie désormais le compte applicatif en TCP pour éviter le serveur temporaire d’initialisation.

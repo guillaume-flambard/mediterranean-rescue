@@ -1,5 +1,5 @@
 {
-  "phase": "READY_FOR_MANUAL_ACCEPTANCE",
+  "phase": "VERIFYING",
   "milestone": "platform-foundation",
   "product_status": "IN_PROGRESS",
   "requirements": {
@@ -33,10 +33,10 @@
     "production_settings_check": "PASS",
     "independent_review": "PASS with stated scope",
     "browser": "loading/empty/map/BaseUI filter/invalid dates/reset in narrow viewport",
-    "github_actions": "workflow added; remote run must be inspected separately",
+    "github_actions": "First run failed on Linux schema export mount permissions; fix under verification",
     "evidence": "07-evidence.md"
   },
-  "ready_for_manual_acceptance": true,
+  "ready_for_manual_acceptance": false,
   "human_acceptance": false,
   "next_product_milestones": [
     "rights and source contracts approved",
