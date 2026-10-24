@@ -255,6 +255,7 @@ class PreviewMonthSerializer(serializers.Serializer):
 
 class PreviewTimelineSerializer(serializers.Serializer):
     months = PreviewMonthSerializer(many=True)
+    undated = serializers.IntegerField(help_text="Rows without a usable date, left off the months.")
 
 
 class PreviewTimelineView(PrivateView):
@@ -265,9 +266,12 @@ class PreviewTimelineView(PrivateView):
     )
     def get(self, request):
         counts = {}
+        undated = 0
         for entry in preview_items(parameters(request, PreviewTimelineFilters)):
             if entry["occurred_on"]:
                 month = entry["occurred_on"][:7]
                 counts[month] = counts.get(month, 0) + 1
+            else:
+                undated += 1
         months = [{"month": month, "count": counts[month]} for month in sorted(counts)]
-        return Response(PreviewTimelineSerializer({"months": months}).data)
+        return Response(PreviewTimelineSerializer({"months": months, "undated": undated}).data)

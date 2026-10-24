@@ -36,6 +36,7 @@ export function EventMap({
   activeId = null,
   focusId = null,
   followId = null,
+  insetBottom = 0,
 }: {
   points: Points;
   onSelect: (id: string) => void;
@@ -45,6 +46,8 @@ export function EventMap({
   focusId?: string | null;
   /** The event being read in the logbook: the map pans to it only when it is off screen. */
   followId?: string | null;
+  /** Height in pixels covered at the bottom of the map by an overlay. */
+  insetBottom?: number;
 }) {
   const { t } = useI18n();
   const element = useRef<HTMLDivElement>(null);
@@ -177,6 +180,12 @@ export function EventMap({
     };
   }, [failed]);
 
+  // Space covered by something drawn over the bottom of the map (the timeline on wide screens):
+  // the camera centres and frames above it.
+  useEffect(() => {
+    map?.setPadding({ top: 0, right: 0, left: 0, bottom: insetBottom });
+  }, [map, insetBottom]);
+
   // Points are pushed to the loaded map whenever they change; the first non-empty set frames the view.
   const framed = useRef(false);
   useEffect(() => {
@@ -196,27 +205,51 @@ export function EventMap({
     );
   }, [map, points]);
 
-  // The open event is ringed and brought into view; nothing moves when it is already visible.
+  // The open or hovered event is ringed wherever it is.
   useEffect(() => {
     if (!map) return;
-    const active = points.filter((point) => point.id === activeId);
-    map.getSource<GeoJSONSource>("active")?.setData(asFeatures(active));
-    // An opened event always travels to the centre, so the card and its place read together.
-    const point = points.find((item) => item.id === focusId);
-    if (point) {
-      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 700 });
-    }
-  }, [map, points, activeId, focusId]);
+    map.getSource<GeoJSONSource>("active")?.setData(asFeatures(points.filter((point) => point.id === activeId)));
+  }, [map, points, activeId]);
 
+  // The camera moves only when the event to show changes, never because the points were refreshed,
+  // so a pan by the reader is not undone. Dragging the map stops following the logbook until an
+  // event is opened again.
+  const shown = useRef<{ focus: string | null; follow: string | null }>({ focus: null, follow: null });
+  const paused = useRef(false);
   useEffect(() => {
-    if (!map || !followId) return;
+    if (!map) return;
+    const pause = () => {
+      paused.current = true;
+    };
+    map.on("dragstart", pause);
+    return () => {
+      map.off("dragstart", pause);
+    };
+  }, [map]);
+  useEffect(() => {
+    if (!map) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (focusId !== shown.current.focus) {
+      if (focusId) {
+        // An opened event always travels to the centre, so the card and its place read together.
+        const point = points.find((item) => item.id === focusId);
+        if (!point) return; // not loaded yet: try again when the points arrive
+        shown.current.focus = focusId;
+        paused.current = false;
+        map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 700 });
+        return;
+      }
+      shown.current.focus = null;
+    }
+    if (focusId || paused.current || !followId || followId === shown.current.follow) return;
     const point = points.find((item) => item.id === followId);
-    if (point && !map.getBounds().contains([point.longitude, point.latitude])) {
-      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (!point) return;
+    shown.current.follow = followId;
+    // The entry being read moves the map only when its point is off screen.
+    if (!map.getBounds().contains([point.longitude, point.latitude])) {
       map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 500 });
     }
-  }, [map, points, followId]);
+  }, [map, points, focusId, followId]);
 
   return (
     <div className="map-wrap">

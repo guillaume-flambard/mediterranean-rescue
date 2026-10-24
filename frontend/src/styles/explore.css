@@ -294,7 +294,6 @@
 .views__option:hover:not(:disabled) { background: rgb(27 39 71 / 0.06); color: var(--color-text); }
 .views__option[aria-pressed="true"] { background: var(--sos-white); color: var(--color-text); box-shadow: 0 1px 3px rgb(27 39 71 / 0.14); }
 .views__option:disabled { cursor: default; color: var(--color-text-muted); }
-.views__soon { padding: 1px 7px; border-radius: var(--radius-pill); background: rgb(27 39 71 / 0.07); font-size: 11px; font-weight: 700; }
 
 /* Phone header: brand, language, and the workspace as an icon with its accessible name. */
 .explore-bar__language .ui-select__trigger { width: auto; min-height: 36px; white-space: nowrap; }
@@ -331,7 +330,7 @@
   .explore-meta { order: 3; }
   .preview-strip, .explore-feed > .notice-preview { order: 4; }
   .feed--pinned { order: 5; }
-  .feed, .explore-state { order: 6; }
+  .feed, .logbook, .explore-state { order: 6; }
   .feed-more { order: 7; }
   .explore-footer { order: 8; }
   .preview-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
@@ -365,9 +364,12 @@
 
 /* Team view embedded in the team space: no own bar, the workspace frame around it. */
 .review--wide { max-width: 1440px; }
+/* The whole data page sits on the reading ground, so the embedded view shows no seam. */
+body:has(.explore--team) { background: var(--ground); }
 .explore--team { --bar-height: 0px; min-height: 0; background: transparent; }
 .explore--team .explore-feed { padding-left: 0; padding-right: 0; }
 @media (min-width: 960px) {
+  .explore--team .explore-feed { padding-right: var(--space-6); }
   .explore--team .explore-map--side { top: var(--space-4); height: calc(100vh - 2 * var(--space-4)); }
 }
 
@@ -413,6 +415,7 @@
 .logbook__entry--open .logbook__dot { background: var(--sos-orange); box-shadow: 0 0 0 3px var(--sos-white), 0 0 0 7px rgb(232 62 27 / 0.2); }
 .logbook__text { display: grid; gap: 3px; min-width: 0; }
 .logbook__text b { font-size: 16px; font-weight: 800; }
+.logbook__origin { color: var(--color-text-muted); font-size: 13px; font-weight: 600; }
 .logbook__text > span { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); color: var(--color-text-secondary); font-size: 14px; }
 .logbook__chevron { color: var(--color-text-muted); transition: transform 0.3s var(--ease-out); }
 .logbook__entry--open .logbook__chevron { transform: rotate(180deg); }
@@ -424,38 +427,54 @@
   .logbook__body { margin-left: var(--space-3); }
   .logbook__month-title { padding: var(--space-3) var(--space-4); }
 }
-@media (max-width: 959px) { .logbook__month-title { position: static; } }
+@media (max-width: 959px) {
+  .logbook__month-title { position: static; }
+  /* Reading the logbook on a phone: the map stays in sight above the entries and follows the
+     reading; the composer scrolls away with the page. */
+  .explore--view-logbook .composer { position: static; box-shadow: var(--card-shadow); }
+  .explore--view-logbook .explore-map--inline[data-open] {
+    position: sticky; top: calc(var(--bar-height) + var(--space-2)); z-index: 5;
+    box-shadow: 0 0 0 var(--space-2) var(--ground); border-radius: 20px;
+  }
+  .explore--view-logbook .explore-map--inline > .map-card { height: 150px; }
+  .explore--view-logbook .logbook__entry { scroll-margin-top: calc(var(--bar-height) + 180px); }
+}
 
-/* View C: the map leads, the timeline chooses the period, the list stays beside it. */
-.timeline { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-3); border-radius: 20px; background: var(--sos-white); box-shadow: var(--card-shadow); }
+/* View C: the map leads, the timeline chooses the period, the list stays beside it. A chosen
+   period is a filter, so it is drawn in navy like the pressed chips; orange stays for selection. */
+.timeline { --thumb-half: 13px; display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-3); border-radius: 20px; background: var(--sos-white); box-shadow: var(--card-shadow); }
 .timeline--empty { margin: 0; color: var(--color-text-secondary); }
 .timeline__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--space-3); }
 .timeline__head h2 { margin: 0; font-size: 16px; font-weight: 800; }
 .timeline__head p { margin: 0 auto 0 0; color: var(--color-text-secondary); font-size: 14px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
-.timeline__chart { position: relative; display: flex; align-items: flex-end; gap: 1px; height: 72px; }
+.timeline__chart { position: relative; display: flex; align-items: flex-end; gap: 1px; height: 72px; padding: 0 var(--thumb-half); }
 .timeline__bar { flex: 1; min-width: 1px; border-radius: 2px 2px 0 0; background: #c9ccd9; transition: background-color 0.2s var(--ease-out); }
-.timeline__bar--in { background: var(--sos-navy); }
-.timeline__window { position: absolute; top: -4px; bottom: -4px; border: 2px solid var(--sos-orange); border-radius: 10px; background: rgb(232 62 27 / 0.06); pointer-events: none; transition: left 0.15s var(--ease-out), width 0.15s var(--ease-out); }
+.timeline__bar--in { background: #7b86a8; }
+.timeline:has(.timeline__window) .timeline__bar--in { background: var(--sos-navy); }
+.timeline__window { position: absolute; top: -4px; bottom: -4px; border: 2px solid var(--sos-navy); border-radius: 10px; background: rgb(27 39 71 / 0.05); pointer-events: none; transition: left 0.15s var(--ease-out), width 0.15s var(--ease-out); }
 /* Two native ranges stacked: only their thumbs take the pointer, so both handles stay reachable. */
 .timeline__handles { position: relative; height: 28px; margin-top: -6px; }
 .timeline__handles input {
   position: absolute; inset: 0; width: 100%; margin: 0; background: transparent; pointer-events: none;
-  appearance: none; -webkit-appearance: none; accent-color: var(--sos-orange-dark-proposed);
+  appearance: none; -webkit-appearance: none; accent-color: var(--sos-navy);
 }
+.timeline__handles--start-on-top input:first-child { z-index: 1; }
 .timeline__handles input::-webkit-slider-runnable-track { height: 4px; background: transparent; }
 .timeline__handles input::-moz-range-track { height: 4px; background: transparent; }
 .timeline__handles input::-webkit-slider-thumb {
   -webkit-appearance: none; pointer-events: auto; width: 26px; height: 26px; margin-top: -11px; border-radius: 50%;
-  background: var(--sos-white); border: 3px solid var(--sos-orange-dark-proposed); box-shadow: 0 2px 6px rgb(27 39 71 / 0.25); cursor: grab;
+  background: var(--sos-white); border: 3px solid var(--sos-navy); box-shadow: 0 2px 6px rgb(27 39 71 / 0.25); cursor: grab;
 }
 .timeline__handles input::-moz-range-thumb {
   pointer-events: auto; width: 20px; height: 20px; border-radius: 50%; background: var(--sos-white);
-  border: 3px solid var(--sos-orange-dark-proposed); box-shadow: 0 2px 6px rgb(27 39 71 / 0.25); cursor: grab;
+  border: 3px solid var(--sos-navy); box-shadow: 0 2px 6px rgb(27 39 71 / 0.25); cursor: grab;
 }
 .timeline__handles input:focus-visible { outline: none; }
 .timeline__handles input:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--sos-navy); outline-offset: 2px; }
+.timeline__handles input:focus-visible::-moz-range-thumb { outline: 3px solid var(--sos-navy); outline-offset: 2px; }
 .timeline__years { position: relative; height: 16px; color: var(--color-text-muted); font-size: 11px; font-weight: 700; font-variant-numeric: lining-nums; }
 .timeline__years span { position: absolute; top: 0; transform: translateX(-2px); }
+.timeline__undated { margin: -2px 0 0; color: var(--color-text-muted); font-size: 13px; font-weight: 600; }
 @media (max-width: 639px) {
   .explore--view-timeline .timeline { order: 2; }
   .explore--view-timeline .explore-map--inline > .map-card { height: 46vh; }

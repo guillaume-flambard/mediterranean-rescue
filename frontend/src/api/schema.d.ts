@@ -844,6 +844,8 @@ export interface components {
         };
         PreviewTimeline: {
             months: components["schemas"]["PreviewMonth"][];
+            /** @description Rows without a usable date, left off the months. */
+            undated: number;
         };
         Proposal: {
             kind: components["schemas"]["ReviewProposalEnum"];

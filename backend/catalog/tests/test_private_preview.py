@@ -62,8 +62,16 @@ class PreviewTests(PrivateApiTestCase):
         blocked = self.get("preview/timeline/?status=blocked").json()["months"]
         self.assertEqual(blocked, [{"month": "2024-02", "count": 1}])
 
+    def test_timeline_says_how_many_rows_have_no_date(self):
+        self.assertEqual(self.get("preview/timeline/").json()["undated"], 0)
+        self.stage(ops_csv(ops_row(date="06/02/2024"), ops_row(date="")))
+        body = self.get("preview/timeline/").json()
+        self.assertEqual(body, {"months": [{"month": "2024-02", "count": 1}], "undated": 1})
+
     def test_reviewers_only(self):
         self.assertEqual(self.get("preview/events/", client=Client()).status_code, 401)
         outsider = Client()
         outsider.force_login(self.outsider)
         self.assertEqual(self.get("preview/map-points/", client=outsider).status_code, 403)
+        self.assertEqual(self.get("preview/timeline/", client=Client()).status_code, 401)
+        self.assertEqual(self.get("preview/timeline/", client=outsider).status_code, 403)

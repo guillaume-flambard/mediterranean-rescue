@@ -147,7 +147,7 @@ describe("main screen preview", () => {
       "GET /api/private/v1/preview/events/:id/": () => ({ body: ITEM }),
     });
     renderApp(<Explore audience="team" />);
-    expect(await screen.findByRole("heading", { name: /February 2024.*1 event · 42 people/ })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: /^February 2024\W+1 event · 42 people rescued$/ })).toBeTruthy();
     expect(screen.getByRole("heading", { name: /January 2024.*1 event/ })).toBeTruthy();
     const entry = screen.getByRole("button", { name: /Rescue operation · 42 people rescued/ });
     await userEvent.click(entry);

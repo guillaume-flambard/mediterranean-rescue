@@ -3094,8 +3094,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PreviewMonth'
+        undated:
+          type: integer
+          description: Rows without a usable date, left off the months.
       required:
       - months
+      - undated
     Proposal:
       type: object
       properties:

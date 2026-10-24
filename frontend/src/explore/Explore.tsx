@@ -1,5 +1,6 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { api, type Kind } from "../api/client";
 import { kinds } from "../filters";
 import { LOCALES, type Locale } from "../i18n/format";
@@ -17,12 +18,12 @@ import { Timeline } from "./Timeline";
 const EventMap = lazy(async () => ({ default: (await import("../components/Map")).EventMap }));
 const PAGE = 25;
 const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
-// Three ways to read the same events; only the feed is built so far, the others say so.
+// Three ways to read the same events.
 type View = "feed" | "logbook" | "timeline";
-const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor"; ready: boolean }[] = [
-  { value: "feed", icon: "anchor", ready: true },
-  { value: "logbook", icon: "calendar", ready: true },
-  { value: "timeline", icon: "map", ready: true },
+const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor" }[] = [
+  { value: "feed", icon: "anchor" },
+  { value: "logbook", icon: "calendar" },
+  { value: "timeline", icon: "map" },
 ];
 type Status = "to_review" | "blocked" | "linked";
 
@@ -50,6 +51,18 @@ function useDebounced<T>(value: T, delay: number) {
   return current;
 }
 
+/** Height of an element, kept current while it resizes; 0 when there is none. */
+function useHeight(element: HTMLElement | null) {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    if (!element || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => setHeight(Math.round(entry?.borderBoxSize[0]?.blockSize ?? element.offsetHeight)));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+  return element ? height : 0;
+}
+
 // The same reading screen for two audiences, never mixed: "public" shows only published events;
 // "team" (inside the team space) shows the latest data received, with its review state.
 export function Explore({ audience = "public" }: { audience?: "public" | "team" }) {
@@ -59,7 +72,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const signedIn = me.data?.permissions.review_identity === true;
   const preview = audience === "team";
   const { pathname, query } = useLocation();
-  const requested = VIEWS.find((item) => item.value === query.get("view") && item.ready);
+  const requested = VIEWS.find((item) => item.value === query.get("view"));
   const view: View = requested?.value ?? "feed";
 
   const [text, setText] = useState("");
@@ -101,14 +114,25 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
 
   // The timeline counts every month for the kind and words chosen; the period is what it selects.
   const timelineFilters = { ...(kind ? { kind } : {}), ...(q ? { q } : {}) };
-  const publicTimeline = api.useQuery("get", "/api/v1/timeline/", { params: { query: timelineFilters } }, { enabled: view === "timeline" && !preview });
+  // The previous counts stay on screen while new ones load, so the timeline never blinks away.
+  const publicTimeline = api.useQuery(
+    "get",
+    "/api/v1/timeline/",
+    { params: { query: timelineFilters } },
+    { enabled: view === "timeline" && !preview, placeholderData: keepPreviousData },
+  );
   const previewTimeline = api.useQuery(
     "get",
     "/api/private/v1/preview/timeline/",
     { params: { query: timelineFilters } },
-    { enabled: view === "timeline" && preview },
+    { enabled: view === "timeline" && preview, placeholderData: keepPreviousData },
   );
-  const timeline = preview ? previewTimeline.data : publicTimeline.data;
+  const timelineQuery = preview ? previewTimeline : publicTimeline;
+  const timeline = timelineQuery.data;
+  const undated = preview ? (previewTimeline.data?.undated ?? 0) : 0;
+  // The map beside the overlaid timeline centres above it.
+  const [overlay, setOverlay] = useState<HTMLElement | null>(null);
+  const overlayHeight = useHeight(overlay);
   const feed = preview ? previewFeed : publicFeed;
   const map = preview ? previewMap.data : publicMap.data;
   const items: FeedItem[] = preview
@@ -181,6 +205,27 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     }
   };
 
+  const renderTimeline = (className: string, ref?: (element: HTMLElement | null) => void) =>
+    timelineQuery.error && !timeline ? (
+      <p className={`timeline timeline--empty ${className}`} role="alert">
+        {t("timeline.loadError")}
+      </p>
+    ) : timeline ? (
+      <Timeline
+        ref={ref}
+        className={className}
+        months={timeline.months}
+        undated={undated}
+        start={start}
+        end={end}
+        onPeriodChange={(from, to) => {
+          setStart(from);
+          setEnd(to);
+          resetView();
+        }}
+      />
+    ) : null;
+
   return (
     <div className={`explore${preview ? " explore--team" : ""} explore--view-${view}`}>
       {!preview && (
@@ -219,12 +264,10 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                   key={item.value}
                   className="views__option"
                   aria-pressed={view === item.value}
-                  disabled={!item.ready}
                   onClick={() => navigate(withQuery(pathname, { view: item.value === "feed" ? null : item.value }), { replace: true })}
                 >
                   <Icon name={item.icon} size={16} />
                   {t(`explore.view.${item.value}`)}
-                  {!item.ready && <span className="views__soon">{t("explore.soon")}</span>}
                 </BaseButton>
               ))}
             </div>
@@ -289,19 +332,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
             )}
           </div>
 
-          {view === "timeline" && timeline && (
-            <Timeline
-              className="timeline--inline"
-              months={timeline.months}
-              start={start}
-              end={end}
-              onPeriodChange={(from, to) => {
-                setStart(from);
-                setEnd(to);
-                resetView();
-              }}
-            />
-          )}
+          {view === "timeline" && renderTimeline("timeline--inline")}
 
           {preview && (
             <div className="preview-strip">
@@ -392,6 +423,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
               preview={preview}
               openId={openId}
               hasMore={Boolean(feed.hasNextPage)}
+              period={Boolean(start || end)}
               onToggle={(id) => {
                 setPinnedId(null);
                 setOpenId(openId === id ? null : id);
@@ -432,20 +464,16 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
 
         <aside className="explore-map explore-map--side" aria-label={t("map.label")}>
           {/* On wide screens the timeline floats over the bottom of the map, as in the chosen mock-up. */}
-          {view === "timeline" && timeline && (
-            <Timeline
-              className="timeline--overlay"
-              months={timeline.months}
-              start={start}
-              end={end}
-              onPeriodChange={(from, to) => {
-                setStart(from);
-                setEnd(to);
-                resetView();
-              }}
-            />
-          )}
-          <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} followId={followId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
+          {view === "timeline" && renderTimeline("timeline--overlay", setOverlay)}
+          <MapPanel
+            points={invalid ? [] : points}
+            activeId={activeId}
+            focusId={openId ?? pinnedId}
+            followId={followId}
+            onSelect={selectFromMap}
+            truncated={Boolean(map?.truncated)}
+            insetBottom={view === "timeline" ? overlayHeight : 0}
+          />
         </aside>
       </div>
     </div>
@@ -459,6 +487,7 @@ function MapPanel({
   followId,
   onSelect,
   truncated,
+  insetBottom = 0,
 }: {
   points: { id: string; longitude: number; latitude: number; kind: Kind }[];
   activeId: string | null;
@@ -466,12 +495,13 @@ function MapPanel({
   followId: string | null;
   onSelect: (id: string) => void;
   truncated: boolean;
+  insetBottom?: number;
 }) {
   const { t } = useI18n();
   return (
     <div className="map-card">
       <Suspense fallback={<div className="map-card__loading">{t("map.loading")}</div>}>
-        <EventMap points={points} onSelect={onSelect} activeId={activeId} focusId={focusId} followId={followId} />
+        <EventMap points={points} onSelect={onSelect} activeId={activeId} focusId={focusId} followId={followId} insetBottom={insetBottom} />
       </Suspense>
       {truncated && <p className="map-card__note">{t("map.truncated")}</p>}
     </div>

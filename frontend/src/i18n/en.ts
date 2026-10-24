@@ -506,7 +506,6 @@ export const en = {
   "explore.view.feed": "Feed",
   "explore.view.logbook": "Logbook",
   "explore.view.timeline": "Timeline",
-  "explore.soon": "soon",
   "kindOne.rescue": "Rescue operation",
   "kindOne.transfer": "Transfer between ships",
   "kindOne.medevac": "Medical evacuation",
@@ -546,8 +545,6 @@ export const en = {
   "explore.logbook.noDate": "Date not given",
   "explore.logbook.partial": "more below",
   "explore.logbook.events": { one: "{count} event", other: "{count} events" },
-  "explore.logbook.people": { one: "{count} person", other: "{count} people" },
-  "explore.logbook.peopleKnown": { one: "{count} person where given", other: "{count} people where given" },
   "explore.logbook.port": "Landed in {port}",
   "explore.logbook.noPort": "Port not given",
   "timeline.title": "Events per month",
@@ -557,6 +554,14 @@ export const en = {
   "timeline.start": "Start of the period",
   "timeline.end": "End of the period",
   "timeline.empty": "No event to place on the timeline yet.",
+  "explore.logbook.rescued": { one: "{count} person rescued", other: "{count} people rescued" },
+  "explore.logbook.rescuedKnown": { one: "{count} person rescued where given", other: "{count} people rescued where given" },
+  "explore.logbook.inPeriod": "{totals} in this period",
+  "timeline.oneMonth": { one: "{month} · {count} event", other: "{month} · {count} events" },
+  "timeline.custom": "Period chosen by dates",
+  "timeline.undated": { one: "{count} event without a date is not on the timeline.", other: "{count} events without a date are not on the timeline." },
+  "timeline.onlyUndated": { one: "{count} event, without a date: none to place on the timeline.", other: "{count} events, all without a date: none to place on the timeline." },
+  "timeline.loadError": "The timeline could not be loaded. The list still works.",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

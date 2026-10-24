@@ -257,13 +257,13 @@ Review status pills pair a pale surface with a dark text and a 7px dot: to revie
 
 Mobile first, one column, with two breakpoints.
 
-- **Below 640px (phone):** gutters 16px, bar 60px with brand, language select and the workspace as a 36px round icon (its label kept for assistive tech). The visible order is fixed by CSS order: map strip (170px, foldable), sticky composer, results line with the map toggle, private preview strip (reviewers only), pinned card, feed, load more, footer. The display heading and the notice body are visually hidden so two cards fit under the composer. Card summaries tighten (12px and 16px padding, 76 by 60px locator).
+- **Below 640px (phone):** gutters 16px, bar 60px with brand, language select and the workspace as a 36px round icon (its label kept for assistive tech). The visible order is fixed by CSS order: map strip (170px, foldable), sticky composer, results line with the map toggle, private preview strip (reviewers only), pinned card, feed or logbook, load more, footer. In timeline view the timeline comes right after the composer and the map strip grows to 46vh. The display heading and the notice body are visually hidden so two cards fit under the composer. Card summaries tighten (12px and 16px padding, 76 by 60px locator).
 - **640px to 959px:** bar padding 24px, the inline map strip grows to 240px, the locator to 128 by 96px. The composer is still sticky.
 - **960px and up (desk):** bar 64px with the tagline. The body becomes two columns: a feed column `minmax(420px, 620px)` with 32px leading padding, and a map that is sticky under the bar at full viewport height minus the bar, inset by 24px. The inline map strip and its toggle disappear; chips wrap instead of scrolling.
 
 Spacing follows a 4px base (space-1 to space-16). The feed stacks cards 12px apart inside a 16px-gap column; a card summary is a two-column grid, text on the left and the locator over the chevron on the right.
 
-**The Composer Stays Rule.** Below 960px the composer is sticky 8px under the bar and carries a 12px ring of ground colour in its shadow so cards never show through around it. A card scrolled into view keeps a top margin clearing the bar plus the composer (210px, 270px on desk).
+**The Composer Stays Rule.** Below 960px the composer is sticky 8px under the bar and carries a 12px ring of ground colour in its shadow so cards never show through around it. A card scrolled into view keeps a top margin clearing the bar plus the composer (210px, 270px on desk). In logbook view it is the map that stays: below 960px the composer scrolls away and the 150px map strip sticks under the bar, so the point of the entry being read stays in sight.
 
 **The Map Is Optional Rule.** The map can fold away on phones and may fail entirely; the feed, filters and open records must remain a complete path without it.
 
@@ -282,7 +282,7 @@ Soft and ambient. Depth comes from white surfaces floating on a tinted ground, w
 
 ## Shapes
 
-Generously rounded and nested: the larger the surface, the larger the corner, and an inner element always has a smaller radius than its container. Composer 24px, map card 22px, cards and empty states 20px, search field and notice block 18px, locator and period inputs 14px, view options and map notes 12px, chips, pills, segmented switches, status pills and counts fully round. Round controls (search clear, icon buttons) are circles. The private workspace keeps the tighter 4, 8 and 12px scale from `tokens.css`.
+Generously rounded and nested: the larger the surface, the larger the corner, and an inner element always has a smaller radius than its container. Composer 24px, map card 22px, cards and empty states 20px, search field and notice block 18px, locator and period inputs 14px, view options and map notes 12px, chips, pills, segmented switches, status pills and counts fully round. Round controls (search clear, icon buttons) are circles. The team space header follows the same scale (a 20px navy band, round icon buttons and fully round navigation pills); only the older workspace forms and tables keep the tighter 4, 8 and 12px scale from `tokens.css`.
 
 Icons are one authored set on a 24px grid, 1.75 stroke, round caps and joins, drawn in currentColor at 16 to 20px (`frontend/src/ui/Icon.tsx`).
 
@@ -302,7 +302,7 @@ Icons are one authored set on a 24px grid, 1.75 stroke, round caps and joins, dr
 
 ### Segmented switch and view switcher
 - **Segmented** (two options, e.g. private preview or published): a pill track of 8% navy, 3px padding, options 36px tall at 600 14px; the pressed option lifts to white with the pressed shadow.
-- **View switcher** (feed, logbook, timeline at the top of the composer): 40px options with 12px corners, slate text at 700 14px, an icon before the label; the pressed option takes the ground fill. An unready view stays visible, disabled, with a small "soon" pill.
+- **View switcher** (feed, logbook, timeline at the top of the composer): 40px options with 12px corners, slate text at 700 14px, an icon before the label; the pressed option takes the ground fill. All three views are built; the choice lives in the address (`?view=logbook`, `?view=timeline`).
 
 ### Composer (signature)
 A floating white panel (24px corners, card shadow) that gathers the view switcher, the search field and the chip row. The search field is 48px tall on field canvas with 18px corners, a leading search icon and a round clear button; on focus it turns white with an inset 2px navy ring. Search text is 16px so phones do not zoom.
@@ -316,7 +316,16 @@ A floating white panel (24px corners, card shadow) that gathers the view switche
 - **Loading:** 124px skeleton cards with a slow white shimmer.
 
 ### Map
-MapLibre on a self-contained style: water background, near-white land, a 0.7px coast line, no basemap labels. Clusters are navy circles with a white 2px stroke, 13, 17 or 22px radius by size; single events are 6px kind-coloured points with a white stroke; the hovered or open event sits above all in a 22px orange halo and a 9px orange point with a 3px white stroke. Opening a card eases the map to it over 700ms (instant with reduced motion). The map sits in a card with 22px corners; a translucent white note at its foot reports truncation; a failure shows a notice and leaves the list intact.
+MapLibre on a self-contained style: water background, near-white land, a 0.7px coast line, no basemap labels. Clusters are navy circles with a white 2px stroke, 13, 17 or 22px radius by size; single events are 6px kind-coloured points with a white stroke; the hovered or open event sits above all in a 22px orange halo and a 9px orange point with a 3px white stroke. Opening a card eases the map to it over 700ms (instant with reduced motion). The camera moves only when the event to show changes, never on a data refresh. In the logbook, the entry crossing the middle of the screen lights its point, and the map pans 500ms only when that point is off screen; dragging the map stops this following until an event is opened. When the timeline floats over the map, the map's bottom padding equals the timeline's height so centring happens above it. The map sits in a card with 22px corners; a translucent white note at its foot reports truncation; a failure shows a notice and leaves the list intact.
+
+### Logbook (view B)
+Events grouped by month in white 20px cards. The month heading (19px 800, sticky under the bar on desk) carries a totals line in 13px 700 slate: the event count and the people rescued, added up for rescues only so a person rescued then transferred never counts twice; "where given" when some rescues lack a number, "more below" while the month is not fully loaded, "in this period" for the first and last months when a period is chosen. Each entry is one button on a 2px rail: day (13px 800 figures), a 12px dot in the kind colour, then the kind and people line (16px 800), the port line with the status pill, and the origin line in caption, as on the cards. The open entry takes a pale orange wash and an orange dot with a soft ring.
+
+### Timeline (view C)
+A white 20px card: title, the selected period in 14px 600 slate with tabular figures, a "Whole period" quiet button when narrowed, and a muted line for events without a date, which never sit on the bars. Month bars (72px tall, empty months as 2px stubs) in pale navy; the chosen months turn navy and a 2px navy window frames them. No window is drawn on the whole period. A chosen period is a filter, so it is navy like a pressed chip, never orange. Two native range inputs give the handles (26px white circles with a 3px navy border); bars, window and year labels are inset by half a handle so they line up with it. A period set elsewhere that is not whole months reads "Period chosen by dates". In the column below 960px; from 960px it floats over the bottom of the map with a deeper shadow.
+
+### Team space header
+A navy band with 20px corners: the brand in white 800 with "Team space" in 70% white (hidden below 640px so the brand never truncates), round icon buttons for the public site and sign-out, then a scrolling row of pill links; the current section is a white pill with navy text. The team's data page sits on the same ground as the public screen.
 
 ### Status pills and counts
 24px pills with a 7px dot and 700 at 12px, in the state colours. Counts in the private preview notice are white 26px pills with a dot and tabular figures.
@@ -336,7 +345,7 @@ Transitions run 0.2 to 0.35s on `cubic-bezier(0.16, 1, 0.3, 1)`, an ease-out wit
 - **Do** float white surfaces on the lavender-grey ground with the navy-tinted card shadow, and nest radii from 24px down to 12px.
 - **Do** show a pressed state as navy fill (chips) or a white lift (switches).
 - **Do** give every card its origin line and keep unknown values written as unknown.
-- **Do** keep the phone order: map strip, composer, results, preview strip, pinned card, feed, load more, footer.
+- **Do** keep the phone order: map strip, composer, results, preview strip, pinned card, feed or logbook, load more, footer.
 
 ### Don't:
 - **Don't** use orange-red for a kind, a chip, a heading or decoration.
