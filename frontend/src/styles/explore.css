@@ -567,3 +567,13 @@ body:has(.explore--team) { background: #eeedf2; }
 .welcome__independent { margin: 0; color: rgb(255 255 255 / 0.66); font-size: 13px; }
 .explore-state__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
 .explore-state__actions .pill-button { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Operations rebuilt from the public logbook (ADR 0014): the sentence they come from, quoted. */
+.logbook-evidence { display: grid; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-3) var(--space-4); border-radius: 16px; background: var(--color-canvas); }
+.logbook-evidence__label { margin: 0; color: var(--color-text-secondary); font-size: 13px; font-weight: 700; }
+.logbook-evidence blockquote { margin: 0; padding-left: var(--space-3); border-left: 3px solid var(--sos-navy); font-size: 15px; line-height: 1.5; }
+.logbook-evidence__check p { display: flex; align-items: center; gap: 6px; margin: 0; color: #8a5a00; font-weight: 700; font-size: 14px; }
+.logbook-evidence__check ul { margin: 4px 0 0; padding-left: 20px; color: var(--color-text-secondary); font-size: 14px; }
+.logbook-evidence .card__provenance a { color: var(--sos-navy); font-weight: 700; }
+.chip--logbook svg { color: var(--sos-navy); }
+.chip--logbook[aria-pressed="true"] svg { color: var(--sos-white); }

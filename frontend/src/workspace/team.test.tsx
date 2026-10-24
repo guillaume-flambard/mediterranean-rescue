@@ -20,9 +20,7 @@ const PUBLISHER = {
   },
 };
 
-function overview(
-  overrides: Partial<PublicationOverview> = {},
-): PublicationOverview {
+function overview(overrides: Partial<PublicationOverview> = {}): PublicationOverview {
   return {
     sources: [{ name: "Fictitious source", rights_approved: true }],
     preparation: [
@@ -60,9 +58,7 @@ function render(ui: ReactElement, path: string) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return renderWithI18n(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return renderWithI18n(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 function server(routes: Parameters<typeof fakeServer>[0] = {}) {
@@ -112,44 +108,22 @@ describe("team home", () => {
       }),
     });
     render(<TeamHome />, "/workspace");
-    expect(
-      await screen.findByRole("heading", { name: "Hello volunteer" }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { name: "Welcome to the team space" }),
-    ).toBeTruthy();
-    const steps = within(
-      screen.getByRole("region", { name: "To do" }),
-    ).getAllByRole("listitem");
-    expect(
-      steps.map((step) => within(step).getByRole("heading").textContent),
-    ).toEqual([
+    expect(await screen.findByRole("heading", { name: "Hello volunteer" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Welcome to the team space" })).toBeTruthy();
+    const steps = within(screen.getByRole("region", { name: "To do" })).getAllByRole("listitem");
+    expect(steps.map((step) => within(step).getByRole("heading").textContent)).toEqual([
       "Check that the sheet is being read",
       "Verify new or changed events",
       "Prepare verified events",
       "Publish",
     ]);
-    expect(
-      await within(steps[1]!).findByText(
-        /7 events waiting to be verified\. 2 flagged to fix in the sheet\./,
-      ),
-    ).toBeTruthy();
-    expect(
-      await within(steps[3]!).findByText(
-        "Waiting for SOS MEDITERRANEE to agree that its data may be published.",
-      ),
-    ).toBeTruthy();
+    expect(await within(steps[1]!).findByText(/7 events waiting to be verified\. 2 flagged to fix in the sheet\./)).toBeTruthy();
+    expect(await within(steps[3]!).findByText("Waiting for SOS MEDITERRANEE to agree that its data may be published.")).toBeTruthy();
     expect(within(steps[3]!).getByText("Cannot start yet")).toBeTruthy();
-    expect(
-      await screen.findByText("3 port names to match to a known port."),
-    ).toBeTruthy();
+    expect(await screen.findByText("3 port names to match to a known port.")).toBeTruthy();
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "Close the welcome message" }),
-    );
-    expect(
-      screen.queryByRole("heading", { name: "Welcome to the team space" }),
-    ).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Close the welcome message" }));
+    expect(screen.queryByRole("heading", { name: "Welcome to the team space" })).toBeNull();
     expect(window.localStorage.getItem("team-intro-dismissed")).toBe("1");
   });
 });
@@ -173,26 +147,13 @@ describe("publish", () => {
     const button = await screen.findByRole("button", {
       name: "Prepare 2 events",
     });
-    expect(
-      button.hasAttribute("disabled") ||
-        button.getAttribute("aria-disabled") === "true",
-    ).toBe(true);
-    await userEvent.type(
-      screen.getByRole("textbox", { name: "Reason" }),
-      "Checked against the logbook",
-    );
-    await userEvent.click(
-      screen.getByRole("button", { name: "Prepare 2 events" }),
-    );
-    expect(
-      await screen.findByText(
-        "2 events prepared. They stay private until they are published.",
-      ),
-    ).toBeTruthy();
-    expect(
-      calls.find((call) => call.path === "/api/private/v1/publication/prepare/")
-        ?.body,
-    ).toEqual({ reason: "Checked against the logbook" });
+    expect(button.hasAttribute("disabled") || button.getAttribute("aria-disabled") === "true").toBe(true);
+    await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "Checked against the logbook");
+    await userEvent.click(screen.getByRole("button", { name: "Prepare 2 events" }));
+    expect(await screen.findByText("2 events prepared. They stay private until they are published.")).toBeTruthy();
+    expect(calls.find((call) => call.path === "/api/private/v1/publication/prepare/")?.body).toEqual({
+      reason: "Checked against the logbook",
+    });
   });
 
   it("publishes the ticked events after a confirmation that names the consequence", async () => {
@@ -205,35 +166,14 @@ describe("publish", () => {
       }),
     });
     render(<PublishWorkspace />, "/workspace/publish");
-    await userEvent.click(
-      await screen.findByRole("checkbox", { name: /Rescue operation/ }),
-    );
-    await userEvent.type(
-      screen.getAllByRole("textbox", { name: "Reason" }).at(-1)!,
-      "Checked, rights confirmed",
-    );
-    await userEvent.click(
-      screen.getByRole("button", { name: "Publish 1 event" }),
-    );
+    await userEvent.click(await screen.findByRole("checkbox", { name: /Rescue operation/ }));
+    await userEvent.type(screen.getAllByRole("textbox", { name: "Reason" }).at(-1)!, "Checked, rights confirmed");
+    await userEvent.click(screen.getByRole("button", { name: "Publish 1 event" }));
     const dialog = await screen.findByRole("alertdialog");
-    expect(
-      within(dialog).getByText(
-        /It will be visible to everyone on the public site/,
-      ),
-    ).toBeTruthy();
-    await userEvent.click(
-      within(dialog).getByRole("button", { name: "Publish 1 event" }),
-    );
-    expect(
-      await screen.findByText(
-        "1 event published. It is now on the public site.",
-      ),
-    ).toBeTruthy();
-    expect(
-      calls.find(
-        (call) => call.path === "/api/private/v1/publication/decisions/",
-      )?.body,
-    ).toEqual({
+    expect(within(dialog).getByText(/It will be visible to everyone on the public site/)).toBeTruthy();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Publish 1 event" }));
+    expect(await screen.findByText("1 event published. It is now on the public site.")).toBeTruthy();
+    expect(calls.find((call) => call.path === "/api/private/v1/publication/decisions/")?.body).toEqual({
       action: "publish",
       events: [DRAFT.id],
       reason: "Checked, rights confirmed",
@@ -276,33 +216,14 @@ describe("publish", () => {
       }),
     });
     render(<PublishWorkspace />, "/workspace/publish");
-    await userEvent.click(
-      await screen.findByRole("checkbox", { name: /Rescue operation/ }),
-    );
-    await userEvent.type(
-      screen.getAllByRole("textbox", { name: "Reason" }).at(-1)!,
-      "Reviewed",
-    );
-    await userEvent.click(
-      screen.getByRole("button", { name: "Publish 1 event" }),
-    );
+    await userEvent.click(await screen.findByRole("checkbox", { name: /Rescue operation/ }));
+    await userEvent.type(screen.getAllByRole("textbox", { name: "Reason" }).at(-1)!, "Reviewed");
+    await userEvent.click(screen.getByRole("button", { name: "Publish 1 event" }));
     const dialog = await screen.findByRole("alertdialog");
-    const before = calls.filter(
-      (call) => call.path === "/api/private/v1/publication/events/",
-    ).length;
-    await userEvent.click(
-      within(dialog).getByRole("button", { name: "Publish 1 event" }),
-    );
-    expect(
-      await within(dialog).findByText(/Someone changed these events meanwhile/),
-    ).toBeTruthy();
-    await waitFor(() =>
-      expect(
-        calls.filter(
-          (call) => call.path === "/api/private/v1/publication/events/",
-        ).length,
-      ).toBeGreaterThan(before),
-    );
+    const before = calls.filter((call) => call.path === "/api/private/v1/publication/events/").length;
+    await userEvent.click(within(dialog).getByRole("button", { name: "Publish 1 event" }));
+    expect(await within(dialog).findByText(/Someone changed these events meanwhile/)).toBeTruthy();
+    await waitFor(() => expect(calls.filter((call) => call.path === "/api/private/v1/publication/events/").length).toBeGreaterThan(before));
   });
 });
 
@@ -322,15 +243,11 @@ describe("team home for a single role", () => {
       }),
     });
     render(<TeamHome />, "/workspace");
-    const steps = within(
-      await screen.findByRole("region", { name: "To do" }),
-    ).getAllByRole("listitem");
+    const steps = within(await screen.findByRole("region", { name: "To do" })).getAllByRole("listitem");
     expect(within(steps[0]!).getByText("Not part of your role.")).toBeTruthy();
     expect(within(steps[1]!).getByText("Not part of your role.")).toBeTruthy();
     expect(within(steps[0]!).queryByRole("link")).toBeNull();
-    expect(calls.some((call) => call.path === "/api/private/v1/sync/")).toBe(
-      false,
-    );
+    expect(calls.some((call) => call.path === "/api/private/v1/sync/")).toBe(false);
     expect(screen.queryByRole("link", { name: /Manual update/ })).toBeNull();
   });
 });

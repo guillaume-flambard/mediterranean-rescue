@@ -68,6 +68,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/private/v1/logbook/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_logbook"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/logbook/export/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_logbook_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/me/": {
         parameters: {
             query?: never;
@@ -772,6 +804,22 @@ export interface components {
          * @enum {string}
          */
         LastStatusEnum: "new_data" | "unchanged" | "refused" | "failed";
+        LogbookOverview: {
+            /** Format: date */
+            sheet_last_date: string;
+            /** Format: date-time */
+            last_read_at: string | null;
+            last_read_status: string;
+            first_date: string | null;
+            last_date: string | null;
+            rows: number;
+            people: number;
+            verified: number;
+            to_verify: number;
+            to_fix: number;
+            /** @description Rows whose evidence asks for a human check. */
+            to_check: number;
+        };
         MapPoint: {
             /** Format: uuid */
             id: string;
@@ -886,6 +934,14 @@ export interface components {
             blocked: number;
             linked: number;
         };
+        PreviewEvidence: {
+            /** Format: uri */
+            url: string;
+            rotation: string;
+            logged_at: string;
+            quote: string;
+            to_check: string[];
+        };
         PreviewItem: {
             /** Format: uuid */
             id: string;
@@ -909,6 +965,7 @@ export interface components {
             boat_type: string | null;
             position: components["schemas"]["PreviewPosition"] | null;
             image_count: number;
+            evidence: components["schemas"]["PreviewEvidence"] | null;
         };
         PreviewMap: {
             points: components["schemas"]["PreviewPoint"][];
@@ -1605,6 +1662,157 @@ export interface operations {
             };
         };
     };
+    private_logbook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogbookOverview"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_logbook_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Verified rows in the sheet's column order. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     private_me: {
         parameters: {
             query?: never;
@@ -2007,6 +2215,7 @@ export interface operations {
                 limit?: number;
                 offset?: number;
                 q?: string;
+                source?: string;
                 start?: string;
                 /**
                  * @description * `to_review` - to_review
@@ -2170,6 +2379,7 @@ export interface operations {
                 end?: string;
                 kind?: string;
                 q?: string;
+                source?: string;
                 start?: string;
                 /**
                  * @description * `to_review` - to_review
@@ -2255,6 +2465,7 @@ export interface operations {
             query?: {
                 kind?: string;
                 q?: string;
+                source?: string;
                 /**
                  * @description * `to_review` - to_review
                  *     * `blocked` - blocked

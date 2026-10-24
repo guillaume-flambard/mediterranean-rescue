@@ -322,6 +322,118 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: ''
+  /api/private/v1/logbook/:
+    get:
+      operationId: private_logbook
+      tags:
+      - logbook
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogbookOverview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/logbook/export/:
+    get:
+      operationId: private_logbook_export
+      tags:
+      - logbook
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: Verified rows in the sheet's column order.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
   /api/private/v1/me/:
     get:
       operationId: private_me
@@ -697,6 +809,13 @@ paths:
           minLength: 1
           maxLength: 80
       - in: query
+        name: source
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+      - in: query
         name: start
         schema:
           type: string
@@ -852,6 +971,13 @@ paths:
           minLength: 1
           maxLength: 80
       - in: query
+        name: source
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+      - in: query
         name: start
         schema:
           type: string
@@ -938,6 +1064,13 @@ paths:
           type: string
           minLength: 1
           maxLength: 80
+      - in: query
+        name: source
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
       - in: query
         name: status
         schema:
@@ -3001,6 +3134,49 @@ components:
         * `unchanged` - unchanged
         * `refused` - refused
         * `failed` - failed
+    LogbookOverview:
+      type: object
+      properties:
+        sheet_last_date:
+          type: string
+          format: date
+        last_read_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_read_status:
+          type: string
+        first_date:
+          type: string
+          nullable: true
+        last_date:
+          type: string
+          nullable: true
+        rows:
+          type: integer
+        people:
+          type: integer
+        verified:
+          type: integer
+        to_verify:
+          type: integer
+        to_fix:
+          type: integer
+        to_check:
+          type: integer
+          description: Rows whose evidence asks for a human check.
+      required:
+      - first_date
+      - last_date
+      - last_read_at
+      - last_read_status
+      - people
+      - rows
+      - sheet_last_date
+      - to_check
+      - to_fix
+      - to_verify
+      - verified
     MapPoint:
       type: object
       properties:
@@ -3274,6 +3450,28 @@ components:
       - blocked
       - linked
       - to_review
+    PreviewEvidence:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        rotation:
+          type: string
+        logged_at:
+          type: string
+        quote:
+          type: string
+        to_check:
+          type: array
+          items:
+            type: string
+      required:
+      - logged_at
+      - quote
+      - rotation
+      - to_check
+      - url
     PreviewItem:
       type: object
       properties:
@@ -3330,10 +3528,15 @@ components:
           nullable: true
         image_count:
           type: integer
+        evidence:
+          allOf:
+          - $ref: '#/components/schemas/PreviewEvidence'
+          nullable: true
       required:
       - boat_type
       - deaths
       - error_codes
+      - evidence
       - exported_at
       - id
       - image_count

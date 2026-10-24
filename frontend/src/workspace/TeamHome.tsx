@@ -33,11 +33,7 @@ function introDismissed() {
 export function TeamHome() {
   const { t } = useI18n();
   return (
-    <WorkspaceShell
-      section="home"
-      title={t("home.title")}
-      className="review review--wide"
-    >
+    <WorkspaceShell section="home" title={t("home.title")} className="review review--wide">
       {(me) => <Home me={me} />}
     </WorkspaceShell>
   );
@@ -46,34 +42,14 @@ export function TeamHome() {
 function Home({ me }: { me: Me }) {
   const i18n = useI18n();
   const { t } = i18n;
-  const {
-    review_identity: reviewer,
-    stage_snapshot: stager,
-    prepare_drafts: preparer,
-    publish: publisher,
-  } = me.permissions;
+  const { review_identity: reviewer, stage_snapshot: stager, prepare_drafts: preparer, publish: publisher } = me.permissions;
   // Each step reads only what this person's role may see; the others say so instead of loading.
   const canRead = reviewer || stager;
   const canFollow = reviewer || preparer || publisher;
   const [intro, setIntro] = useState(() => !introDismissed());
-  const sync = api.useQuery(
-    "get",
-    "/api/private/v1/sync/",
-    {},
-    { refetchInterval: 60_000, enabled: canRead },
-  );
-  const queue = api.useQuery(
-    "get",
-    "/api/private/v1/preview/events/",
-    { params: { query: { limit: 1 } } },
-    { enabled: reviewer },
-  );
-  const publication = api.useQuery(
-    "get",
-    "/api/private/v1/publication/",
-    {},
-    { enabled: canFollow },
-  );
+  const sync = api.useQuery("get", "/api/private/v1/sync/", {}, { refetchInterval: 60_000, enabled: canRead });
+  const queue = api.useQuery("get", "/api/private/v1/preview/events/", { params: { query: { limit: 1 } } }, { enabled: reviewer });
+  const publication = api.useQuery("get", "/api/private/v1/publication/", {}, { enabled: canFollow });
   const labels = api.useQuery(
     "get",
     "/api/private/v1/ports/labels/",
@@ -81,28 +57,17 @@ function Home({ me }: { me: Me }) {
     { enabled: reviewer },
   );
 
-  const sheets = (sync.data?.sheets ?? []).filter(
-    (sheet) => sheet.sheet !== "Data_ports",
-  );
-  const failing = sheets.some(
-    (sheet) =>
-      sheet.last_status === "failed" || sheet.last_status === "refused",
-  );
+  const sheets = (sync.data?.sheets ?? []).filter((sheet) => sheet.sheet !== "Data_ports");
+  const failing = sheets.some((sheet) => sheet.last_status === "failed" || sheet.last_status === "refused");
   const counts = queue.data?.counts;
   const prep = publication.data?.preparation ?? [];
   const ready = prep.reduce((total, item) => total + item.ready, 0);
   const drafts = publication.data?.events.draft ?? 0;
   const published = publication.data?.events.published ?? 0;
-  const locked = (publication.data?.sources ?? []).some(
-    (source) => !source.rights_approved,
-  );
+  const locked = (publication.data?.sources ?? []).some((source) => !source.rights_approved);
   /** The sentence of a step whose data is not there: not this role, an error, or still loading. */
   const missing = (allowed: boolean, error: unknown) =>
-    !allowed
-      ? t("home.notYourRole")
-      : error
-        ? t("workspace.loadError")
-        : t("home.loading");
+    !allowed ? t("home.notYourRole") : error ? t("workspace.loadError") : t("home.loading");
 
   const steps: Step[] = [
     {
@@ -129,14 +94,7 @@ function Home({ me }: { me: Me }) {
     },
     {
       key: "prepare",
-      state:
-        !publication.data || !preparer
-          ? "waiting"
-          : ready > 0
-            ? "todo"
-            : drafts + published > 0
-              ? "done"
-              : "waiting",
+      state: !publication.data || !preparer ? "waiting" : ready > 0 ? "todo" : drafts + published > 0 ? "done" : "waiting",
       detail: !publication.data
         ? missing(canFollow, publication.error)
         : ready > 0
@@ -147,14 +105,7 @@ function Home({ me }: { me: Me }) {
     },
     {
       key: "publish",
-      state:
-        !publication.data || locked || !publisher
-          ? "waiting"
-          : drafts > 0
-            ? "todo"
-            : published > 0
-              ? "done"
-              : "waiting",
+      state: !publication.data || locked || !publisher ? "waiting" : drafts > 0 ? "todo" : published > 0 ? "done" : "waiting",
       detail: !publication.data
         ? missing(canFollow, publication.error)
         : locked
@@ -190,11 +141,7 @@ function Home({ me }: { me: Me }) {
         <section className="team-intro" aria-labelledby="team-intro-title">
           <div className="team-intro__head">
             <h2 id="team-intro-title">{t("home.intro.title")}</h2>
-            <BaseButton
-              className="icon-button team-intro__close"
-              aria-label={t("home.intro.close")}
-              onClick={close}
-            >
+            <BaseButton className="icon-button team-intro__close" aria-label={t("home.intro.close")} onClick={close}>
               <Icon name="close" size={18} />
             </BaseButton>
           </div>
@@ -212,31 +159,18 @@ function Home({ me }: { me: Me }) {
           {steps.map((step, index) => (
             <li key={step.key} className={`team-step team-step--${step.state}`}>
               <span className="team-step__number" aria-hidden="true">
-                {step.state === "done" ? (
-                  <Icon name="check" size={18} />
-                ) : (
-                  index + 1
-                )}
+                {step.state === "done" ? <Icon name="check" size={18} /> : index + 1}
               </span>
               <div className="team-step__text">
                 <h3>{t(`home.${step.key}.title` as Key)}</h3>
-                <p className="team-step__why">
-                  {t(`home.${step.key}.why` as Key)}
-                </p>
+                <p className="team-step__why">{t(`home.${step.key}.why` as Key)}</p>
                 <p className="team-step__detail">
-                  <span
-                    className={`team-step__state team-step__state--${step.state}`}
-                  >
-                    {t(`home.state.${step.state}` as Key)}
-                  </span>
+                  <span className={`team-step__state team-step__state--${step.state}`}>{t(`home.state.${step.state}` as Key)}</span>
                   {step.detail}
                 </p>
               </div>
               {step.path && (
-                <Link
-                  to={step.path}
-                  className={`pill-button${index === next ? " pill-button--primary" : ""} team-step__action`}
-                >
+                <Link to={step.path} className={`pill-button${index === next ? " pill-button--primary" : ""} team-step__action`}>
                   {step.action}
                   <Icon name="arrowRight" size={16} />
                 </Link>
@@ -254,11 +188,7 @@ function Home({ me }: { me: Me }) {
               <Icon name="anchor" size={20} />
               <span>
                 <b>{t("home.ports.title")}</b>
-                <span>
-                  {labels.data
-                    ? t("home.ports.count", { count: labels.data.total_count })
-                    : t("home.loading")}
-                </span>
+                <span>{labels.data ? t("home.ports.count", { count: labels.data.total_count }) : t("home.loading")}</span>
               </span>
             </Link>
           )}
@@ -284,22 +214,9 @@ function Home({ me }: { me: Me }) {
       <section aria-labelledby="role-title" className="team-role">
         <h2 id="role-title">{t("home.role.title")}</h2>
         <ul>
-          {(
-            [
-              "review_identity",
-              "prepare_drafts",
-              "publish",
-              "stage_snapshot",
-            ] as const
-          ).map((permission) => (
-            <li
-              key={permission}
-              className={me.permissions[permission] ? "" : "team-role__no"}
-            >
-              <Icon
-                name={me.permissions[permission] ? "check" : "close"}
-                size={16}
-              />
+          {(["review_identity", "prepare_drafts", "publish", "stage_snapshot"] as const).map((permission) => (
+            <li key={permission} className={me.permissions[permission] ? "" : "team-role__no"}>
+              <Icon name={me.permissions[permission] ? "check" : "close"} size={16} />
               {t(`home.role.${permission}` as Key)}
             </li>
           ))}

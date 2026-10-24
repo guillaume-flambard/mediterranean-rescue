@@ -50,6 +50,10 @@ Sur une machine locale, la connexion peut être retirée : `LOCAL_AUTO_LOGIN=<id
 
 Réglages de production liés au proxy (liste de contrôle Django) : `DJANGO_NUM_PROXIES` (nombre de proxys devant Django, 0 par défaut : `X-Forwarded-For` est ignoré pour la limite de connexions) et `DJANGO_BEHIND_TLS_PROXY=1` quand un proxy termine TLS et réécrit toujours `X-Forwarded-Proto`. La limite de connexions est comptée dans un cache partagé en base (`django_cache`, créé par la migration `0008`). `/admin/` n’a pas de limite propre : le restreindre au proxy (adresse ou VPN) avant toute mise en ligne.
 
+## Journal de bord public de SOS
+
+La carte publique de SOS s'arrête le 6 février 2024 ; le journal de bord de sosmediterranee.org continue. `docker compose run --rm api uv run --no-sync python backend/manage.py sync_logbook` en retrouve les opérations (une requête par seconde), les met en attente privée avec la phrase d'où chacune vient, et l'espace équipe permet de les vérifier puis de télécharger les lignes vérifiées au format du tableur. `--every 21600` relit toutes les six heures. Hors ligne : `python3 scripts/logbook_backfill.py` écrit les mêmes lignes et leur provenance dans `data/local/backfill`. Voir [ADR 0014](docs/decisions/0014-public-logbook-as-a-source.md) et [le compte rendu](docs/backfill-2024-2026.md).
+
 ## Importer un export autorisé
 
 Créer une Source dans l’administration, puis placer le fichier local dans data/local/. Contrat canonique v1 : tableau JSON avec external_id stable, kind (rescue/transfer/medevac/incident/shipwreck/dead_missing), occurred_on (YYYY-MM-DD), title, source_url, people (entier ou null), longitude/latitude (nombres ou null ensemble), location_precision (unknown/approximate/reported), summary facultatif. Limite : 5 Mio, 10 000 lignes. Les inconnus restent null.

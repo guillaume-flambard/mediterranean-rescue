@@ -25,6 +25,8 @@ class PreviewFilters(serializers.Serializer):
     kind = serializers.CharField(required=False, max_length=40)
     status = serializers.ChoiceField(choices=STATUSES, required=False)
     q = serializers.CharField(required=False, max_length=80)
+    # A source key, e.g. the public logbook ("sos-logbook"): only that source's rows.
+    source = serializers.SlugField(required=False, max_length=50)
 
     def validate(self, attrs):
         if "start" in attrs and "end" in attrs and attrs["start"] > attrs["end"]:
@@ -66,6 +68,21 @@ def position(candidate):
     }
 
 
+def evidence(row):
+    """The logbook page and quote a rebuilt row comes from; None for a sheet row."""
+    try:
+        found = row.logbook
+    except SheetRow.logbook.RelatedObjectDoesNotExist:
+        return None
+    return {
+        "url": found.source_url,
+        "rotation": found.rotation,
+        "logged_at": found.logged_at,
+        "quote": found.quote,
+        "to_check": [part.strip() for part in found.to_check.split(";") if part.strip()],
+    }
+
+
 def item(row, snapshot, status):
     candidate = row.candidate or {}
     images = candidate.get("image_src") or []
@@ -89,6 +106,7 @@ def item(row, snapshot, status):
         "boat_type": candidate.get("boat_type"),
         "position": position(candidate),
         "image_count": len(images) if isinstance(images, list) else 0,
+        "evidence": evidence(row),
     }
 
 
@@ -96,8 +114,12 @@ def preview_items(values):
     """Every previewed row matching the filters, newest event first."""
     items = []
     for snapshot in latest_snapshots():
+        if "source" in values and snapshot.source.key != values["source"]:
+            continue
         statuses = {p.row_id: STATUS_BY_PROPOSAL[p.kind] for p in propose_links(snapshot)}
-        for row in snapshot.rows.only("id", "line", "candidate", "error_codes"):
+        for row in snapshot.rows.select_related("logbook").only(
+            "id", "line", "candidate", "error_codes", "logbook"
+        ):
             entry = item(row, snapshot, statuses[row.pk])
             day = entry["occurred_on"]
             if "start" in values and (day is None or day < values["start"].isoformat()):
@@ -129,6 +151,14 @@ class PreviewPositionSerializer(serializers.Serializer):
     inferred_hemisphere = serializers.BooleanField()
 
 
+class PreviewEvidenceSerializer(serializers.Serializer):
+    url = serializers.URLField()
+    rotation = serializers.CharField()
+    logged_at = serializers.CharField()
+    quote = serializers.CharField()
+    to_check = serializers.ListField(child=serializers.CharField())
+
+
 class PreviewItemSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     snapshot = serializers.UUIDField()
@@ -149,6 +179,7 @@ class PreviewItemSerializer(serializers.Serializer):
     boat_type = serializers.CharField(allow_null=True)
     position = PreviewPositionSerializer(allow_null=True)
     image_count = serializers.IntegerField()
+    evidence = PreviewEvidenceSerializer(allow_null=True)
 
 
 class PreviewCountsSerializer(serializers.Serializer):
@@ -232,7 +263,7 @@ class PreviewEventView(PrivateView):
     )
     def get(self, request, id):
         parameters(request, serializers.Serializer)
-        row = SheetRow.objects.select_related("snapshot__source").filter(pk=id).first()
+        row = SheetRow.objects.select_related("snapshot__source", "logbook").filter(pk=id).first()
         latest = {snapshot.pk for snapshot in latest_snapshots()}
         if row is None or row.snapshot_id not in latest:
             raise Http404
@@ -246,6 +277,7 @@ class PreviewTimelineFilters(serializers.Serializer):
     kind = serializers.CharField(required=False, max_length=40)
     status = serializers.ChoiceField(choices=STATUSES, required=False)
     q = serializers.CharField(required=False, max_length=80)
+    source = serializers.SlugField(required=False, max_length=50)
 
 
 class PreviewMonthSerializer(serializers.Serializer):

@@ -367,6 +367,21 @@ class SheetRow(UUIDModel):
         return self.row_ref
 
 
+class LogbookEvidence(UUIDModel):
+    """Where a row rebuilt from the public logbook comes from (ADR 0014): the page, the entry and
+    a short quote, shown next to the row so a volunteer can check it against the source."""
+
+    row = models.OneToOneField(SheetRow, on_delete=models.CASCADE, related_name="logbook")
+    source_url = models.URLField(max_length=1000)
+    rotation = models.CharField(max_length=200)
+    logged_at = models.CharField(max_length=40, help_text="Day and time of the logbook entry.")
+    quote = models.TextField(max_length=500)
+    to_check = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.rotation} {self.logged_at}"
+
+
 class SourceIdentity(UUIDModel):
     """Durable identity we assign to a source record; created only by human approval."""
 

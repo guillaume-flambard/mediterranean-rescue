@@ -15,6 +15,7 @@ from catalog.private_imports import (
     ImportOptionsView,
     ImportsView,
 )
+from catalog.private_logbook import LogbookExportView, LogbookOverviewView
 from catalog.private_ports import (
     PortLabelDecisionView,
     PortLabelsView,
@@ -91,6 +92,8 @@ urlpatterns = [
     path("api/private/v1/publication/prepare/", PrepareView.as_view()),
     path("api/private/v1/publication/events/", PublicationEventsView.as_view()),
     path("api/private/v1/publication/decisions/", PublicationDecisionView.as_view()),
+    path("api/private/v1/logbook/", LogbookOverviewView.as_view()),
+    path("api/private/v1/logbook/export/", LogbookExportView.as_view()),
     path("api/private/v1/preview/events/", PreviewEventsView.as_view()),
     path("api/private/v1/preview/events/<uuid:id>/", PreviewEventView.as_view()),
     path("api/private/v1/preview/map-points/", PreviewMapView.as_view()),

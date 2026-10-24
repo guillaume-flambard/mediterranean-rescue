@@ -17,6 +17,7 @@ import { Timeline } from "./Timeline";
 
 const EventMap = lazy(async () => ({ default: (await import("../components/Map")).EventMap }));
 const PAGE = 25;
+const LOGBOOK_SOURCE = "sos-logbook";
 // Three ways to read the same events.
 type View = "feed" | "logbook" | "timeline";
 const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor" }[] = [
@@ -92,6 +93,9 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     ...(kind ? { kind } : {}),
     ...(q ? { q } : {}),
   };
+  // Team only: the operations rebuilt from the public logbook, alone (ADR 0014).
+  const logbookOnly = preview && query.get("source") === LOGBOOK_SOURCE;
+  const teamFilters = { ...filters, ...(logbookOnly ? { source: LOGBOOK_SOURCE } : {}) };
 
   const page = (all: readonly unknown[], last: { has_next: boolean }) => (last.has_next ? all.length * PAGE : undefined);
   const publicFeed = api.useInfiniteQuery(
@@ -103,11 +107,11 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const previewFeed = api.useInfiniteQuery(
     "get",
     "/api/private/v1/preview/events/",
-    { params: { query: { ...filters, limit: PAGE } } },
+    { params: { query: { ...teamFilters, limit: PAGE } } },
     { pageParamName: "offset", initialPageParam: 0, getNextPageParam: (last, all) => page(all, last), enabled: !invalid && preview },
   );
   const publicMap = api.useQuery("get", "/api/v1/map-points/", { params: { query: filters } }, { enabled: !invalid && !preview });
-  const previewMap = api.useQuery("get", "/api/private/v1/preview/map-points/", { params: { query: filters } }, { enabled: !invalid && preview });
+  const previewMap = api.useQuery("get", "/api/private/v1/preview/map-points/", { params: { query: teamFilters } }, { enabled: !invalid && preview });
 
   // The timeline counts every month for the kind and words chosen; the period is what it selects.
   const timelineFilters = { ...(kind ? { kind } : {}), ...(q ? { q } : {}) };
@@ -121,7 +125,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const previewTimeline = api.useQuery(
     "get",
     "/api/private/v1/preview/timeline/",
-    { params: { query: timelineFilters } },
+    { params: { query: { ...timelineFilters, ...(logbookOnly ? { source: LOGBOOK_SOURCE } : {}) } } },
     { enabled: view === "timeline" && preview, placeholderData: keepPreviousData },
   );
   const timelineQuery = preview ? previewTimeline : publicTimeline;
@@ -144,7 +148,9 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
           title: null,
           status: row.status as Status,
           line: row.line,
-          origin: t("explore.origin.update", { date: i18n.date(row.exported_at.slice(0, 10)) }),
+          origin: row.evidence
+            ? t("explore.origin.logbook", { rotation: row.evidence.rotation })
+            : t("explore.origin.update", { date: i18n.date(row.exported_at.slice(0, 10)) }),
         })),
       )
     : (publicFeed.data?.pages ?? []).flatMap((p) =>
@@ -172,7 +178,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   }));
   const followId = view === "logbook" ? readId : null;
   const activeId = openId ?? pinnedId ?? hoverId ?? followId;
-  const filtered = Boolean(kind || start || end || q);
+  const filtered = Boolean(kind || start || end || q || logbookOnly);
 
   useEffect(() => {
     document.title = t("app.documentTitle");
@@ -188,6 +194,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     setKind("");
     setStart("");
     setEnd("");
+    if (logbookOnly) navigate(withQuery(pathname, { source: null }), { replace: true });
     resetView();
   };
   // A point picked on the map opens its card in the feed, or pins it on top when it is not loaded.
@@ -287,6 +294,19 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                   {kindLabel(i18n, value)}
                 </BaseButton>
               ))}
+              {preview && (
+                <BaseButton
+                  className="chip chip--logbook"
+                  aria-pressed={logbookOnly}
+                  onClick={() => {
+                    navigate(withQuery(pathname, { source: logbookOnly ? null : LOGBOOK_SOURCE }), { replace: true });
+                    resetView();
+                  }}
+                >
+                  <Icon name="anchor" size={15} />
+                  {t("logbook.chip")}
+                </BaseButton>
+              )}
               <BaseButton className="chip chip--period" aria-pressed={Boolean(start || end)} aria-expanded={periodOpen} onClick={() => setPeriodOpen(!periodOpen)}>
                 <Icon name="calendar" size={15} />
                 {start || end ? t("explore.periodSet", { from: start ? i18n.date(start) : "…", to: end ? i18n.date(end) : "…" }) : t("explore.period")}

@@ -163,3 +163,13 @@
 .team-intro__safe svg { flex: none; margin-top: 3px; }
 /* Phones: the section links scroll sideways; a fade on the right says there is more. */
 @media (max-width: 639px) { .workspace-nav { mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); padding-right: 24px; } }
+
+/* The logbook card on the team's data page: the problem in one line, three steps, two actions. */
+.logbook-card { display: grid; gap: var(--space-3); padding: var(--space-5); border-radius: 20px; background: var(--sos-white); box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22); }
+.logbook-card__eyebrow { margin: 0; color: var(--sos-orange-dark-proposed); font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.logbook-card h2 { margin: 0; font-size: 20px; font-weight: 800; color: var(--sos-navy); }
+.logbook-card__lead { margin: 0; max-width: 72ch; line-height: 1.55; color: var(--color-text-secondary); }
+.logbook-card__steps { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; line-height: 1.5; font-variant-numeric: lining-nums tabular-nums; }
+.logbook-card__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.logbook-card__actions a { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.sync-card__source { color: var(--color-text-secondary); font-weight: 600; }

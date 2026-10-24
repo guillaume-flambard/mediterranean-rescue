@@ -1,13 +1,10 @@
 """Offline tests of the logbook reader, on fictitious entries written like the real logbook."""
 
-import sys
-import unittest
 from datetime import date
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+from django.test import SimpleTestCase
 
-import logbook_backfill as lb  # noqa: E402
+from catalog import logbook as lb
 
 # Fictitious rotation page, built like the logbook's HTML.
 PAGE = """
@@ -33,7 +30,7 @@ Disembarkation of the 65 survivors starts.</div></article>
 """
 
 
-class ReaderTests(unittest.TestCase):
+class ReaderTests(SimpleTestCase):
     def rows(self):
         rotation = lb.Rotation(
             slug="operation-12-19-march-2025", url="https://www.sosmediterranee.org/operation/x/"
@@ -80,7 +77,3 @@ class ReaderTests(unittest.TestCase):
             lb.rotation_window("25-june-06-july-2024", entries),
             (date(2025, 7, 1), date(2025, 7, 6)),
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

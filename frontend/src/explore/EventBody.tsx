@@ -44,10 +44,37 @@ export function PreviewBody({ id }: { id: string }) {
           <Icon name="alert" size={16} /> {t("preview.status.blocked")}
         </p>
       )}
-      <p className="card__provenance">
-        {t("explore.whereFrom", { source: row.source.name, date: i18n.date(row.exported_at.slice(0, 10)) })}{" "}
-        {t("explore.inSheets", { line: row.line, sheet: sheetName(i18n, row.sheet) })}
-      </p>
+      {row.evidence ? (
+        <div className="logbook-evidence">
+          <p className="logbook-evidence__label">{t("logbook.evidence.label", { when: row.evidence.logged_at })}</p>
+          <blockquote lang="en">{row.evidence.quote}</blockquote>
+          {row.evidence.to_check.length > 0 && (
+            <div className="logbook-evidence__check">
+              <p>
+                <Icon name="alert" size={16} /> {t("logbook.evidence.toCheck")}
+              </p>
+              <ul>
+                {row.evidence.to_check.map((point) => (
+                  <li key={point} lang="en">
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="card__provenance">
+            {t("logbook.evidence.provenance", { rotation: row.evidence.rotation })}{" "}
+            <a href={row.evidence.url} target="_blank" rel="noreferrer">
+              {t("logbook.evidence.open")}
+            </a>
+          </p>
+        </div>
+      ) : (
+        <p className="card__provenance">
+          {t("explore.whereFrom", { source: row.source.name, date: i18n.date(row.exported_at.slice(0, 10)) })}{" "}
+          {t("explore.inSheets", { line: row.line, sheet: sheetName(i18n, row.sheet) })}
+        </p>
+      )}
       <Link to={`/workspace/review/${row.snapshot}/rows/${row.id}`} className="pill-button pill-button--primary">
         {t("preview.detail.check")}
         <Icon name="arrowRight" size={16} />
