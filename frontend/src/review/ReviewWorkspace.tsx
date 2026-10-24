@@ -144,7 +144,7 @@ function ReviewQueue() {
   const snapshotOptions = (snapshots.data?.items ?? []).map((item) => ({
     value: item.id,
     label: t("review.snapshotLabel", {
-      sheet: sheetName(item.sheet),
+      sheet: item.source.key === "sos-logbook" ? t("logbook.sourceName") : sheetName(item.sheet),
       date: i18n.date(item.created_at.slice(0, 10)),
       count: item.row_count,
     }),

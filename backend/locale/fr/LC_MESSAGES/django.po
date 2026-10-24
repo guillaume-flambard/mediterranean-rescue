@@ -181,6 +181,69 @@ msgstr "Publier"
 msgid "Withdraw"
 msgstr "Retirer"
 
+msgid "import batch"
+msgstr "lot importé"
+
+msgid "import batches"
+msgstr "lots importés"
+
+msgid "staged record"
+msgstr "enregistrement en attente"
+
+msgid "staged records"
+msgstr "enregistrements en attente"
+
+msgid "data update"
+msgstr "mise à jour des données"
+
+msgid "data updates"
+msgstr "mises à jour des données"
+
+msgid "row of a data update"
+msgstr "ligne d’une mise à jour"
+
+msgid "rows of data updates"
+msgstr "lignes des mises à jour"
+
+msgid "followed event"
+msgstr "événement suivi"
+
+msgid "followed events"
+msgstr "événements suivis"
+
+msgid "verification"
+msgstr "vérification"
+
+msgid "verifications"
+msgstr "vérifications"
+
+msgid "port name reading"
+msgstr "lecture d’un nom de port"
+
+msgid "port name readings"
+msgstr "lectures des noms de ports"
+
+msgid "correction"
+msgstr "correction"
+
+msgid "corrections"
+msgstr "corrections"
+
+msgid "sheet reading"
+msgstr "lecture du tableur"
+
+msgid "sheet readings"
+msgstr "lectures du tableur"
+
+msgid "logbook sentence"
+msgstr "phrase du journal de bord"
+
+msgid "logbook sentences"
+msgstr "phrases du journal de bord"
+
+msgid "Write who agreed and on which terms before ticking “publication agreed”."
+msgstr "Indiquez qui a donné son accord et à quelles conditions avant de cocher « publication autorisée »."
+
 msgid "%(count)d event updated."
 msgid_plural "%(count)d events updated."
 msgstr[0] "%(count)d événement mis à jour."

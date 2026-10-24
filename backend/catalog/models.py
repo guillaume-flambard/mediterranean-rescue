@@ -47,12 +47,17 @@ class Source(UUIDModel):
             models.CheckConstraint(
                 condition=Q(rights_approved=False) | ~Q(license_note__regex=r"^\s*$"),
                 name="approved_source_has_licence_note",
+                violation_error_message=_(
+                    "Write who agreed and on which terms before ticking “publication agreed”."
+                ),
             )
         ]
 
     def clean(self):
         if self.rights_approved and not self.license_note.strip():
-            raise ValidationError("Approved publication rights need an explicit license note")
+            raise ValidationError(
+                _("Write who agreed and on which terms before ticking “publication agreed”.")
+            )
 
     def __str__(self):
         return self.name
@@ -248,6 +253,8 @@ class ImportBatch(UUIDModel):
     row_count = models.PositiveIntegerField(default=0)
 
     class Meta:
+        verbose_name = _("import batch")
+        verbose_name_plural = _("import batches")
         constraints = [
             models.UniqueConstraint(fields=["source", "checksum"], name="import_content_idempotent")
         ]
@@ -259,6 +266,8 @@ class StagedRecord(UUIDModel):
     payload = models.JSONField()
 
     class Meta:
+        verbose_name = _("staged record")
+        verbose_name_plural = _("staged records")
         constraints = [
             models.UniqueConstraint(fields=["batch", "ordinal"], name="import_row_identity")
         ]
@@ -304,6 +313,8 @@ class SheetSnapshot(UUIDModel):
     staged_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
 
     class Meta:
+        verbose_name = _("data update")
+        verbose_name_plural = _("data updates")
         constraints = [
             models.UniqueConstraint(
                 fields=["source", "sheet", "sha256", "contract_version"],
@@ -338,6 +349,8 @@ class SheetSync(UUIDModel):
     message = models.CharField(max_length=300, blank=True)
 
     class Meta:
+        verbose_name = _("sheet reading")
+        verbose_name_plural = _("sheet readings")
         indexes = [models.Index(fields=["source", "sheet", "-created_at"])]
 
     def __str__(self):
@@ -354,6 +367,8 @@ class SheetRow(UUIDModel):
     error_codes = models.JSONField(default=list, blank=True)
 
     class Meta:
+        verbose_name = _("row of a data update")
+        verbose_name_plural = _("rows of data updates")
         ordering = ["snapshot", "line"]
         constraints = [
             models.UniqueConstraint(fields=["snapshot", "line"], name="sheet_row_location")
@@ -377,6 +392,10 @@ class LogbookEvidence(UUIDModel):
     logged_at = models.CharField(max_length=40, help_text="Day and time of the logbook entry.")
     quote = models.TextField(max_length=500)
     to_check = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _("logbook sentence")
+        verbose_name_plural = _("logbook sentences")
 
     def __str__(self):
         return f"{self.rotation} {self.logged_at}"
@@ -408,6 +427,8 @@ class SourceIdentity(UUIDModel):
     drafted_values = models.JSONField(default=dict, blank=True)
 
     class Meta:
+        verbose_name = _("followed event")
+        verbose_name_plural = _("followed events")
         permissions = [
             ("review_identity", "Can approve source identities, row links and port aliases")
         ]
@@ -463,6 +484,8 @@ class RowIdentityLink(UUIDModel):
     reason = models.TextField()
 
     class Meta:
+        verbose_name = _("verification")
+        verbose_name_plural = _("verifications")
         constraints = [
             models.UniqueConstraint(
                 fields=["identity", "snapshot"], name="identity_once_per_snapshot"
@@ -512,6 +535,8 @@ class PortAlias(UUIDModel):
     reason = models.TextField()
 
     class Meta:
+        verbose_name = _("port name reading")
+        verbose_name_plural = _("port name readings")
         constraints = [
             models.UniqueConstraint(fields=["source", "label"], name="port_alias_per_source"),
             models.CheckConstraint(
@@ -557,6 +582,8 @@ class EventRevision(UUIDModel):
     reason = models.TextField()
 
     class Meta:
+        verbose_name = _("correction")
+        verbose_name_plural = _("corrections")
         ordering = ["created_at"]
         constraints = [
             models.CheckConstraint(

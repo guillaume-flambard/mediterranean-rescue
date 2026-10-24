@@ -59,10 +59,11 @@ def logbook_source():
 
 
 def sheet_last_date():
-    """The last operation in the sheet itself: only what comes after it is rebuilt."""
+    """The last operation in the association's sheet, as the team sees how far it lags. Fictitious
+    training sources never count (acceptance of 24 October 2026, D3)."""
     last = None
     snapshots = (
-        SheetSnapshot.objects.filter(sheet=SHEET)
+        SheetSnapshot.objects.filter(sheet=SHEET, source__synthetic=False)
         .exclude(source__key=LOGBOOK_SOURCE_KEY)
         .order_by("source_id", "-created_at")
         .distinct("source_id")

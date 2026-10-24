@@ -184,3 +184,4 @@
 .review-compare .review-note { margin: 6px 0 0; }
 /* Team pages on a phone: the filter panel scrolls away so an opened record has the screen. */
 @media (max-width: 959px) { .explore--team .composer { position: static; box-shadow: var(--card-shadow); } }
+.publish-step .ui-table { overflow-x: auto; }

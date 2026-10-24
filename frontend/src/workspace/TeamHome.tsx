@@ -64,7 +64,13 @@ function Home({ me }: { me: Me }) {
   const ready = prep.reduce((total, item) => total + item.ready, 0);
   const drafts = publication.data?.events.draft ?? 0;
   const published = publication.data?.events.published ?? 0;
-  const locked = (publication.data?.sources ?? []).some((source) => !source.rights_approved);
+  const sources = publication.data?.sources ?? [];
+  // Publishing waits only when no source may be published; the names say which agreement is missing.
+  const locked = sources.length > 0 && sources.every((source) => !source.rights_approved);
+  const lockedNames = sources
+    .filter((source) => !source.rights_approved)
+    .map((source) => (source.key === "sos-logbook" ? t("logbook.sourceName") : source.name))
+    .join(", ");
   /** The sentence of a step whose data is not there: not this role, an error, or still loading. */
   const missing = (allowed: boolean, error: unknown) =>
     !allowed ? t("home.notYourRole") : error ? t("workspace.loadError") : t("home.loading");
@@ -88,7 +94,7 @@ function Home({ me }: { me: Me }) {
       : []),
     {
       key: "read",
-      state: sync.data ? (failing ? "todo" : "done") : "waiting",
+      state: !sync.data || sheets.length === 0 ? "waiting" : failing ? "todo" : "done",
       detail: !sync.data
         ? missing(canRead, sync.error)
         : sheets.length === 0
@@ -125,7 +131,7 @@ function Home({ me }: { me: Me }) {
       detail: !publication.data
         ? missing(canFollow, publication.error)
         : locked
-          ? t("home.publish.locked")
+          ? t("home.publish.locked", { sources: lockedNames })
           : drafts > 0
             ? t("home.publish.count", { count: drafts })
             : t("home.publish.published", { count: published }),
@@ -234,6 +240,7 @@ function Home({ me }: { me: Me }) {
             <li key={permission} className={me.permissions[permission] ? "" : "team-role__no"}>
               <Icon name={me.permissions[permission] ? "check" : "close"} size={16} />
               {t(`home.role.${permission}` as Key)}
+              {!me.permissions[permission] && <span className="sr-only"> {t("home.role.notYours")}</span>}
             </li>
           ))}
         </ul>

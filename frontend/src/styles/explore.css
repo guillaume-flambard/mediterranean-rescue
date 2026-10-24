@@ -577,3 +577,12 @@ body:has(.explore--team) { background: #eeedf2; }
 .logbook-evidence .card__provenance a { color: var(--sos-navy); font-weight: 700; }
 .chip--logbook svg { color: var(--sos-navy); }
 .chip--logbook[aria-pressed="true"] svg { color: var(--sos-white); }
+
+/* Acceptance of 24 October 2026: a skip link, focus never clipped, the bar fits a phone. */
+.skip-link { position: absolute; left: var(--space-3); top: -60px; z-index: 100; padding: var(--space-2) var(--space-3); border-radius: 12px; background: var(--sos-white); color: var(--sos-navy); font-weight: 800; }
+.skip-link:focus { top: var(--space-2); }
+.views { padding-top: 4px; padding-bottom: 4px; }
+@media (max-width: 639px) {
+  .explore-bar__language .ui-select__trigger { padding: 0 var(--space-2); gap: 4px; }
+  .explore-bar__language .ui-select__trigger svg { flex: none; }
+}

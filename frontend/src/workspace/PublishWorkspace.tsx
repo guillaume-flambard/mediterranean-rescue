@@ -57,9 +57,9 @@ function Publish({ me }: { me: Me }) {
         <div className="publish-lock" role="status">
           <Icon name="lock" size={22} />
           <div>
-            <h2>{t("publish.locked.title")}</h2>
+            <h2>{t(locked.length === data.sources.length ? "publish.locked.title" : "publish.locked.someTitle")}</h2>
             <p>
-              {t("publish.locked.body", {
+              {t(locked.length === data.sources.length ? "publish.locked.body" : "publish.locked.someBody", {
                 sources: locked.map((source) => (source.key === "sos-logbook" ? t("logbook.sourceName") : source.name)).join(", "),
               })}
             </p>

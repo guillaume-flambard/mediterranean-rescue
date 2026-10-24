@@ -34,7 +34,7 @@ export function PreviewBody({ id }: { id: string }) {
           label={t("detail.position")}
           value={
             row.position
-              ? `${formatPosition(i18n, row.position.latitude, row.position.longitude)}${row.position.inferred_hemisphere ? ` ${t("explore.positionEstimated")}` : ""}`
+              ? `${formatPosition(i18n, row.position.latitude, row.position.longitude)}${row.position.inferred_hemisphere && !row.evidence ? ` ${t("explore.positionEstimated")}` : ""}`
               : t("detail.unknownPosition")
           }
         />

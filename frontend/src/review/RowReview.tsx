@@ -180,6 +180,13 @@ export interface RowReviewProps {
   onClose: () => void;
 }
 
+/** A diagnostic code in words; the code itself when the catalog has no sentence for it. */
+function codeText(i18n: I18n, code: string) {
+  const key = `diag.code.${code}` as Parameters<I18n["t"]>[0];
+  const text = i18n.t(key);
+  return text === key ? code : text;
+}
+
 export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewProps) {
   const i18n = useI18n();
   const { t } = i18n;
@@ -197,12 +204,14 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
   // Writes are not aborted (their outcome would be unknown); a late result for a row the user
   // has left is ignored instead.
   const alive = useRef(true);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    // Set again on every mount: React's development double mount runs the cleanup once, and a
+    // flag left false would silently drop every answer (acceptance of 24 October 2026, D1).
+    alive.current = true;
+    return () => {
       alive.current = false;
-    },
-    [],
-  );
+    };
+  }, []);
 
   // Leaving with a typed reason that was not submitted loses it: ask first, in the app and in
   // the browser.
@@ -337,7 +346,7 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
         <h3 id="interpreted-title">{t("review.interpreted")}</h3>
         {row.error_codes.length > 0 && (
           <InlineMessage tone="error">
-            {t("review.blocked")} <span className="review-raw">{row.error_codes.join(", ")}</span>
+            {t("review.blocked")} {row.error_codes.map((code) => codeText(i18n, code)).join(" ")}
           </InlineMessage>
         )}
         <Interpreted row={row} />

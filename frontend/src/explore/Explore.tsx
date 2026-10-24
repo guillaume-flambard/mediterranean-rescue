@@ -235,9 +235,14 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
 
   return (
     <div className={`explore${preview ? " explore--team" : ""} explore--view-${view}`}>
+      {!preview && (
+        <a className="skip-link" href="#explore-title">
+          {t("app.skip")}
+        </a>
+      )}
       {!preview && <PublicBar />}
 
-      <div className="explore-body">
+      <div className="explore-body" {...(preview ? {} : { role: "main" })}>
         <section className="explore-feed" aria-labelledby="explore-title">
           <div className="explore-intro">
             <h1 id="explore-title">{t("app.title")}</h1>
@@ -566,7 +571,7 @@ function EventCard({
           </span>
           <span className="card__kind">
             <i className="card__kind-dot" aria-hidden="true" />
-            {item.title ?? kindName(i18n, item.kind)}
+            {kindName(i18n, item.kind)}
           </span>
           <span className="card__facts">
             <span className="card__people">

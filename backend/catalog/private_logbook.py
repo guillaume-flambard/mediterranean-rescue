@@ -81,7 +81,8 @@ def year_totals(logbook_rows):
     """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them."""
     sheet = {}
     for snapshot in (
-        SheetSnapshot.objects.filter(sheet=SHEET)
+        # Fictitious training sources never count against SOS's reports.
+        SheetSnapshot.objects.filter(sheet=SHEET, source__synthetic=False)
         .exclude(source__key=LOGBOOK_SOURCE_KEY)
         .order_by("source_id", "-created_at")
         .distinct("source_id")
