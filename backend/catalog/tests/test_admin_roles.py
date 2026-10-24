@@ -218,3 +218,46 @@ class TransitionTests(TestCase):
         with self.assertRaises(ValidationError):
             set_publication(event_id=event.pk, actor=lead, publish=True, reason="again")
         self.assertEqual(PublicationAudit.objects.count(), 1)
+
+
+class LocalAutoLoginTests(TestCase):
+    def test_signs_in_the_local_account_only_when_it_exists_and_is_active(self):
+        from django.contrib.auth.models import AnonymousUser
+        from django.contrib.sessions.middleware import SessionMiddleware
+        from django.http import HttpResponse
+        from django.test import RequestFactory, override_settings
+        from rescue.middleware import LocalAutoLogin
+
+        def run():
+            request = RequestFactory().get("/api/private/v1/me/")
+            SessionMiddleware(lambda r: HttpResponse()).process_request(request)
+            request.user = AnonymousUser()
+            LocalAutoLogin(lambda r: HttpResponse())(request)
+            return request.user
+
+        with override_settings(LOCAL_AUTO_LOGIN="local-team"):
+            self.assertFalse(run().is_authenticated)
+            User.objects.create_user(username="local-team", password=None, is_active=False)
+            self.assertFalse(run().is_authenticated)
+            User.objects.filter(username="local-team").update(is_active=True)
+            self.assertEqual(run().username, "local-team")
+
+    def test_production_settings_refuse_it(self):
+        import os
+        import subprocess
+        import sys
+
+        env = {**os.environ, "DJANGO_ENV": "production", "LOCAL_AUTO_LOGIN": "anyone"}
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import django, os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rescue.settings'); django.setup()",
+            ],
+            cwd=settings.BASE_DIR,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("LOCAL_AUTO_LOGIN is allowed only with DJANGO_ENV=development", result.stderr)

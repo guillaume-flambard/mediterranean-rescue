@@ -25,3 +25,25 @@ class APIRequestLimit:
             ):
                 return JsonResponse({"code": "http_413", "detail": "Request too large"}, status=413)
         return self.get_response(request)
+
+
+class LocalAutoLogin:
+    """Development only: signs every visitor in as LOCAL_AUTO_LOGIN, so the team space opens
+    without a sign-in screen on a local machine. Settings refuse it outside development."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from django.conf import settings
+        from django.contrib.auth import get_user_model, login
+
+        if not request.user.is_authenticated:
+            user = (
+                get_user_model()
+                .objects.filter(username=settings.LOCAL_AUTO_LOGIN, is_active=True)
+                .first()
+            )
+            if user is not None:
+                login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return self.get_response(request)

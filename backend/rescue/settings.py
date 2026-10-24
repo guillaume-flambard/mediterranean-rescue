@@ -39,6 +39,16 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rescue.middleware.APIRequestLimit",
 ]
+# Local machine only: sign every visitor in as this account, so no sign-in screen is needed while
+# the project runs on a laptop. Refused outside development, where the sign-in stays mandatory.
+LOCAL_AUTO_LOGIN = os.environ.get("LOCAL_AUTO_LOGIN", "")
+if LOCAL_AUTO_LOGIN:
+    if ENVIRONMENT != "development":
+        raise ImproperlyConfigured("LOCAL_AUTO_LOGIN is allowed only with DJANGO_ENV=development")
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index("django.contrib.auth.middleware.AuthenticationMiddleware") + 1,
+        "rescue.middleware.LocalAutoLogin",
+    )
 ROOT_URLCONF = "rescue.urls"
 TEMPLATES = [
     {
