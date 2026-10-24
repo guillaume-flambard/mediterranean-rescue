@@ -109,7 +109,7 @@ describe("access", () => {
 
 describe("queue (W04)", () => {
   it("shows counts per facet, rows with a title link, and carries only unchanged rows", async () => {
-    const carry = { id: "00000000-0000-0000-0000-0000000000b2", line: 13, proposal: "exact_carry" as const, candidate_count: 1 };
+    const carry = { id: "00000000-0000-0000-0000-0000000000b2", line: 13, occurred_on: "2024-01-19", proposal: "exact_carry" as const, candidate_count: 1 };
     const { calls } = fakeServer({
       "GET /api/private/v1/me/": () => ({ body: ME }),
       "GET /api/private/v1/snapshots/": () => ({ body: SNAPSHOTS }),
@@ -120,18 +120,18 @@ describe("queue (W04)", () => {
       "POST /api/private/v1/review/snapshots/:id/exact-carries/": () => ({ body: { carried: 1 } }),
     });
     renderAt("/workspace/review");
-    const table = await screen.findByRole("table", { name: "Rows of the export: To review" });
-    expect(screen.getByRole("radio", { name: "Linked 5" })).toBeTruthy();
-    expect(within(table).getByRole("link", { name: "Line 12" }).getAttribute("href")).toBe(
+    const table = await screen.findByRole("table", { name: "Events: Not verified yet" });
+    expect(screen.getByRole("radio", { name: "Verified 5" })).toBeTruthy();
+    expect(within(table).getByRole("link", { name: "Feb 3, 2024 · Rescue operation" }).getAttribute("href")).toBe(
       `/workspace/review/${SNAPSHOT}/rows/${ROW}?status=to_review&offset=0`,
     );
-    expect(within(table).queryByRole("checkbox", { name: "Select line 12" })).toBeNull();
-    await userEvent.click(within(table).getByRole("checkbox", { name: "Select line 13" }));
-    await userEvent.click(screen.getByRole("button", { name: "Approve 1 unchanged row" }));
+    expect(within(table).queryByRole("checkbox", { name: "Select the event of Feb 3, 2024 · Rescue operation" })).toBeNull();
+    await userEvent.click(within(table).getByRole("checkbox", { name: "Select the event of Jan 19, 2024 · Rescue operation" }));
+    await userEvent.click(screen.getByRole("button", { name: "Confirm 1 unchanged event" }));
     const dialog = await screen.findByRole("dialog");
     await userEvent.type(within(dialog).getByRole("textbox", { name: "Reason" }), "Same content as before");
-    await userEvent.click(within(dialog).getByRole("button", { name: "Approve 1 row" }));
-    expect(await screen.findByText("1 row linked.")).toBeTruthy();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Confirm 1 event" }));
+    expect(await screen.findByText("1 event verified.")).toBeTruthy();
     const post = calls.find((call) => call.method === "POST");
     expect(post?.body).toEqual({ rows: [carry.id], reason: "Same content as before" });
     expect(post?.headers.get("X-CSRFToken")).toBe("t");
@@ -144,8 +144,8 @@ describe("queue (W04)", () => {
       "GET /api/private/v1/review/rows/": () => ({ body: { items: [], total_count: 0, has_next: false, counts: { to_review: 0, blocked: 1, linked: 0 } } }),
     });
     renderAt("/workspace/review?offset=25");
-    expect(await screen.findByText("No row left to review")).toBeTruthy();
-    await userEvent.click(screen.getByRole("radio", { name: "Blocked 1" }));
+    expect(await screen.findByText("Every event is verified")).toBeTruthy();
+    await userEvent.click(screen.getByRole("radio", { name: "To fix in the sheet 1" }));
     await waitFor(() => expect(window.location.search).toBe(`?snapshot=${SNAPSHOT}&status=blocked&offset=0`));
     await waitFor(() => expect(calls.at(-1)?.query.get("status")).toBe("blocked"));
   });
@@ -171,12 +171,12 @@ describe("row review (W05)", () => {
   it("shows received values as text, the interpretation and the candidates, choosing none", async () => {
     server(() => ({ body: rowDetail() }));
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    const received = await screen.findByRole("table", { name: "Received" });
+    const received = await screen.findByRole("table", { name: "As written in the sheet" });
     expect(within(received).getByText("<b>raw</b>")).toBeTruthy();
     expect(within(received).getByText("Column 3 (no header)")).toBeTruthy();
-    expect(screen.getByText("Identities with the same date and category exist. None is chosen for you.")).toBeTruthy();
-    await userEvent.click(screen.getByRole("radio", { name: "Link to an existing identity" }));
-    const candidate = screen.getByRole("radio", { name: /Rescues · Feb 3, 2024 · 40 people reported/ });
+    expect(screen.getByText("Events already verified share this date and type. Say whether it is one of them; nothing is chosen for you.")).toBeTruthy();
+    await userEvent.click(screen.getByRole("radio", { name: "The same event as one already verified" }));
+    const candidate = screen.getByRole("radio", { name: /Rescue operation · Feb 3, 2024 · 40 people reported/ });
     expect(candidate.getAttribute("aria-checked")).toBe("false");
   });
 
@@ -189,14 +189,14 @@ describe("row review (W05)", () => {
       }),
     }));
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("button", { name: "Create identity" }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("button", { name: "Save as a new event" }));
     expect(await screen.findByRole("heading", { name: "There are 2 problems" })).toBeTruthy();
     expect(calls.some((call) => call.method === "POST")).toBe(false);
-    await userEvent.click(screen.getByRole("radio", { name: "Create a new identity" }));
+    await userEvent.click(screen.getByRole("radio", { name: "A new event" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "First observation");
-    await userEvent.click(screen.getByRole("button", { name: "Create identity" }));
-    expect(await screen.findByText("Decision saved. Linked · Private.")).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Save as a new event" }));
+    expect(await screen.findByText("Saved. This event is verified (private, not published).")).toBeTruthy();
     const post = calls.find((call) => call.method === "POST");
     expect(post?.body).toEqual({ action: "create_identity", reason: "First observation" });
     expect(post?.headers.get("X-CSRFToken")).toBe("t");
@@ -206,12 +206,12 @@ describe("row review (W05)", () => {
   it("explains a conflict and reads the state again", async () => {
     const { calls } = server(() => ({ status: 409, body: { code: "conflict", detail: "This row is already linked" } }));
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("radio", { name: "Link to an existing identity" }));
-    await userEvent.click(screen.getByRole("radio", { name: /Rescues · Feb 3, 2024/ }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("radio", { name: "The same event as one already verified" }));
+    await userEvent.click(screen.getByRole("radio", { name: /Rescue operation · Feb 3, 2024/ }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "Same rescue");
-    await userEvent.click(screen.getByRole("button", { name: "Approve link" }));
-    expect(await screen.findByText(/Someone else changed this row/)).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Confirm it is the same event" }));
+    expect(await screen.findByText(/Someone else changed this event/)).toBeTruthy();
     const post = calls.find((call) => call.method === "POST");
     expect(post?.body).toEqual({ action: "link", identity: IDENTITY, reason: "Same rescue" });
     await waitFor(() => expect(calls.filter((call) => call.path === `/api/private/v1/review/rows/${ROW}/`).length).toBe(2));
@@ -220,8 +220,8 @@ describe("row review (W05)", () => {
   it("review later saves nothing", async () => {
     const { calls } = server(() => ({ body: rowDetail() }));
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("radio", { name: "Review later" }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("radio", { name: "Decide later" }));
     await userEvent.click(screen.getByRole("button", { name: "Close without saving" }));
     await waitFor(() => expect(window.location.pathname).toBe("/workspace/review"));
     expect(calls.some((call) => call.method === "POST")).toBe(false);
@@ -252,11 +252,11 @@ describe("review regressions", () => {
   it("pressing Enter in the identity search never records a decision", async () => {
     const { calls } = server();
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("radio", { name: "Link to an existing identity" }));
-    await userEvent.click(screen.getByRole("radio", { name: /Rescues · Feb 3, 2024/ }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("radio", { name: "The same event as one already verified" }));
+    await userEvent.click(screen.getByRole("radio", { name: /Rescue operation · Feb 3, 2024/ }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "Same rescue{Enter}");
-    await userEvent.type(screen.getByRole("combobox", { name: "Or search another identity" }), "2024-02{Enter}");
+    await userEvent.type(screen.getByRole("combobox", { name: "Or find another verified event" }), "2024-02{Enter}");
     await new Promise((resolve) => setTimeout(resolve, 350));
     expect(calls.some((call) => call.method === "POST")).toBe(false);
   });
@@ -268,10 +268,10 @@ describe("review regressions", () => {
       }),
     });
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("radio", { name: "Create a new identity" }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("radio", { name: "A new event" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "New");
-    await userEvent.click(screen.getByRole("button", { name: "Create identity and open the next row" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save as a new event, then the next one" }));
     await waitFor(() =>
       expect(window.location.pathname).toBe(`/workspace/review/${SNAPSHOT}/rows/00000000-0000-0000-0000-0000000000b2`),
     );
@@ -281,10 +281,10 @@ describe("review regressions", () => {
     server();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("radio", { name: "Create a new identity" }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("radio", { name: "A new event" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "Half typed");
-    await userEvent.click(screen.getAllByRole("link", { name: "Line 13" })[0]!);
+    await userEvent.click(screen.getAllByRole("link", { name: "Feb 3, 2024 · Rescue operation" })[1]!);
     expect(confirm).toHaveBeenCalledOnce();
     expect(window.location.pathname).toBe(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
     confirm.mockRestore();
@@ -301,16 +301,16 @@ describe("review regressions", () => {
       },
     });
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
-    await screen.findByRole("table", { name: "Received" });
-    await userEvent.click(screen.getByRole("radio", { name: "Create a new identity" }));
+    await screen.findByRole("table", { name: "As written in the sheet" });
+    await userEvent.click(screen.getByRole("radio", { name: "A new event" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "New");
-    await userEvent.click(screen.getByRole("button", { name: "Create identity" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save as a new event" }));
     expect(await screen.findByRole("heading", { name: "Sign in" })).toBeTruthy();
   });
 
   it("a malformed address does not crash the workspace", async () => {
     server();
     renderAt("/workspace/review/%E0/rows/x");
-    expect(await screen.findByRole("table", { name: "Rows of the export: To review" })).toBeTruthy();
+    expect(await screen.findByRole("table", { name: "Events: Not verified yet" })).toBeTruthy();
   });
 });

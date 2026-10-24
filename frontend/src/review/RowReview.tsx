@@ -30,9 +30,26 @@ export function serverMessageKey(code: string): Parameters<I18n["t"]>[0] {
 }
 type Summary = IdentityCandidate["summary"];
 
+/** The Google Sheets tab in words; its technical name only when no translation exists. */
+function sheetName(i18n: I18n, sheet: string) {
+  const key = `explore.sheet.${sheet}` as Parameters<I18n["t"]>[0];
+  const label = i18n.t(key);
+  return label === key ? sheet : label;
+}
+
+/** A row named by what happened and when ("6 Feb 2024 · Rescue operation"), never by its sheet line. */
+function rowTitle(i18n: I18n, interpreted: unknown) {
+  const facts = (interpreted ?? {}) as { occurred_on?: unknown; kind?: unknown };
+  return i18n.t("review.rowTitle", {
+    date: typeof facts.occurred_on === "string" ? i18n.date(facts.occurred_on) : i18n.t("review.unreadable"),
+    kind: kindLabel(i18n, typeof facts.kind === "string" ? facts.kind : null),
+  });
+}
+
+/** The singular name of one event's kind ("Rescue operation"). */
 export function kindLabel(i18n: I18n, kind: string | null | undefined) {
   if (!kind) return i18n.t("review.unknown");
-  const key = `kind.${kind}` as const;
+  const key = `kindOne.${kind}` as const;
   const label = i18n.t(key as Parameters<I18n["t"]>[0]);
   return label === key ? kind : label;
 }
@@ -269,14 +286,14 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
     <article className="review-row" aria-labelledby="review-row-title">
       <div className="review-row__header">
         <h2 id="review-row-title" ref={heading} tabIndex={-1}>
-          {t("review.rowTitle", { line: row.line })}
+          {rowTitle(i18n, row.interpreted)}
         </h2>
         <StatusLabel status={status} />
         <Button size="sm" variant="quiet" onClick={onClose}>
           {t("ui.close")}
         </Button>
       </div>
-      <p className="review-note">{t("review.provenance", { sheet: row.snapshot.sheet, line: row.line })}</p>
+      <p className="review-note">{t("review.provenance", { sheet: sheetName(i18n, row.snapshot.sheet), line: row.line })}</p>
 
       {outcome === "saved" && row.status === "linked" && (
         <InlineMessage tone="success">{t("review.saved")}</InlineMessage>

@@ -134,7 +134,7 @@ describe("port names", () => {
     await userEvent.click(screen.getByRole("radio", { name: /position given in the port list/ }));
     await userEvent.type(screen.getByRole("textbox", { name: "Reason" }), "Port list");
     await userEvent.click(screen.getByRole("button", { name: "Save the reading" }));
-    expect(await screen.findByText(/Someone else changed this row/)).toBeTruthy();
+    expect(await screen.findByText(/Someone else changed this event/)).toBeTruthy();
     expect(calls.find((call) => call.method === "POST")?.body).toEqual({
       interpretation: "port",
       new_port: { from_port_list: true, country_code: "" },

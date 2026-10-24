@@ -135,10 +135,16 @@ function ReviewQueue() {
     }
   };
 
+  // The Google Sheets tab in words; its technical name only when no translation exists.
+  const sheetName = (sheet: string) => {
+    const key = `explore.sheet.${sheet}` as Parameters<typeof t>[0];
+    const label = t(key);
+    return label === key ? sheet : label;
+  };
   const snapshotOptions = (snapshots.data?.items ?? []).map((item) => ({
     value: item.id,
     label: t("review.snapshotLabel", {
-      sheet: item.sheet,
+      sheet: sheetName(item.sheet),
       date: i18n.date(item.created_at.slice(0, 10)),
       count: item.row_count,
     }),
@@ -218,26 +224,28 @@ function ReviewQueue() {
                       isEligible: (item) => item.proposal === "exact_carry",
                       selected,
                       onChange: (ids) => setSelection({ key: pageKey, ids }),
-                      rowLabel: (item) => t("review.carry.rowLabel", { line: item.line }),
+                      rowLabel: (item) =>
+                        t("review.carry.rowLabel", {
+                          date: item.occurred_on ? i18n.date(item.occurred_on) : t("review.unreadable"),
+                          kind: kindLabel(i18n, item.kind),
+                        }),
                     }
                   : undefined
               }
               columns={[
                 {
-                  key: "line",
-                  header: t("review.col.line"),
+                  key: "event",
+                  header: t("review.col.event"),
+                  // Named by what happened and when; the sheet row is only a way to find it in Google Sheets.
                   render: (item) => (
                     <Link to={rowUrl(item.id)} aria-current={item.id === route?.row ? "page" : undefined}>
-                      {t("review.rowTitle", { line: item.line })}
+                      {t("review.rowTitle", {
+                        date: item.occurred_on ? i18n.date(item.occurred_on) : t("review.unreadable"),
+                        kind: kindLabel(i18n, item.kind),
+                      })}
                     </Link>
                   ),
                 },
-                {
-                  key: "date",
-                  header: t("review.col.date"),
-                  render: (item) => (item.occurred_on ? i18n.date(item.occurred_on) : t("review.unreadable")),
-                },
-                { key: "kind", header: t("review.col.kind"), render: (item) => kindLabel(i18n, item.kind) },
                 { key: "count", header: t("review.col.count"), render: (item) => countLabel(i18n, item) },
                 {
                   key: "proposal",

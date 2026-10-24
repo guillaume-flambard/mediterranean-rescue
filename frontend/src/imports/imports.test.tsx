@@ -93,7 +93,7 @@ async function choose(label: string, option: string) {
 }
 
 async function fillForm() {
-  await screen.findByRole("heading", { name: "Add an export" });
+  await screen.findByRole("heading", { name: "Add a data update" });
   await choose("Where does the file come from?", "Fictitious source (fictitious data)");
   await choose("Which tab is it?", "Operations at sea (Data_operations)");
   const file = new File(["date,type_ops\n"], "export.csv", { type: "text/csv" });
@@ -116,7 +116,7 @@ describe("imports", () => {
     server();
     renderAt("/workspace/imports");
     const nav = await screen.findByRole("navigation", { name: "Private workspace" });
-    expect(within(nav).getAllByRole("link").map((link) => link.textContent)).toEqual(["Imports"]);
+    expect(within(nav).getAllByRole("link").map((link) => link.textContent)).toEqual(["Data updates"]);
     expect(await screen.findByText("No export saved yet")).toBeTruthy();
   });
 
@@ -172,7 +172,7 @@ describe("imports", () => {
   it("asks for every field before checking anything", async () => {
     const { calls } = server();
     renderAt("/workspace/imports/new");
-    await screen.findByRole("heading", { name: "Add an export" });
+    await screen.findByRole("heading", { name: "Add a data update" });
     await userEvent.click(screen.getByRole("button", { name: "Check the file" }));
     expect(screen.getByText("Choose where the file comes from.")).toBeTruthy();
     expect(screen.getByText("Choose a CSV file.")).toBeTruthy();
@@ -220,6 +220,6 @@ describe("imports", () => {
     });
     renderAt("/workspace/imports");
     await screen.findByText("No export saved yet");
-    expect(screen.queryByRole("link", { name: "Add an export" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Add a data update" })).toBeNull();
   });
 });

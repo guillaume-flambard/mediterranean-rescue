@@ -78,18 +78,18 @@ describe("main screen preview", () => {
       "GET /api/private/v1/preview/events/:id/": () => ({ body: ITEM }),
     });
     renderApp();
-    expect(await screen.findByText(/latest export as received/)).toBeTruthy();
+    expect(await screen.findByText(/latest data received/)).toBeTruthy();
     expect((await screen.findAllByText("1 map points")).length).toBeGreaterThan(0);
     const card = await screen.findByRole("button", { name: /Port fictif/ });
     expect(card.getAttribute("aria-expanded")).toBe("false");
     await userEvent.click(card);
     expect(card.getAttribute("aria-expanded")).toBe("true");
     const region = await screen.findByRole("region", { name: "Event record" });
-    expect((await within(region).findByRole("link", { name: /Check this row/ })).getAttribute("href")).toBe(
+    expect((await within(region).findByRole("link", { name: /Verify this event/ })).getAttribute("href")).toBe(
       `/workspace/review/${SNAPSHOT}/rows/${ROW}`,
     );
     // Published events stay one click away, through the public endpoints.
-    await userEvent.click(screen.getByRole("button", { name: "Published" }));
+    await userEvent.click(screen.getByRole("button", { name: "Public view" }));
     expect((await screen.findAllByText("0 map points")).length).toBeGreaterThan(0);
     expect(calls.some((call) => call.path === "/api/v1/events/")).toBe(true);
   });

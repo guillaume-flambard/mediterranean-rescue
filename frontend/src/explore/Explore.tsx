@@ -39,6 +39,20 @@ interface FeedItem {
   origin: string;
 }
 
+/** "110 people rescued", "3 people evacuated": the count says what happened to the people. */
+function peopleText(i18n: I18n, kind: string | null, people: number | null) {
+  if (people === null) return i18n.t("explore.people.unknown");
+  const verb = ["rescue", "transfer", "medevac"].includes(kind ?? "") ? kind : "other";
+  return i18n.t(`explore.people.${verb}` as Key, { count: people });
+}
+
+/** Which Google Sheets tab a record comes from, in words. */
+function sheetName(i18n: I18n, sheet: string) {
+  const key = `explore.sheet.${sheet}` as Key;
+  const label = i18n.t(key);
+  return label === key ? sheet : label;
+}
+
 /** The singular name of one event's kind ("Rescue"), as opposed to the plural filter label. */
 function kindName(i18n: I18n, kind: string | null) {
   if (!kind) return i18n.t("review.unknown");
@@ -124,7 +138,7 @@ export function Explore() {
           title: null,
           status: row.status as Status,
           line: row.line,
-          origin: t("explore.origin.row", { sheet: row.sheet, line: row.line }),
+          origin: t("explore.origin.update", { date: i18n.date(row.exported_at.slice(0, 10)) }),
         })),
       )
     : (publicFeed.data?.pages ?? []).flatMap((p) =>
@@ -499,7 +513,7 @@ function EventCard({
           <span className="card__facts">
             <span className="card__people">
               <Icon name="people" size={17} />
-              {item.people === null ? t("events.peopleUnknown") : t("events.people", { count: item.people })}
+              {peopleText(i18n, item.kind, item.people)}
             </span>
             {item.port && (
               <span className="card__port">
@@ -552,7 +566,7 @@ function PreviewBody({ id }: { id: string }) {
           label={t("detail.position")}
           value={
             row.position
-              ? `${formatPosition(i18n, row.position.latitude, row.position.longitude)}${row.position.inferred_hemisphere ? ` ${t("review.inferredHemisphere")}` : ""}`
+              ? `${formatPosition(i18n, row.position.latitude, row.position.longitude)}${row.position.inferred_hemisphere ? ` ${t("explore.positionEstimated")}` : ""}`
               : t("detail.unknownPosition")
           }
         />
@@ -564,7 +578,8 @@ function PreviewBody({ id }: { id: string }) {
         </p>
       )}
       <p className="card__provenance">
-        {t("preview.detail.provenance", { source: row.source.name, sheet: row.sheet, line: row.line, date: i18n.date(row.exported_at.slice(0, 10)) })}
+        {t("explore.whereFrom", { source: row.source.name, date: i18n.date(row.exported_at.slice(0, 10)) })}{" "}
+        {t("explore.inSheets", { line: row.line, sheet: sheetName(i18n, row.sheet) })}
       </p>
       <Link to={`/workspace/review/${row.snapshot}/rows/${row.id}`} className="pill-button pill-button--primary">
         {t("preview.detail.check")}
