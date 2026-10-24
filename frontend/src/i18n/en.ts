@@ -741,7 +741,7 @@ export const en = {
   "logbook.card.step2": "2. Download.",
   "logbook.card.step2Body": { one: "{count} verified operation is ready, in the sheet’s own columns.", other: "{count} verified operations are ready, in the sheet’s own columns." },
   "logbook.card.step3": "3. Paste into the SOS sheet.",
-  "logbook.card.step3Body": "With the association’s agreement, the existing map then shows them again, with nothing rebuilt. The logbook is read again every few hours.",
+  "logbook.card.step3Body": "With the association’s agreement, the existing map then shows them again, with nothing rebuilt. The logbook is read again every six hours.",
   "logbook.card.show": "See them on the map",
   "logbook.card.download": { one: "Download {count} verified operation", other: "Download {count} verified operations" },
   "logbook.check.date_outside": "The date ({value}) falls outside this mission’s dates: check the day.",

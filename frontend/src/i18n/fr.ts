@@ -744,7 +744,7 @@ export const fr: Messages = {
   "logbook.card.step2": "2. Télécharger.",
   "logbook.card.step2Body": { one: "{count} opération vérifiée est prête, dans les colonnes du tableur.", other: "{count} opérations vérifiées sont prêtes, dans les colonnes du tableur." },
   "logbook.card.step3": "3. Coller dans le tableur de SOS.",
-  "logbook.card.step3Body": "Avec l’accord de l’association, la carte existante les affiche alors à nouveau, sans rien reconstruire. Le journal est relu toutes les quelques heures.",
+  "logbook.card.step3Body": "Avec l’accord de l’association, la carte existante les affiche alors à nouveau, sans rien reconstruire. Le journal est relu toutes les six heures.",
   "logbook.card.show": "Les voir sur la carte",
   "logbook.card.download": { one: "Télécharger {count} opération vérifiée", other: "Télécharger {count} opérations vérifiées" },
   "logbook.check.date_outside": "La date ({value}) tombe hors des dates de cette mission : vérifiez le jour.",
