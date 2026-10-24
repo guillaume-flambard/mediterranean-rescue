@@ -28,6 +28,12 @@ from catalog.private_preview import (
     PreviewMapView,
     PreviewTimelineView,
 )
+from catalog.private_publication import (
+    PrepareView,
+    PublicationDecisionView,
+    PublicationEventsView,
+    PublicationOverviewView,
+)
 from catalog.private_sync import SyncStatusView
 from django.contrib import admin
 from django.db import connection
@@ -81,6 +87,10 @@ urlpatterns = [
     path("api/private/v1/ports/labels/<str:id>/", PortLabelView.as_view()),
     path("api/private/v1/ports/labels/<str:id>/decision/", PortLabelDecisionView.as_view()),
     path("api/private/v1/vessels/", VesselsView.as_view()),
+    path("api/private/v1/publication/", PublicationOverviewView.as_view()),
+    path("api/private/v1/publication/prepare/", PrepareView.as_view()),
+    path("api/private/v1/publication/events/", PublicationEventsView.as_view()),
+    path("api/private/v1/publication/decisions/", PublicationDecisionView.as_view()),
     path("api/private/v1/preview/events/", PreviewEventsView.as_view()),
     path("api/private/v1/preview/events/<uuid:id>/", PreviewEventView.as_view()),
     path("api/private/v1/preview/map-points/", PreviewMapView.as_view()),

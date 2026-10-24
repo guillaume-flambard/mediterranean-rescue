@@ -60,7 +60,12 @@ class AccessTests(PrivateApiTestCase):
             response.json(),
             {
                 "username": "reviewer",
-                "permissions": {"review_identity": True, "stage_snapshot": True},
+                "permissions": {
+                    "review_identity": True,
+                    "stage_snapshot": True,
+                    "prepare_drafts": False,
+                    "publish": False,
+                },
             },
         )
         self.assertEqual(response["Cache-Control"], "no-store")

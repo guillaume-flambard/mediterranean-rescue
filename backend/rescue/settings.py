@@ -137,5 +137,7 @@ SPECTACULAR_SETTINGS = {
         "PortInterpretationEnum": "catalog.private_ports.INTERPRETATIONS",
         "IssueSeverityEnum": "catalog.private_imports.SEVERITIES",
         "BlockingReasonEnum": "catalog.private_imports.BLOCKING_REASONS",
+        "PublicationActionEnum": "catalog.private_publication.PUBLICATION_ACTIONS",
+        "PublicationStatusEnum": "catalog.private_publication.EVENT_STATUSES",
     },
 }

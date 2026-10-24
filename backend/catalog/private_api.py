@@ -100,7 +100,8 @@ def private_error_code(exc):
     if isinstance(exc, exceptions.MethodNotAllowed):
         return "method_not_allowed"
     if isinstance(exc, Conflict):
-        return "conflict"
+        # Subclasses name the rule that refused, e.g. rights_not_approved.
+        return exc.default_code
     if isinstance(exc, InvalidCredentials):
         return "invalid_credentials"
     if isinstance(exc, exceptions.Throttled):
@@ -144,6 +145,8 @@ class PageParams(serializers.Serializer):
 class PermissionsSerializer(serializers.Serializer):
     review_identity = serializers.BooleanField()
     stage_snapshot = serializers.BooleanField()
+    prepare_drafts = serializers.BooleanField()
+    publish = serializers.BooleanField()
 
 
 class MeSerializer(serializers.Serializer):
@@ -157,6 +160,8 @@ def me_payload(user):
         "permissions": {
             "review_identity": user.has_perm(REVIEW_PERMISSION),
             "stage_snapshot": user.has_perm(STAGE_PERMISSION),
+            "prepare_drafts": user.has_perm("catalog.add_event"),
+            "publish": user.has_perm("catalog.publish_event"),
         },
     }
 

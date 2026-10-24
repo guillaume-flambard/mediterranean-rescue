@@ -11,19 +11,26 @@ import { InlineMessage, PendingState } from "../ui/Feedback";
 
 export const ME_QUERY = ["get", "/api/private/v1/me/"] as const;
 
-type Section = "data" | "imports" | "review" | "ports";
+type Section = "home" | "data" | "imports" | "review" | "publish" | "ports";
 
+const anyRole = (me: Me) => Object.values(me.permissions).some(Boolean);
+
+// In the order of the work: see what is new, verify it, publish it; then the occasional tasks.
 const SECTIONS: readonly { key: Section; path: string; allowed: (me: Me) => boolean }[] = [
+  { key: "home", path: "/workspace", allowed: anyRole },
   { key: "data", path: "/workspace/data", allowed: (me) => me.permissions.review_identity },
-  { key: "imports", path: "/workspace/imports", allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity },
   { key: "review", path: "/workspace/review", allowed: (me) => me.permissions.review_identity },
+  {
+    key: "publish",
+    path: "/workspace/publish",
+    allowed: (me) => me.permissions.review_identity || me.permissions.prepare_drafts || me.permissions.publish,
+  },
   { key: "ports", path: "/workspace/ports", allowed: (me) => me.permissions.review_identity },
+  { key: "imports", path: "/workspace/imports", allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity },
 ];
 
-/** First section the user may open; null when none. */
-export function homeSection(me: Me): string | null {
-  return SECTIONS.find((section) => section.allowed(me))?.path ?? null;
-}
+const isCurrent = (path: string, pathname: string) =>
+  path === "/workspace" ? pathname === path || pathname === `${path}/` : pathname === path || pathname.startsWith(`${path}/`);
 
 // Private workspace frame: session and permission checks, then a short navigation that only lists
 // the sections this user may open (user-flows §3). Children render once the user is known.
@@ -100,7 +107,7 @@ export function WorkspaceShell({
               key={item.key}
               to={item.path}
               className="workspace-nav__link"
-              aria-current={pathname === item.path || pathname.startsWith(`${item.path}/`) ? "page" : undefined}
+              aria-current={isCurrent(item.path, pathname) ? "page" : undefined}
             >
               {t(`workspace.section.${item.key}`)}
             </Link>

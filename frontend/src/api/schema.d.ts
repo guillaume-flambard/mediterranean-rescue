@@ -212,6 +212,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/private/v1/publication/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_publication_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/publication/decisions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["private_decide_publication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/publication/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_publication_events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/publication/prepare/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["private_prepare_drafts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/review/identities/": {
         parameters: {
             query?: never;
@@ -443,12 +507,6 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description * `create_identity` - create_identity
-         *     * `link` - link
-         * @enum {string}
-         */
-        ActionEnum: "create_identity" | "link";
-        /**
          * @description * `read_rejected` - read_rejected
          *     * `read_partial` - read_partial
          *     * `file_errors` - file_errors
@@ -477,6 +535,10 @@ export interface components {
          * @enum {string}
          */
         DataModeEnum: "production" | "training";
+        Decided: {
+            action: components["schemas"]["PublicationActionEnum"];
+            count: number;
+        };
         Decision: {
             /** Format: uuid */
             identity: string;
@@ -487,8 +549,19 @@ export interface components {
             approved_at: string;
             reason: string;
         };
+        DecisionRequest: {
+            action: components["schemas"]["PublicationActionEnum"];
+            events: string[];
+            reason: string;
+        };
+        /**
+         * @description * `create_identity` - create_identity
+         *     * `link` - link
+         * @enum {string}
+         */
+        DecisionRequestActionEnum: "create_identity" | "link";
         DecisionRequestRequest: {
-            action: components["schemas"]["ActionEnum"];
+            action: components["schemas"]["DecisionRequestActionEnum"];
             /** Format: uuid */
             identity?: string;
             reason: string;
@@ -537,6 +610,11 @@ export interface components {
             voyage: components["schemas"]["Voyage"] | null;
             port: components["schemas"]["Port"] | null;
             readonly position: components["schemas"]["Position"] | null;
+        };
+        EventCounts: {
+            draft: number;
+            published: number;
+            withdrawn: number;
         };
         EventPage: {
             items: components["schemas"]["Event"][];
@@ -725,6 +803,8 @@ export interface components {
         Permissions: {
             review_identity: boolean;
             stage_snapshot: boolean;
+            prepare_drafts: boolean;
+            publish: boolean;
         };
         Port: {
             /** Format: uuid */
@@ -776,6 +856,20 @@ export interface components {
             /** Format: double */
             latitude: number;
             precision: string;
+        };
+        Preparation: {
+            sheet: string;
+            /** Format: date-time */
+            exported_at: string;
+            ready: number;
+            prepared: number;
+            changed: number;
+            not_verified: number;
+            to_fix: number;
+        };
+        Prepared: {
+            created: number;
+            overview: components["schemas"]["PublicationOverview"];
         };
         PreviewCounts: {
             to_review: number;
@@ -851,6 +945,49 @@ export interface components {
             kind: components["schemas"]["ReviewProposalEnum"];
             candidates: components["schemas"]["Candidate"][];
         };
+        PublicationAbilities: {
+            prepare: boolean;
+            publish: boolean;
+        };
+        /**
+         * @description * `publish` - publish
+         *     * `withdraw` - withdraw
+         * @enum {string}
+         */
+        PublicationActionEnum: "publish" | "withdraw";
+        PublicationEvent: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["KindEnum"];
+            /** Format: date */
+            occurred_on: string;
+            people: number | null;
+            port: string | null;
+            located: boolean;
+            status: components["schemas"]["PublicationStatusEnum"];
+            /** Format: date-time */
+            published_at: string | null;
+            source: string;
+            rights_approved: boolean;
+        };
+        PublicationEvents: {
+            items: components["schemas"]["PublicationEvent"][];
+            total_count: number;
+            has_next: boolean;
+        };
+        PublicationOverview: {
+            sources: components["schemas"]["SourceRights"][];
+            preparation: components["schemas"]["Preparation"][];
+            events: components["schemas"]["EventCounts"];
+            can: components["schemas"]["PublicationAbilities"];
+        };
+        /**
+         * @description * `draft` - draft
+         *     * `published` - published
+         *     * `withdrawn` - withdrawn
+         * @enum {string}
+         */
+        PublicationStatusEnum: "draft" | "published" | "withdrawn";
         QueueCounts: {
             to_review: number;
             blocked: number;
@@ -882,6 +1019,9 @@ export interface components {
             approved_by: string;
             /** Format: date-time */
             approved_at: string;
+            reason: string;
+        };
+        ReasonRequest: {
             reason: string;
         };
         Received: {
@@ -970,6 +1110,10 @@ export interface components {
         SourceRef: {
             key: string;
             name: string;
+        };
+        SourceRights: {
+            name: string;
+            rights_approved: boolean;
         };
         Staged: {
             created: boolean;
@@ -2107,6 +2251,323 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PreviewTimeline"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_publication_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicationOverview"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_decide_publication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Decided"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_publication_events: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                /**
+                 * @description * `draft` - draft
+                 *     * `published` - published
+                 *     * `withdrawn` - withdrawn
+                 */
+                status?: "draft" | "published" | "withdrawn";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicationEvents"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_prepare_drafts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prepared"];
                 };
             };
             400: {

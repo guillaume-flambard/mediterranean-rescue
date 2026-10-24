@@ -62,6 +62,7 @@ export type QueueItem = components["schemas"]["QueueItem"];
 export type RowDetail = components["schemas"]["RowDetail"];
 export type IdentityCandidate = components["schemas"]["Candidate"];
 export type Me = components["schemas"]["Me"];
+export type PublicationOverview = components["schemas"]["PublicationOverview"];
 export type Sheet = components["schemas"]["SheetEnum"];
 export type ImportOptions = components["schemas"]["ImportOptions"];
 export type Diagnostic = components["schemas"]["Diagnostic"];
