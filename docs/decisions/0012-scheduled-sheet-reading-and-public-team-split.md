@@ -16,5 +16,11 @@ Statut : décidé par Guillaume le 24 octobre 2026 (« on va pour les 5 minutes 
 ## Pourquoi pas mieux tout de suite
 Recherche du 24 octobre 2026 : les notifications Drive ne disent pas ce qui a changé, expirent au plus après un jour et sans garantie de livraison ; les déclencheurs Apps Script exigent un accès d'édition au tableur. La relecture régulière est simple et fiable ; un déclencheur Apps Script ou une notification pourra s'y ajouter plus tard, sans la remplacer. Le vrai verrou reste l'absence d'identifiant stable par opération dans le tableur : à proposer à SOS MEDITERRANEE (colonne ID remplie par script).
 
+## Robustesse (revue indépendante du 24 octobre 2026)
+- « Inchangé » compare l'empreinte à la lecture précédente, pas à la dernière copie créée : un tableur revenu à un ancien contenu est un seul changement, puis « inchangé » ; l'état affiché décrit ce que le tableur contient maintenant.
+- Un téléchargement plus court que la taille annoncée, trop gros ou plus long que 90 s est refusé.
+- Une erreur inattendue sur un onglet est notée « échec » sans arrêter les autres ni la boucle ; une coupure de la base est absorbée entre deux passes.
+- Une seule lecture à la fois (verrou PostgreSQL), configuration vérifiée au démarrage, compte `sheets-sync` refusé s'il peut se connecter.
+
 ## Limites
-Exécution locale pour l'instant (boucle lancée à la main) ; l'hébergement et l'ordonnanceur de production restent à décider. Un tableur revenu à une version déjà enregistrée est noté « nouvelles informations » mais réutilise l'ancienne copie.
+Exécution locale pour l'instant (boucle lancée à la main) ; l'hébergement et l'ordonnanceur de production restent à décider. Les traces `SheetSync` n'ont pas encore de durée de conservation (environ 860 par jour pour trois onglets). Le domaine `*.googleusercontent.com` accepté pour les redirections couvre aussi d'autres contenus Google : la configuration doit rester sous la main de l'équipe technique.

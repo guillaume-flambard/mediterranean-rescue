@@ -41,9 +41,13 @@ class SyncStatusView(PrivateView):
                 "source"
             )
             last = runs.order_by("-created_at").first()
-            # The latest saved update, whether the scheduled reading or a person added it.
-            latest = (
-                SheetSnapshot.objects.filter(source_id=source_id, sheet=sheet)
+            # The update the sheet currently holds: the one the last successful reading saw; before
+            # any reading, the latest one saved by hand.
+            seen = runs.exclude(snapshot=None).order_by("-created_at").first()
+            current = (
+                seen.snapshot
+                if seen
+                else SheetSnapshot.objects.filter(source_id=source_id, sheet=sheet)
                 .order_by("-created_at")
                 .first()
             )
@@ -54,8 +58,8 @@ class SyncStatusView(PrivateView):
                     "last_checked_at": last.created_at,
                     "last_status": last.status,
                     "last_message": last.message,
-                    "last_change_at": latest.created_at if latest else None,
-                    "last_change": summarize(latest) if latest else {},
+                    "last_change_at": current.created_at if current else None,
+                    "last_change": summarize(current) if current else {},
                 }
             )
         return Response(SyncStatusSerializer({"sheets": sheets}).data)
