@@ -8,22 +8,22 @@
   },
   "todos": {
     "p0_open": 0,
-    "p1_open": 0,
-    "done": 9,
+    "p1_open": 1,
+    "done": 10,
     "p2_open": 3
   },
   "acceptance": {
     "total": 7,
-    "verified": 7,
+    "verified": 6,
     "failed": 0,
-    "pending": 0
+    "pending": 1
   },
   "risks": {
     "critical_open": 0,
     "high_open": 0
   },
   "verification": {
-    "status": "PASS",
+    "status": "running",
     "backend_postgis_tests": 18,
     "frontend_tests": 2,
     "schema_codegen": "PASS",
@@ -33,7 +33,7 @@
     "production_settings_check": "PASS",
     "independent_review": "PASS with stated scope",
     "browser": "loading/empty/map/BaseUI filter/invalid dates/reset in narrow viewport",
-    "github_actions": "First run failed on Linux schema export mount permissions; fix under verification",
+    "github_actions": "Second run export passed; locked install failed because pnpm manager metadata was absent. Lock regenerated and exact pnpm12 frozen install/codegen/tests/build pass locally; new CI pending.",
     "evidence": "07-evidence.md"
   },
   "ready_for_manual_acceptance": false,

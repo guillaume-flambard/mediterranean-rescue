@@ -12,4 +12,6 @@ F9 P1 DONE défauts revue : édition indirecte et formulaires périmés sur cont
 Produit hors tranche, explicitement en cours : migration réelle/crosswalk, révisions et rapprochements logbook, alias ports/couches qualifiées, identité/hébergement/backup/restauration de production et recette associative.
 P2 : plafonnement des preuves imbriquées GraphQL, amélioration du poids cartographique chargé à la demande, filtres spatiaux pilotés par l’interface.
 
-F10 P1 VERIFYING défaut CI Linux : export SDL par stdout et écriture par l’hôte ; utilisateur conteneur non-root conservé. Readiness DB vérifie désormais le compte applicatif en TCP pour éviter le serveur temporaire d’initialisation.
+F10 P1 DONE défaut CI Linux : export SDL par stdout et écriture par l’hôte ; utilisateur conteneur non-root conservé. Readiness DB vérifie désormais le compte applicatif en TCP pour éviter le serveur temporaire d’initialisation.
+
+F11 P1 VERIFYING alignement lockfile et pnpm12.10.1 réel (défaut CI d’installation gelée), dépend F10.
