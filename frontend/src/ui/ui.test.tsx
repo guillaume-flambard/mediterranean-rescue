@@ -105,7 +105,7 @@ describe("ErrorSummary and StatusLabel", () => {
 
   it("states a status in words", () => {
     renderWithI18n(<StatusLabel status="needsReview" />);
-    expect(screen.getByText("Needs review")).toBeTruthy();
+    expect(screen.getByText("Not verified yet")).toBeTruthy();
   });
 });
 

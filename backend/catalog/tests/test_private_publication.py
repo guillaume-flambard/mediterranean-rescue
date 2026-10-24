@@ -50,7 +50,10 @@ class PublicationApiTests(PrivateApiTestCase):
         )
         self.assertEqual(body["events"], {"draft": 0, "published": 0, "withdrawn": 0})
         self.assertEqual(body["can"], {"prepare": True, "publish": True})
-        self.assertEqual(body["sources"], [{"name": self.source.name, "rights_approved": False}])
+        self.assertEqual(
+            body["sources"],
+            [{"key": "fixture", "name": self.source.name, "rights_approved": False}],
+        )
 
     def test_prepare_turns_verified_rows_into_private_drafts_with_a_reason(self):
         self.assertEqual(self.post("publication/prepare/", {"reason": ""}).status_code, 400)

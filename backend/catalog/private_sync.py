@@ -15,6 +15,7 @@ STATUSES = ("new_data", "unchanged", "refused", "failed")
 class SyncSheetSerializer(serializers.Serializer):
     sheet = serializers.ChoiceField(choices=SHEETS)
     source = serializers.CharField()
+    source_key = serializers.CharField()
     last_checked_at = serializers.DateTimeField()
     last_status = serializers.ChoiceField(choices=STATUSES)
     last_message = serializers.CharField(allow_blank=True)
@@ -55,6 +56,7 @@ class SyncStatusView(PrivateView):
                 {
                     "sheet": sheet,
                     "source": last.source.name,
+                    "source_key": last.source.key,
                     "last_checked_at": last.created_at,
                     "last_status": last.status,
                     "last_message": last.message,

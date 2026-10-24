@@ -60,7 +60,7 @@ function Publish({ me }: { me: Me }) {
             <h2>{t("publish.locked.title")}</h2>
             <p>
               {t("publish.locked.body", {
-                sources: locked.map((source) => source.name).join(", "),
+                sources: locked.map((source) => (source.key === "sos-logbook" ? t("logbook.sourceName") : source.name)).join(", "),
               })}
             </p>
           </div>

@@ -64,6 +64,7 @@ def latest_event_snapshots():
 
 
 class SourceRightsSerializer(serializers.Serializer):
+    key = serializers.CharField()
     name = serializers.CharField()
     rights_approved = serializers.BooleanField()
 
@@ -115,7 +116,7 @@ def overview_payload(user):
         Event.objects.values_list("source_id", flat=True).distinct()
     )
     sources = [
-        {"name": source.name, "rights_approved": source.rights_approved}
+        {"key": source.key, "name": source.name, "rights_approved": source.rights_approved}
         for source in Source.objects.filter(pk__in=source_ids).order_by("name")
     ]
     return {

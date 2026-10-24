@@ -14,14 +14,17 @@ and as a stand-alone script (`scripts/logbook_backfill.py`).
 import csv
 import hashlib
 import html
+import http.client
 import io
 import re
 import time
+import urllib.error
 import urllib.request
+import urllib.robotparser
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -59,29 +62,99 @@ MONTHS = {
     )
     for name in names
 }
+_EN = "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty"
+_FR = "un deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize dix-sept dix-huit dix-neuf vingt"
 NUMBER_WORDS = {
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
-    "nine": 9, "ten": 10, "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5,
-}  # fmt: skip
+    **{word: index for index, word in enumerate(_EN.split(), start=1)},
+    **{word: index for index, word in enumerate(_FR.split(), start=1)},
+    "une": 1,
+}
 
 
 # Fetching ------------------------------------------------------------------------------------
 
 
+class ReadFailed(Exception):
+    """A page could not be read completely: the whole reading fails rather than shrink."""
+
+
+MAX_PAGE_BYTES = 3_000_000
+PAGE_DEADLINE_SECONDS = 60
+
+
+def _check_url(url: str) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS:
+        raise ReadFailed(f"refused address: {parsed.scheme}://{parsed.hostname}")
+
+
+class _CheckedRedirects(urllib.request.HTTPRedirectHandler):
+    # A redirect is followed only to https on the association's own hosts.
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _check_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _read_body(response) -> bytes:
+    """At most MAX_PAGE_BYTES within a total deadline; a body shorter than announced is refused."""
+    started = time.monotonic()
+    chunks, size = [], 0
+    while True:
+        if time.monotonic() - started > PAGE_DEADLINE_SECONDS:
+            raise ReadFailed("the page took too long")
+        chunk = response.read(64 * 1024)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        size += len(chunk)
+        if size > MAX_PAGE_BYTES:
+            raise ReadFailed("the page is larger than accepted")
+    content = b"".join(chunks)
+    announced = response.headers.get("Content-Length")
+    if announced is not None and announced.isdigit() and int(announced) != len(content):
+        raise ReadFailed("the page was cut before the end")
+    return content
+
+
 class Fetcher:
-    """GET only, allowed hosts only, one request per second, cached on disk."""
+    """GET only, https on the association's hosts only (redirects too), one request per second,
+    robots.txt respected, cached on disk when a cache directory is given."""
 
     def __init__(self, cache: Path | None = None, refresh: bool = False):
         self.cache = cache
         self.refresh = refresh
         self.last = 0.0
+        self.robots: dict[str, urllib.robotparser.RobotFileParser] = {}
+        self.opener = urllib.request.build_opener(_CheckedRedirects)
         if cache is not None:
             cache.mkdir(parents=True, exist_ok=True)
 
+    def _download(self, url: str) -> str | None:
+        wait = 1.0 - (time.monotonic() - self.last)
+        if wait > 0:
+            time.sleep(wait)
+        self.last = time.monotonic()
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        try:
+            with self.opener.open(request, timeout=30) as response:
+                return _read_body(response).decode("utf-8", "replace")
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                return None
+            raise
+
+    def _allowed(self, url: str) -> bool:
+        host = urlparse(url).hostname or ""
+        if host not in self.robots:
+            parser = urllib.robotparser.RobotFileParser()
+            text = self._download(f"https://{host}/robots.txt") or ""
+            parser.parse(text.splitlines())
+            self.robots[host] = parser
+        return self.robots[host].can_fetch(USER_AGENT, url)
+
     def get(self, url: str) -> str | None:
-        host = urlparse(url).hostname
-        if urlparse(url).scheme != "https" or host not in ALLOWED_HOSTS:
-            raise ValueError(f"refused host: {host}")
+        """The page, or None when it does not exist (404). Anything else raises ReadFailed."""
+        _check_url(url)
         path = (
             self.cache / (hashlib.sha256(url.encode()).hexdigest()[:24] + ".html")
             if self.cache is not None
@@ -90,22 +163,14 @@ class Fetcher:
         if path is not None and path.exists() and not self.refresh:
             text = path.read_text()
             return text or None
-        wait = 1.0 - (time.monotonic() - self.last)
-        if wait > 0:
-            time.sleep(wait)
-        self.last = time.monotonic()
-        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        if not self._allowed(url):
+            raise ReadFailed(f"robots.txt disallows {url}")
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                text = response.read(5_000_000).decode("utf-8", "replace")
-        except urllib.error.HTTPError as error:
-            if error.code == 404:
-                if path is not None:
-                    path.write_text("")
-                return None
-            raise
+            text = self._download(url)
+        except (urllib.error.URLError, OSError, http.client.HTTPException) as error:
+            raise ReadFailed(f"{url}: {error.__class__.__name__}") from error
         if path is not None:
-            path.write_text(text)
+            path.write_text(text or "")
         return text
 
 
@@ -119,15 +184,24 @@ def clean(fragment: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(text)).strip()
 
 
+def make_date(year: int, month: int, day: int) -> date | None:
+    """A calendar date, or None for an impossible one ("February 30") rather than a crash."""
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return None
+
+
 def parse_day(text: str) -> date | None:
     match = re.search(r"([A-Za-zéû]+)\s+(\d{1,2}),?\s+(\d{4})", text)
     if not match or match.group(1).lower() not in MONTHS:
         return None
-    return date(int(match.group(3)), MONTHS[match.group(1).lower()], int(match.group(2)))
+    return make_date(int(match.group(3)), MONTHS[match.group(1).lower()], int(match.group(2)))
 
 
 def count(word: str) -> int | None:
-    word = word.lower().replace(" ", "").replace(" ", "").replace(",", "")
+    """A number written in figures or words (English or French, up to twenty); None otherwise."""
+    word = re.sub(r"[\s,]", "", word.lower())
     if word.isdigit():
         return int(word)
     return NUMBER_WORDS.get(word)
@@ -137,11 +211,13 @@ def to_sheet_coordinate(value: float) -> str:
     """The sheet writes degrees and decimal minutes without a hemisphere: 33° 25.00."""
     value = abs(value)
     degrees = int(value)
-    minutes = (value - degrees) * 60
+    minutes = round((value - degrees) * 60, 2)
+    if minutes >= 60:  # 33.99999 rounds to 34° 00.00, not 33° 60.00
+        degrees, minutes = degrees + 1, 0.0
     return f"{degrees}° {minutes:05.2f}"
 
 
-def parse_position(text: str) -> tuple[float, float, str] | None:
+def parse_position(text: str) -> tuple[float, float, str, str] | None:
     """Latitude and longitude in decimal degrees, with how they were read: "decimal", "text"
     (degrees and minutes written in the entry), "compact" (DDMM) or "swapped" (latitude and
     longitude inverted in the source).
@@ -158,17 +234,17 @@ def parse_position(text: str) -> tuple[float, float, str] | None:
     if match:
         lat = int(match.group(1)) + float(match.group(2).replace(",", ".")) / 60
         lon = int(match.group(3)) + float(match.group(4).replace(",", ".")) / 60
-        candidates.append((lat, lon, "text"))
+        candidates.append((lat, lon, "text", re.sub(r"\s+", " ", match.group(0))))
     match = re.search(r"Latitude:\s*([\d.,]+)\s*/?\s*Longitude:\s*([\d.,]+)", text)
     if match:
         raw_lat, raw_lon = (part.replace(",", ".") for part in match.groups())
         for lat, lon, how in _read_pair(raw_lat, raw_lon):
-            candidates.append((lat, lon, how))
-    for lat, lon, how in candidates:
+            candidates.append((lat, lon, how, f"{raw_lat} {raw_lon}"))
+    for lat, lon, how, raw in candidates:
         if 30 <= lat <= 40 and 8 <= lon <= 25:
-            return lat, lon, how
+            return lat, lon, how, raw
         if 30 <= lon <= 40 and 8 <= lat <= 25:
-            return lon, lat, "swapped"
+            return lon, lat, "swapped", raw
     return None
 
 
@@ -202,7 +278,8 @@ class Entry:
 
     @property
     def text(self) -> str:
-        return f"{self.title} {self.body}".strip()
+        # Patterns run on a bounded text: a long hostile entry cannot make them backtrack.
+        return f"{self.title} {self.body}".strip()[:4000]
 
 
 @dataclass
@@ -215,19 +292,25 @@ class Rotation:
     entries: list = field(default_factory=list)
 
 
+MAX_ENTRY_CHARS = 20_000
+
+
 def parse_rotation_page(page: str) -> list[Entry]:
     entries = []
     day = None
-    tokens = re.finditer(
-        r'<h2 class="list-term-title[^"]*">(.*?)</h2>|<article class="loop-item loop-item-log[^"]*">(.*?)</article>',
-        page,
-        re.S,
+    # Linear reading: cut the page at each day heading and entry, then read each piece on its
+    # own (bounded), so a page with unclosed tags cannot make the patterns backtrack for minutes.
+    markers = list(
+        re.finditer(r'<h2 class="list-term-title|<article class="loop-item loop-item-log', page)
     )
-    for token in tokens:
-        if token.group(1) is not None:
-            day = parse_day(clean(token.group(1)))
+    for index, marker in enumerate(markers):
+        end = markers[index + 1].start() if index + 1 < len(markers) else len(page)
+        piece = page[marker.start() : min(end, marker.start() + MAX_ENTRY_CHARS)]
+        if piece.startswith("<h2"):
+            heading = re.match(r'<h2 class="list-term-title[^"]*">([^<]{0,200})</h2>', piece)
+            day = parse_day(clean(heading.group(1))) if heading else day
             continue
-        block = token.group(2)
+        block = piece
         time_match = re.search(r'<span class="loop-item-time">\s*(.*?)\s*</span>', block, re.S)
         title_match = re.search(r'<div class="loop-item-title">(.*?)</div>', block, re.S)
         title = clean(title_match.group(1)) if title_match else ""
@@ -376,8 +459,19 @@ def find_rescues(rotation: Rotation, window):
         people = int(people_match.group(1))
         if REPORTED.search(lead):
             flags.append("reported_in_message")
-        # The same recovery is often logged twice on the same day with the same number.
-        if any(row[0] == "Rescue" and row[1].day == entry.day and row[2] == people for row in rows):
+        # The same recovery is often logged twice on the same day with the same number: one row,
+        # which says it merged a repeat, so two distinct rescues of equal size are not hidden.
+        twin = next(
+            (
+                row
+                for row in rows
+                if row[0] == "Rescue" and row[1].day == entry.day and row[2] == people
+            ),
+            None,
+        )
+        if twin is not None:
+            if "merged_repeat" not in twin[5]:
+                twin[5].append("merged_repeat")
             continue
         # "RHIBs complete the recovery of 111", then "Ocean Viking completes the recovery all 129":
         # the second, saying all, is the whole recovery and replaces the partial count.
@@ -396,7 +490,7 @@ def find_rescues(rotation: Rotation, window):
         if not where:
             flags.append("no_position")
         elif where[2] != "decimal":
-            flags.append(f"position_read:{where[2]}")
+            flags.append(f"position_read:{where[2]}:{where[3]}")
         if re.search(r"two (?:simultaneous rescues|boats)|from two", text, re.I):
             flags.append("two_boats")
         rows.append(("Rescue", entry, people, where, last_boat, flags))
@@ -420,13 +514,18 @@ def french_rotations(get: Callable[[str], str | None], after: date):
             break
         try:
             root = ET.fromstring(feed)
-        except ET.ParseError:
-            break
+        except ET.ParseError as error:
+            raise ReadFailed("the French rescue feed could not be read") from error
         found = root.findall("./channel/item")
         if not found:
             break
         for item in found:
-            published = datetime.strptime(item.findtext("pubDate", "")[:16], "%a, %d %b %Y").date()
+            try:
+                published = datetime.strptime(
+                    item.findtext("pubDate", "")[:16], "%a, %d %b %Y"
+                ).date()
+            except ValueError:
+                continue
             if published <= after:
                 return items
             body = clean(
@@ -439,10 +538,12 @@ def french_rotations(get: Callable[[str], str | None], after: date):
 
 # Codes for what a person should check, translated by the interface. Each is "code" or
 # "code:value": date_outside:<day>, medevac, reported_in_message, partial_replaced:<n>, no_position,
-# position_read:<text|compact|swapped>, two_boats, news_site, grouped:<operations>.
+# position_read:<text|compact|swapped>:<as written>, two_boats, news_site, grouped:<operations>,
+# count_unknown, merged_repeat, rotation_total:<stated>/<found>.
 CHECK_CODES = (
     "date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position",
-    "position_read", "two_boats", "news_site", "grouped",
+    "position_read", "two_boats", "news_site", "grouped", "count_unknown", "merged_repeat",
+    "rotation_total",
 )  # fmt: skip
 
 FR_RESCUE = re.compile(
@@ -490,6 +591,22 @@ FR_PORTS = {
 }  # fmt: skip
 
 
+def excerpt(text: str, limit: int = 240) -> str:
+    """A quote cut at a word boundary, with an ellipsis when shortened."""
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"(\b[lLdD]['’])\s+", r"\1", text)  # "l’ Ocean Viking" written with a stray space
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0].rstrip(",;:")
+    return f"{cut}…"
+
+
+def safe_link(url: str) -> bool:
+    """Only https links on the association's hosts are kept and shown as links."""
+    parsed = urlparse(url)
+    return parsed.scheme == "https" and parsed.hostname in ALLOWED_HOSTS
+
+
 def french_row(published: date, title: str, link: str, body: str):
     """One row for a rotation the logbook does not hold, from its French news post.
 
@@ -508,15 +625,21 @@ def french_row(published: date, title: str, link: str, body: str):
     occurred = None
     if day:
         year = int(day.group(3)) if day.group(3) else published.year
-        occurred = date(year, MONTHS[day.group(2).lower()], int(day.group(1)))
-        if occurred > published:
-            occurred = date(year - 1, occurred.month, occurred.day)
+        occurred = make_date(year, MONTHS[day.group(2).lower()], int(day.group(1)))
+        # A live post is created when the mission starts, so the rescue may follow it by days; only
+        # a day months ahead means the previous year (a January post about December).
+        if occurred and (occurred - published).days > 60:
+            occurred = make_date(year - 1, occurred.month, occurred.day)
+    if occurred is None:
+        # Without the rescue day the row would carry a guessed date: left to a person instead.
+        return None
     people = rescue.group(1) or rescue.group(2)
-    operations = count(rescue.group(3)) if rescue.group(3) else None
+    operations = count(rescue.group(3)) if rescue.group(3) else 1
     row = dict.fromkeys(SHEET_HEADER, "")
-    row["date"] = (occurred or published).strftime("%d/%m/%Y")
+    row["date"] = occurred.strftime("%d/%m/%Y")
     row["type_ops"] = "Rescue"
-    row["nb_ops"] = str(operations or 1)
+    # An operation count written in words beyond what is read stays empty, never a default.
+    row["nb_ops"] = "" if operations is None else str(operations)
     row["nb_survivor"] = people
     for name, pattern in (
         ("female", FR_WOMEN),
@@ -525,8 +648,9 @@ def french_row(published: date, title: str, link: str, body: str):
         ("pregnant_women", FR_PREGNANT),
     ):
         match = pattern.search(summary)
-        if match:
-            row[name] = str(count(match.group(1)))
+        value = count(match.group(1)) if match else None
+        if value is not None:
+            row[name] = str(value)
     for words, boat in FR_BOAT.items():
         if words in body.lower():
             row["boat_type"] = boat
@@ -536,17 +660,17 @@ def french_row(published: date, title: str, link: str, body: str):
         name = port.group(1).strip()
         row["Port_disembarkation"] = FR_PORTS.get(name.lower(), name)
     flags = ["news_site", "no_position"]
-    if (operations or 1) > 1:
+    if operations is None:
+        flags.append("count_unknown")
+    elif operations > 1:
         flags.append(f"grouped:{operations}")
-    if not occurred:
-        flags.append(f"date_outside:{published}")
-    if occurred and (published - occurred).days > 10:
+    if (published - occurred).days > 10:
         flags.append(f"date_outside:{occurred}")
     provenance = {
         "rotation": title,
         "source_url": link,
-        "entry": str(occurred or published),
-        "quote": summary.strip()[:240],
+        "entry": str(occurred),
+        "quote": excerpt(summary),
         "to_check": "; ".join(flags),
     }
     return row, provenance
@@ -568,24 +692,35 @@ class Extraction:
         return [row for row in self.sheet_rows if row["type_ops"] == "Rescue"]
 
 
+PORT_NAME = re.compile(r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' .-]{1,60}$")
+
+
 def extract(get: Callable[[str], str | None], after: date) -> Extraction:
-    """Every rotation that started after `after`, as sheet rows with their provenance."""
-    sitemap = get(f"{ORG}/operation-sitemap.xml") or ""
-    urls = re.findall(r"<loc>(https://www\.sosmediterranee\.org/operation/[^<]+)</loc>", sitemap)
+    """Every rescue dated after `after`, as sheet rows with their provenance.
+
+    A page that cannot be read makes the whole reading fail (ReadFailed): a partial reading
+    would stage fewer rows and hide work already verified.
+    """
+    sitemap = get(f"{ORG}/operation-sitemap.xml")
+    archive = get(f"{ORG}/operation-archived/")
+    if not sitemap or not archive:
+        raise ReadFailed("the list of rotations could not be read")
+    urls = re.findall(
+        r"<loc>(https://www\.sosmediterranee\.org/operation/[^<]{1,300})</loc>", sitemap
+    )
     cards = {}
-    archive = get(f"{ORG}/operation-archived/") or ""
-    for card in re.finditer(
-        r'<article[^>]*class="[^"]*loop-item[^"]*"(.*?)</article>', archive, re.S
-    ):
-        block = card.group(1)
-        link = re.search(r'href="(https://www\.sosmediterranee\.org/operation/[^"]+)"', block)
+    for block in archive.split("<article")[1:]:
+        block = block[:MAX_ENTRY_CHARS]
+        link = re.search(r'href="(https://www\.sosmediterranee\.org/operation/[^"]{1,300})"', block)
         if not link:
             continue
-        survivors = re.search(r"loop-item-survivors[^>]*>(.*?)<", block, re.S)
-        port = re.search(r"loop-item-disembarkation[^>]*>(.*?)<", block, re.S)
+        survivors = re.search(r"loop-item-survivors[^>]*>([^<]{0,100})<", block)
+        port = re.search(r"loop-item-disembarkation[^>]*>([^<]{0,200})<", block)
+        name = re.sub(r"(?i)^disembarkation:\s*", "", clean(port.group(1))) if port else ""
         cards[link.group(1).rstrip("/") + "/"] = (
             count(re.sub(r"\D", "", clean(survivors.group(1))) or "") if survivors else None,
-            re.sub(r"(?i)^disembarkation:\s*", "", clean(port.group(1))) if port else "",
+            # Only a plausible place name is kept: anything else could be markup or a formula.
+            name if PORT_NAME.match(name) else "",
         )
 
     rotations = []
@@ -599,9 +734,11 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
         while True:
             page = get(url if page_number == 1 else f"{url.rstrip('/')}/page/{page_number}/")
             if not page:
+                if page_number == 1:
+                    raise ReadFailed(f"the rotation page {slug} could not be read")
                 break
             if page_number == 1:
-                title = re.search(r"<title>(.*?)</title>", page, re.S)
+                title = re.search(r"<title>([^<]{0,300})</title>", page)
                 name = clean(title.group(1)).split("|")[0] if title else slug
                 # Page titles end with the site name: "OPERATION 8-13 August 2026 - SOS MEDITERRANEE".
                 rotation.title = re.sub(
@@ -614,17 +751,20 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
             if len(entries) < 100:
                 break
             page_number += 1
-        window = rotation_window(slug, rotation.entries)
-        # A rotation that started on or before the sheet's last date is already in the sheet.
-        if window[0] and window[0] <= after:
-            continue
-        rotations.append((rotation, window))
+        rotations.append((rotation, rotation_window(slug, rotation.entries)))
 
     sheet_rows, provenance, summary, others = [], [], [], []
     for rotation, window in sorted(rotations, key=lambda item: item[1][0] or date.max):
         found = find_rescues(rotation, window)
-        rescued = 0
+        rescued = sum(people or 0 for kind, _, people, *_ in found if kind == "Rescue")
+        matches = rotation.survivors == rescued
+        # The rotation's stated total and its rows disagree: every row of it says so.
+        total_flag = [] if matches else [f"rotation_total:{rotation.survivors}/{rescued}"]
+        # The mission's dates name it, in the reader's language (the page titles vary).
+        label = f"{window[0]}/{window[1]}" if window[0] and window[1] else rotation.title
         for kind, entry, people, where, boat, flags in found:
+            if entry.day and entry.day <= after:
+                continue  # already in the sheet
             if kind == "Transfer":
                 # The logbook's transfers move survivors off the Ocean Viking (to a coast guard
                 # vessel); the sheet's Transfer rows count people taken on board from another ship.
@@ -635,7 +775,7 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
                         "people": people,
                         "rotation": rotation.title,
                         "source_url": rotation.url,
-                        "quote": entry.text[:240],
+                        "quote": excerpt(entry.text),
                     }
                 )
                 continue
@@ -646,7 +786,6 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
             if people is not None:
                 row["nb_survivor"] = str(people)
             if kind == "Rescue":
-                rescued += people or 0
                 for name, pattern in DEMOGRAPHICS.items():
                     match = pattern.search(entry.text)
                     if match:
@@ -660,11 +799,11 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
             provenance.append(
                 {
                     "row": len(sheet_rows),
-                    "rotation": rotation.title,
+                    "rotation": label,
                     "source_url": rotation.url,
-                    "entry": f"{entry.day} {entry.time}",
-                    "quote": entry.text[:240],
-                    "to_check": "; ".join(flags),
+                    "entry": f"{entry.day} {entry.time}".strip(),
+                    "quote": excerpt(entry.text),
+                    "to_check": "; ".join(flags + total_flag),
                 }
             )
         summary.append(
@@ -677,27 +816,40 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
                 "survivors_stated": "" if rotation.survivors is None else rotation.survivors,
                 "survivors_in_rows": rescued,
                 "rescue_rows": sum(1 for item in found if item[0] == "Rescue"),
-                "matches": "yes" if rotation.survivors == rescued else "check",
+                "matches": "yes" if matches else "check",
             }
         )
 
     # Rotations the French site reports but the logbook does not hold: one row each, flagged.
+    # Every logbook rotation counts as covered, including those already in the sheet.
     covered = [(item["first_day"], item["last_day"]) for item in summary if item["first_day"]]
     gaps = []
     for published, title, link, body in sorted(french_rotations(get, after)):
-        if any(
-            start <= published <= date.fromordinal(end.toordinal() + 10) for start, end in covered
-        ):
+        if not safe_link(link):
             continue
         made = french_row(published, title, link, body)
         if made is None:
-            # Not a rescue (a body recovered, a statement): listed for a person, never a row.
-            gaps.append({"published": published, "title": title, "source_url": link})
+            # Not a rescue, or no rescue day (a body recovered, a statement): left to a person,
+            # unless its publication falls within a mission the logbook already holds.
+            if not any(start <= published <= end + timedelta(days=10) for start, end in covered):
+                gaps.append({"published": published, "title": title, "source_url": link})
             continue
         row, origin = made
+        rescued_on = date.fromisoformat(origin["entry"])
+        if rescued_on <= after or any(start <= rescued_on <= end for start, end in covered):
+            continue
         sheet_rows.append(row)
         provenance.append({"row": len(sheet_rows), **origin})
 
+    # Rows in date order (the French ones were appended after the logbook's), renumbered.
+    paired = sorted(
+        zip(sheet_rows, provenance),
+        key=lambda pair: (
+            datetime.strptime(pair[0]["date"], "%d/%m/%Y") if pair[0]["date"] else datetime.max
+        ),
+    )
+    sheet_rows = [row for row, _ in paired]
+    provenance = [{**origin, "row": index} for index, (_, origin) in enumerate(paired, start=1)]
     return Extraction(sheet_rows, provenance, summary, others, gaps)
 
 

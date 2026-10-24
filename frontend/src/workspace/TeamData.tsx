@@ -33,8 +33,6 @@ function SyncStatus() {
       </section>
     );
   }
-  // Two sources read the same tab (the sheet and the public logbook): say which is which.
-  const sources = new Set(sheets.map((sheet) => sheet.source)).size;
   // The time the status was received is the reference, so rendering stays pure.
   const now = status.dataUpdatedAt;
   return (
@@ -48,8 +46,8 @@ function SyncStatus() {
           return (
             <li key={sheet.sheet} className={failing ? "sync-card__item sync-card__item--warn" : "sync-card__item"}>
               <span className="sync-card__name">
-                {t(`explore.sheet.${sheet.sheet}` as Key)}
-                {sources > 1 && <span className="sync-card__source"> · {sheet.source}</span>}
+                {sheet.source_key === "sos-logbook" ? t("logbook.sourceName") : t(`explore.sheet.${sheet.sheet}` as Key)}
+                {sheet.source_key === "sos-logbook" && <span className="sync-card__source"> · {t("logbook.syncEvery")}</span>}
               </span>
               <span title={new Date(sheet.last_checked_at).toLocaleString(i18n.locale)}>
                 <Icon name={failing ? "alert" : "check"} size={15} />{" "}
@@ -105,15 +103,56 @@ export function LogbookCard() {
           <b>{t("logbook.card.step3")}</b> {t("logbook.card.step3Body")}
         </li>
       </ol>
+      {data.years.length > 0 && (
+        <div className="logbook-card__check">
+          <p className="logbook-card__check-title">
+            <Icon name="check" size={16} /> {t("logbook.card.checkTitle")}
+          </p>
+          <ul>
+            {data.years.map((year) => {
+              const total = year.in_sheet + year.from_logbook;
+              return (
+                <li key={year.year}>
+                  {t("logbook.card.checkYear", {
+                    year: String(year.year),
+                    total: i18n.number(total),
+                    sheet: i18n.number(year.in_sheet),
+                    logbook: i18n.number(year.from_logbook),
+                  })}
+                  {" · "}
+                  {year.reported === null
+                    ? t("logbook.card.checkNone")
+                    : year.reported === total
+                      ? t("logbook.card.checkSame")
+                      : t("logbook.card.checkGap", { reported: i18n.number(year.reported), gap: i18n.number(year.reported - total) })}
+                </li>
+              );
+            })}
+          </ul>
+          <a href={data.reports_url} target="_blank" rel="noreferrer">
+            {t("logbook.card.reports")}
+          </a>
+        </div>
+      )}
       <div className="logbook-card__actions">
-        <Link to="/workspace/data?source=sos-logbook" className="pill-button pill-button--primary">
+        {data.to_verify > 0 && data.snapshot && (
+          <Link to={`/workspace/review?snapshot=${data.snapshot}`} className="pill-button pill-button--primary">
+            <Icon name="check" size={16} />
+            {t("logbook.card.verify", { count: data.to_verify })}
+          </Link>
+        )}
+        <Link to="/workspace/data?source=sos-logbook" className="pill-button">
           <Icon name="map" size={16} />
           {t("logbook.card.show")}
         </Link>
-        <a className="pill-button" href="/api/private/v1/logbook/export/" download>
-          <Icon name="external" size={16} />
-          {t("logbook.card.download", { count: data.verified })}
-        </a>
+        {data.verified > 0 ? (
+          <a className="pill-button" href="/api/private/v1/logbook/export/" download>
+            <Icon name="download" size={16} />
+            {t("logbook.card.download", { count: data.verified })}
+          </a>
+        ) : (
+          <span className="logbook-card__disabled">{t("logbook.card.nothingToDownload")}</span>
+        )}
       </div>
     </section>
   );
@@ -126,8 +165,8 @@ export function TeamData() {
     <WorkspaceShell section="data" title={t("workspace.section.data")} className="review review--wide">
       {() => (
         <>
-          <SyncStatus />
           <LogbookCard />
+          <SyncStatus />
           <Explore audience="team" />
         </>
       )}

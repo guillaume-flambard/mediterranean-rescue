@@ -1,9 +1,10 @@
 import { api } from "../api/client";
-import { useI18n, type I18n } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
 import { Link } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
-import { sheetName, type Key } from "./labels";
+import { EvidenceBlock } from "./Evidence";
+import { sheetName } from "./labels";
 
 // The opened record of one event, shared by every view of the main screen.
 function Fact({ label, value }: { label: string; value: string }) {
@@ -13,16 +14,6 @@ function Fact({ label, value }: { label: string; value: string }) {
       <dd>{value}</dd>
     </div>
   );
-}
-
-// The reader's notes are codes ("position_read:compact", "grouped:3"): said in the reader's language.
-const CHECKS = ["date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position", "position_read", "two_boats", "news_site", "grouped"];
-function checkText(i18n: I18n, point: string) {
-  const [code = "", value = ""] = point.split(":");
-  if (!CHECKS.includes(code)) return point;
-  if (code === "position_read") return i18n.t(`logbook.check.position_read.${value}` as Key);
-  if (code === "date_outside") return i18n.t("logbook.check.date_outside", { value: i18n.date(value) });
-  return i18n.t(`logbook.check.${code}` as Key, { value });
 }
 
 export function PreviewBody({ id }: { id: string }) {
@@ -47,7 +38,8 @@ export function PreviewBody({ id }: { id: string }) {
               : t("detail.unknownPosition")
           }
         />
-        <Fact label={t("preview.detail.photos")} value={i18n.number(row.image_count)} />
+        {/* The logbook says nothing about photos: unknown, so not shown as zero. */}
+        {!row.evidence && <Fact label={t("preview.detail.photos")} value={i18n.number(row.image_count)} />}
       </dl>
       {row.error_codes.length > 0 && (
         <p className="card__warning">
@@ -55,28 +47,7 @@ export function PreviewBody({ id }: { id: string }) {
         </p>
       )}
       {row.evidence ? (
-        <div className="logbook-evidence">
-          <p className="logbook-evidence__label">{t("logbook.evidence.label", { when: row.evidence.logged_at })}</p>
-          <blockquote lang="en">{row.evidence.quote}</blockquote>
-          {row.evidence.to_check.length > 0 && (
-            <div className="logbook-evidence__check">
-              <p>
-                <Icon name="alert" size={16} /> {t("logbook.evidence.toCheck")}
-              </p>
-              <ul>
-                {row.evidence.to_check.map((point) => (
-                  <li key={point}>{checkText(i18n, point)}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <p className="card__provenance">
-            {t("logbook.evidence.provenance", { rotation: row.evidence.rotation })}{" "}
-            <a href={row.evidence.url} target="_blank" rel="noreferrer">
-              {t("logbook.evidence.open")}
-            </a>
-          </p>
-        </div>
+        <EvidenceBlock evidence={row.evidence} />
       ) : (
         <p className="card__provenance">
           {t("explore.whereFrom", { source: row.source.name, date: i18n.date(row.exported_at.slice(0, 10)) })}{" "}

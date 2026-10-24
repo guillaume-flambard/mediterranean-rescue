@@ -804,6 +804,14 @@ export interface components {
          * @enum {string}
          */
         LastStatusEnum: "new_data" | "unchanged" | "refused" | "failed";
+        LogbookEvidence: {
+            /** Format: uri */
+            url: string;
+            rotation: string;
+            logged_at: string;
+            quote: string;
+            to_check: string[];
+        };
         LogbookOverview: {
             /** Format: date */
             sheet_last_date: string;
@@ -819,6 +827,17 @@ export interface components {
             to_fix: number;
             /** @description Rows whose evidence asks for a human check. */
             to_check: number;
+            /** Format: uuid */
+            snapshot: string | null;
+            years: components["schemas"]["LogbookYear"][];
+            /** Format: uri */
+            reports_url: string;
+        };
+        LogbookYear: {
+            year: number;
+            in_sheet: number;
+            from_logbook: number;
+            reported: number | null;
         };
         MapPoint: {
             /** Format: uuid */
@@ -934,14 +953,6 @@ export interface components {
             blocked: number;
             linked: number;
         };
-        PreviewEvidence: {
-            /** Format: uri */
-            url: string;
-            rotation: string;
-            logged_at: string;
-            quote: string;
-            to_check: string[];
-        };
         PreviewItem: {
             /** Format: uuid */
             id: string;
@@ -965,7 +976,7 @@ export interface components {
             boat_type: string | null;
             position: components["schemas"]["PreviewPosition"] | null;
             image_count: number;
-            evidence: components["schemas"]["PreviewEvidence"] | null;
+            evidence: components["schemas"]["LogbookEvidence"] | null;
         };
         PreviewMap: {
             points: components["schemas"]["PreviewPoint"][];
@@ -1123,6 +1134,7 @@ export interface components {
             error_codes: string[];
             proposal: components["schemas"]["Proposal"];
             decision: components["schemas"]["Decision"] | null;
+            evidence: components["schemas"]["LogbookEvidence"] | null;
         };
         /**
          * @description * `Data_operations` - Data_operations
@@ -1191,6 +1203,7 @@ export interface components {
             name: string;
         };
         SourceRights: {
+            key: string;
             name: string;
             rights_approved: boolean;
         };
@@ -1207,6 +1220,7 @@ export interface components {
         SyncSheet: {
             sheet: components["schemas"]["SheetEnum"];
             source: string;
+            source_key: string;
             /** Format: date-time */
             last_checked_at: string;
             last_status: components["schemas"]["LastStatusEnum"];

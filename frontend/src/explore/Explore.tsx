@@ -8,6 +8,7 @@ import { Link, navigate, useLocation, withQuery } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
 import { PreviewBody, PublicBody } from "./EventBody";
+import { fromNewsSite, missionName } from "./Evidence";
 import { kindLabel, kindName, peopleText, type Key } from "./labels";
 import { Logbook } from "./Logbook";
 import { MiniMap } from "./MiniMap";
@@ -149,7 +150,9 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
           status: row.status as Status,
           line: row.line,
           origin: row.evidence
-            ? t("explore.origin.logbook", { rotation: row.evidence.rotation })
+            ? fromNewsSite(row.evidence)
+              ? t("explore.origin.news")
+              : t("explore.origin.logbook", { rotation: missionName(i18n, row.evidence.rotation) })
             : t("explore.origin.update", { date: i18n.date(row.exported_at.slice(0, 10)) }),
         })),
       )

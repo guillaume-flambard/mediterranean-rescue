@@ -5,7 +5,9 @@ import { useI18n, type I18n } from "../i18n/I18nProvider";
 import { setNavigationGuard } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Button } from "../ui/Button";
+import { EvidenceBlock } from "../explore/Evidence";
 import { ChoiceGroup } from "../ui/ChoiceGroup";
+import { Disclosure } from "../ui/Disclosure";
 import { ErrorSummary, InlineMessage, PendingState, StatusLabel, type SummaryError } from "../ui/Feedback";
 import { SearchCombobox } from "../ui/SearchCombobox";
 import { TextField } from "../ui/TextField";
@@ -279,7 +281,10 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
     }
   };
 
-  const verb = decision === "link" ? t("review.action.link") : t("review.action.create");
+  // A row rebuilt from the public logbook is verified against its sentence (ADR 0014).
+  const fromLogbook = row.evidence !== null;
+  const verb =
+    decision === "link" ? t("review.action.link") : t(fromLogbook ? "review.action.verifyLogbook" : "review.action.create");
   const status = row.status === "to_review" ? "needsReview" : row.status === "blocked" ? "blocked" : "linked";
 
   return (
@@ -293,7 +298,23 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
           {t("ui.close")}
         </Button>
       </div>
-      <p className="review-note">{t("review.provenance", { sheet: sheetName(i18n, row.snapshot.sheet), line: row.line })}</p>
+      {row.evidence ? (
+        <>
+          <p className="review-note">{t("review.provenanceLogbook")}</p>
+          <EvidenceBlock evidence={row.evidence} />
+          <section aria-labelledby="compare-title" className="review-compare">
+            <h3 id="compare-title">{t("review.compare.title")}</h3>
+            <ul>
+              <li>{t("review.compare.date")}</li>
+              <li>{t("review.compare.people")}</li>
+              <li>{t("review.compare.place")}</li>
+            </ul>
+            <p className="review-note">{t("review.compare.wrong")}</p>
+          </section>
+        </>
+      ) : (
+        <p className="review-note">{t("review.provenance", { sheet: sheetName(i18n, row.snapshot.sheet), line: row.line })}</p>
+      )}
 
       {outcome === "saved" && row.status === "linked" && (
         <InlineMessage tone="success">{t("review.saved")}</InlineMessage>
@@ -301,10 +322,17 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
       {/* Outside the form: after a conflict the row may be linked and the form gone. */}
       {serverError && <InlineMessage tone="error">{t(serverMessageKey(serverError))}</InlineMessage>}
 
-      <section aria-labelledby="received-title">
-        <h3 id="received-title">{t("review.received")}</h3>
-        <Received row={row} />
-      </section>
+      {fromLogbook ? (
+        // The sheet's columns matter to whoever pastes the row; the sentence is what a volunteer reads.
+        <Disclosure title={t("review.sheetColumns")}>
+          <Received row={row} />
+        </Disclosure>
+      ) : (
+        <section aria-labelledby="received-title">
+          <h3 id="received-title">{t("review.received")}</h3>
+          <Received row={row} />
+        </section>
+      )}
       <section aria-labelledby="interpreted-title">
         <h3 id="interpreted-title">{t("review.interpreted")}</h3>
         {row.error_codes.length > 0 && (

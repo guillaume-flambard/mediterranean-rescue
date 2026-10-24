@@ -69,7 +69,23 @@ function Home({ me }: { me: Me }) {
   const missing = (allowed: boolean, error: unknown) =>
     !allowed ? t("home.notYourRole") : error ? t("workspace.loadError") : t("home.loading");
 
+  const logbook = api.useQuery("get", "/api/private/v1/logbook/", {}, { enabled: canRead });
+  const rebuilt = logbook.data && logbook.data.rows > 0 ? logbook.data : null;
+
   const steps: Step[] = [
+    // When the public logbook holds operations the sheet lacks, bringing SOS's map up to date
+    // comes first: it is the work that changes something outside (ADR 0014).
+    ...(rebuilt
+      ? [
+          {
+            key: "logbook",
+            state: (rebuilt.to_verify > 0 ? "todo" : "done") as State,
+            detail: t("home.logbook.detail", { count: rebuilt.to_verify, verified: rebuilt.verified }),
+            path: "/workspace/data",
+            action: t("home.logbook.action"),
+          },
+        ]
+      : []),
     {
       key: "read",
       state: sync.data ? (failing ? "todo" : "done") : "waiting",

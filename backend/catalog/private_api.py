@@ -402,6 +402,29 @@ class SnapshotRefSerializer(serializers.Serializer):
     contract_version = serializers.CharField()
 
 
+class LogbookEvidenceSerializer(serializers.Serializer):
+    url = serializers.URLField()
+    rotation = serializers.CharField()
+    logged_at = serializers.CharField()
+    quote = serializers.CharField()
+    to_check = serializers.ListField(child=serializers.CharField())
+
+
+def logbook_evidence(row):
+    """The logbook page and quote a rebuilt row comes from (ADR 0014); None for a sheet row."""
+    try:
+        found = row.logbook
+    except SheetRow.logbook.RelatedObjectDoesNotExist:
+        return None
+    return {
+        "url": found.source_url,
+        "rotation": found.rotation,
+        "logged_at": found.logged_at,
+        "quote": found.quote,
+        "to_check": [part.strip() for part in found.to_check.split(";") if part.strip()],
+    }
+
+
 class RowDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     line = serializers.IntegerField()
@@ -413,6 +436,7 @@ class RowDetailSerializer(serializers.Serializer):
     error_codes = serializers.ListField(child=serializers.CharField())
     proposal = ProposalSerializer()
     decision = DecisionSerializer(allow_null=True)
+    evidence = LogbookEvidenceSerializer(allow_null=True)
 
 
 def latest_candidates(identity_ids):
@@ -448,6 +472,7 @@ def row_detail(row):
         "received": {"headers": row.snapshot.header_cells, "cells": row.raw_cells},
         "interpreted": row.candidate,
         "error_codes": row.error_codes,
+        "evidence": logbook_evidence(row),
         "proposal": {
             "kind": proposal.kind,
             "candidates": [

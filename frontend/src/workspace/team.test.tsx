@@ -22,7 +22,7 @@ const PUBLISHER = {
 
 function overview(overrides: Partial<PublicationOverview> = {}): PublicationOverview {
   return {
-    sources: [{ name: "Fictitious source", rights_approved: true }],
+    sources: [{ key: "fixture", name: "Fictitious source", rights_approved: true }],
     preparation: [
       {
         sheet: "Data_operations",
@@ -103,7 +103,7 @@ describe("team home", () => {
       }),
       "GET /api/private/v1/publication/": () => ({
         body: overview({
-          sources: [{ name: "Fictitious source", rights_approved: false }],
+          sources: [{ key: "fixture", name: "Fictitious source", rights_approved: false }],
         }),
       }),
     });
@@ -184,7 +184,7 @@ describe("publish", () => {
     server({
       "GET /api/private/v1/publication/": () => ({
         body: overview({
-          sources: [{ name: "Fictitious source", rights_approved: false }],
+          sources: [{ key: "fixture", name: "Fictitious source", rights_approved: false }],
         }),
       }),
       "GET /api/private/v1/publication/events/": () => ({

@@ -55,7 +55,7 @@ describe("formatMessage", () => {
 describe("formatDate", () => {
   it("keeps calendar dates on their day whatever the time zone", () => {
     expect(formatDate("en", "2024-02-29")).toBe("Feb 29, 2024");
-    expect(formatDate("fr", "2024-01-01", "long")).toBe("1 janvier 2024");
+    expect(formatDate("fr", "2024-01-01", "long")).toBe("1er janvier 2024");
   });
 });
 

@@ -57,7 +57,7 @@ class ReaderTests(SimpleTestCase):
         _, rows = self.rows()
         flags = rows[1][5]
         self.assertIn("partial_replaced:20", flags)
-        self.assertIn("position_read:text", flags)
+        self.assertIn("position_read:text:34 23 N 012 59 E", flags)
 
     def test_positions_in_every_format_and_nothing_outside_the_region(self):
         self.assertEqual(lb.parse_position("Latitude: 3426 / Longitude: 01209")[2], "compact")
@@ -149,3 +149,47 @@ class FrenchPostTests(SimpleTestCase):
                 "Un corps sans vie a été récupéré.",
             )
         )
+
+
+class ReaderSafetyTests(SimpleTestCase):
+    def test_redirects_leave_only_for_the_association_hosts(self):
+        handler = lb._CheckedRedirects()
+        with self.assertRaises(lb.ReadFailed):
+            handler.redirect_request(
+                None, None, 302, "Found", {}, "http://www.sosmediterranee.org/x"
+            )
+        with self.assertRaises(lb.ReadFailed):
+            handler.redirect_request(None, None, 302, "Found", {}, "https://evil.example/x")
+
+    def test_hostile_text_stays_fast_and_unknown_counts_stay_empty(self):
+        import time
+
+        started = time.monotonic()
+        entry = lb.Entry(date(2025, 3, 13), "", "transfer " * 20_000, "", "", False)
+        rotation = lb.Rotation(slug="operation-12-19-march-2025", url="x")
+        rotation.entries = [entry]
+        lb.find_rescues(rotation, (date(2025, 3, 12), date(2025, 3, 19)))
+        lb.parse_rotation_page('<article class="loop-item loop-item-log">' + "<div " * 200_000)
+        self.assertLess(time.monotonic() - started, 3)
+        self.assertEqual((lb.count("sept"), lb.count("dix-huit"), lb.count("cent")), (7, 18, None))
+        body = "Le 3 mai 2026, l’Ocean Viking a porté secours à 40 personnes lors de cent opérations, dont sept femmes. Dernière mise à jour"
+        row, origin = lb.french_row(date(2026, 5, 4), "x", "https://sosmediterranee.fr/a/", body)
+        self.assertEqual((row["nb_ops"], row["female"]), ("", "7"))
+        self.assertIn("count_unknown", origin["to_check"])
+
+    def test_links_dates_and_coordinates_never_invent(self):
+        self.assertFalse(lb.safe_link("javascript:alert(1)"))
+        self.assertFalse(lb.safe_link("http://sosmediterranee.fr/x"))
+        self.assertTrue(lb.safe_link("https://sosmediterranee.fr/x"))
+        self.assertIsNone(lb.make_date(2024, 2, 30))
+        self.assertIsNone(lb.parse_day("February 30, 2024"))
+        self.assertEqual(lb.to_sheet_coordinate(33.99999), "34° 00.00")
+        self.assertIsNone(
+            lb.french_row(
+                date(2026, 5, 4),
+                "x",
+                "https://sosmediterranee.fr/a/",
+                "40 personnes secourues, sans date.",
+            )
+        )
+        self.assertTrue(lb.excerpt("mot " * 100).endswith("…"))

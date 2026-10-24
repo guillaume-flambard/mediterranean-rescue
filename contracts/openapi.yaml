@@ -3134,6 +3134,28 @@ components:
         * `unchanged` - unchanged
         * `refused` - refused
         * `failed` - failed
+    LogbookEvidence:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        rotation:
+          type: string
+        logged_at:
+          type: string
+        quote:
+          type: string
+        to_check:
+          type: array
+          items:
+            type: string
+      required:
+      - logged_at
+      - quote
+      - rotation
+      - to_check
+      - url
     LogbookOverview:
       type: object
       properties:
@@ -3165,18 +3187,49 @@ components:
         to_check:
           type: integer
           description: Rows whose evidence asks for a human check.
+        snapshot:
+          type: string
+          format: uuid
+          nullable: true
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogbookYear'
+        reports_url:
+          type: string
+          format: uri
       required:
       - first_date
       - last_date
       - last_read_at
       - last_read_status
       - people
+      - reports_url
       - rows
       - sheet_last_date
+      - snapshot
       - to_check
       - to_fix
       - to_verify
       - verified
+      - years
+    LogbookYear:
+      type: object
+      properties:
+        year:
+          type: integer
+        in_sheet:
+          type: integer
+        from_logbook:
+          type: integer
+        reported:
+          type: integer
+          nullable: true
+      required:
+      - from_logbook
+      - in_sheet
+      - reported
+      - year
     MapPoint:
       type: object
       properties:
@@ -3450,28 +3503,6 @@ components:
       - blocked
       - linked
       - to_review
-    PreviewEvidence:
-      type: object
-      properties:
-        url:
-          type: string
-          format: uri
-        rotation:
-          type: string
-        logged_at:
-          type: string
-        quote:
-          type: string
-        to_check:
-          type: array
-          items:
-            type: string
-      required:
-      - logged_at
-      - quote
-      - rotation
-      - to_check
-      - url
     PreviewItem:
       type: object
       properties:
@@ -3530,7 +3561,7 @@ components:
           type: integer
         evidence:
           allOf:
-          - $ref: '#/components/schemas/PreviewEvidence'
+          - $ref: '#/components/schemas/LogbookEvidence'
           nullable: true
       required:
       - boat_type
@@ -3946,9 +3977,14 @@ components:
           allOf:
           - $ref: '#/components/schemas/Decision'
           nullable: true
+        evidence:
+          allOf:
+          - $ref: '#/components/schemas/LogbookEvidence'
+          nullable: true
       required:
       - decision
       - error_codes
+      - evidence
       - id
       - interpreted
       - line
@@ -4102,11 +4138,14 @@ components:
     SourceRights:
       type: object
       properties:
+        key:
+          type: string
         name:
           type: string
         rights_approved:
           type: boolean
       required:
+      - key
       - name
       - rights_approved
     Staged:
@@ -4146,6 +4185,8 @@ components:
           $ref: '#/components/schemas/SheetEnum'
         source:
           type: string
+        source_key:
+          type: string
         last_checked_at:
           type: string
           format: date-time
@@ -4169,6 +4210,7 @@ components:
       - last_status
       - sheet
       - source
+      - source_key
     SyncStatus:
       type: object
       properties:

@@ -12,8 +12,18 @@ from rest_framework.response import Response
 
 from .api import parameters
 from .crosswalk import propose_links
+from .logbook_sync import LOGBOOK_SOURCE_KEY, current_logbook_snapshot
 from .models import SheetRow, SheetSnapshot, Source
-from .private_api import ERRORS, STATUS_BY_PROPOSAL, STATUSES, PageParams, PrivateView, page
+from .private_api import (
+    ERRORS,
+    STATUS_BY_PROPOSAL,
+    STATUSES,
+    LogbookEvidenceSerializer,
+    PageParams,
+    PrivateView,
+    logbook_evidence,
+    page,
+)
 
 PREVIEW_SHEETS = ("Data_operations", "Other_data")
 MAX_POINTS = 2000
@@ -41,6 +51,12 @@ class PreviewPageParams(PageParams, PreviewFilters):
 def latest_snapshots():
     snapshots = []
     for source in Source.objects.order_by("name"):
+        if source.key == LOGBOOK_SOURCE_KEY:
+            # The logbook's rows are those of its last successful reading (ADR 0014).
+            snapshot = current_logbook_snapshot()
+            if snapshot is not None:
+                snapshots.append(snapshot)
+            continue
         for sheet in PREVIEW_SHEETS:
             snapshot = (
                 SheetSnapshot.objects.filter(source=source, sheet=sheet)
@@ -68,21 +84,6 @@ def position(candidate):
     }
 
 
-def evidence(row):
-    """The logbook page and quote a rebuilt row comes from; None for a sheet row."""
-    try:
-        found = row.logbook
-    except SheetRow.logbook.RelatedObjectDoesNotExist:
-        return None
-    return {
-        "url": found.source_url,
-        "rotation": found.rotation,
-        "logged_at": found.logged_at,
-        "quote": found.quote,
-        "to_check": [part.strip() for part in found.to_check.split(";") if part.strip()],
-    }
-
-
 def item(row, snapshot, status):
     candidate = row.candidate or {}
     images = candidate.get("image_src") or []
@@ -106,7 +107,7 @@ def item(row, snapshot, status):
         "boat_type": candidate.get("boat_type"),
         "position": position(candidate),
         "image_count": len(images) if isinstance(images, list) else 0,
-        "evidence": evidence(row),
+        "evidence": logbook_evidence(row),
     }
 
 
@@ -151,14 +152,6 @@ class PreviewPositionSerializer(serializers.Serializer):
     inferred_hemisphere = serializers.BooleanField()
 
 
-class PreviewEvidenceSerializer(serializers.Serializer):
-    url = serializers.URLField()
-    rotation = serializers.CharField()
-    logged_at = serializers.CharField()
-    quote = serializers.CharField()
-    to_check = serializers.ListField(child=serializers.CharField())
-
-
 class PreviewItemSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     snapshot = serializers.UUIDField()
@@ -179,7 +172,7 @@ class PreviewItemSerializer(serializers.Serializer):
     boat_type = serializers.CharField(allow_null=True)
     position = PreviewPositionSerializer(allow_null=True)
     image_count = serializers.IntegerField()
-    evidence = PreviewEvidenceSerializer(allow_null=True)
+    evidence = LogbookEvidenceSerializer(allow_null=True)
 
 
 class PreviewCountsSerializer(serializers.Serializer):

@@ -38,7 +38,7 @@ export function formatMessage(locale: Locale, message: Message, params: Params =
 // Dates without time ("YYYY-MM-DD") are calendar dates: format them in UTC so the local
 // time zone can never move them to the previous or next day.
 export function formatDate(locale: Locale, isoDate: string, style: "medium" | "long" = "medium") {
-  return new Intl.DateTimeFormat(locale, { dateStyle: style, timeZone: "UTC" }).format(
-    new Date(`${isoDate}T00:00:00Z`),
-  );
+  const text = new Intl.DateTimeFormat(locale, { dateStyle: style, timeZone: "UTC" }).format(new Date(`${isoDate}T00:00:00Z`));
+  // French writes the first day of a month as an ordinal: "1er mai 2026".
+  return locale === "fr" ? text.replace(/^1 /, "1er ") : text;
 }

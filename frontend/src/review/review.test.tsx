@@ -27,6 +27,7 @@ function rowDetail(overrides: Partial<RowDetail> = {}): RowDetail {
       candidates: [{ id: IDENTITY, external_id: `Data_operations:${IDENTITY}`, summary: { occurred_on: "2024-02-03", kind: "rescue", people: 40, deaths: null } }],
     },
     decision: null,
+    evidence: null,
     ...overrides,
   };
 }

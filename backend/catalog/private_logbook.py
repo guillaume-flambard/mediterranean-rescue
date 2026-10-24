@@ -18,21 +18,36 @@ from rest_framework.response import Response
 from .api import parameters
 from .crosswalk import propose_links
 from .logbook import SHEET_HEADER
-from .logbook_sync import LOGBOOK_SOURCE_KEY, SHEET, sheet_last_date
+from .logbook_sync import LOGBOOK_SOURCE_KEY, SHEET, current_logbook_snapshot, sheet_last_date
 from .models import SheetSnapshot, SheetSync
 from .private_api import ERRORS, STATUS_BY_PROPOSAL, CanStageOrReview, PrivateView
 
 
 def latest_logbook_snapshot():
-    return (
-        SheetSnapshot.objects.filter(source__key=LOGBOOK_SOURCE_KEY, sheet=SHEET)
-        .order_by("-created_at")
-        .first()
-    )
+    return current_logbook_snapshot()
+
+
+def sheet_cell(value):
+    """A cell safe to paste into a spreadsheet: one starting like a formula is kept as text."""
+    text = "" if value is None else str(value)
+    return f"'{text}" if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
 
 
 def row_statuses(snapshot):
     return {p.row_id: STATUS_BY_PROPOSAL[p.kind] for p in propose_links(snapshot)}
+
+
+# People rescued per year as SOS MEDITERRANEE published them in its annual reports, to check the
+# sheet plus the rebuilt rows against (sosmediterranee.fr/publications, read 24 October 2026).
+REPORTED_PEOPLE = {2024: 1948, 2025: 1358}
+REPORTS_URL = "https://sosmediterranee.fr/publications/"
+
+
+class LogbookYearSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    in_sheet = serializers.IntegerField()
+    from_logbook = serializers.IntegerField()
+    reported = serializers.IntegerField(allow_null=True)
 
 
 class LogbookOverviewSerializer(serializers.Serializer):
@@ -47,6 +62,42 @@ class LogbookOverviewSerializer(serializers.Serializer):
     to_verify = serializers.IntegerField()
     to_fix = serializers.IntegerField()
     to_check = serializers.IntegerField(help_text="Rows whose evidence asks for a human check.")
+    snapshot = serializers.UUIDField(allow_null=True)
+    years = LogbookYearSerializer(many=True)
+    reports_url = serializers.URLField()
+
+
+def _people_by_year(rows, kinds=("rescue", "transfer")):
+    totals = {}
+    for row in rows:
+        candidate = row.candidate or {}
+        day, people = candidate.get("occurred_on"), candidate.get("nb_survivor")
+        if day and people and candidate.get("kind") in kinds:
+            totals[int(day[:4])] = totals.get(int(day[:4]), 0) + people
+    return totals
+
+
+def year_totals(logbook_rows):
+    """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them."""
+    sheet = {}
+    for snapshot in (
+        SheetSnapshot.objects.filter(sheet=SHEET)
+        .exclude(source__key=LOGBOOK_SOURCE_KEY)
+        .order_by("source_id", "-created_at")
+        .distinct("source_id")
+    ):
+        for year, people in _people_by_year(snapshot.rows.all()).items():
+            sheet[year] = sheet.get(year, 0) + people
+    rebuilt = _people_by_year(logbook_rows, kinds=("rescue",))
+    return [
+        {
+            "year": year,
+            "in_sheet": sheet.get(year, 0),
+            "from_logbook": rebuilt.get(year, 0),
+            "reported": REPORTED_PEOPLE.get(year),
+        }
+        for year in sorted(rebuilt)
+    ]
 
 
 class LogbookOverviewView(PrivateView):
@@ -73,6 +124,9 @@ class LogbookOverviewView(PrivateView):
             "to_verify": 0,
             "to_fix": 0,
             "to_check": 0,
+            "snapshot": None,
+            "years": [],
+            "reports_url": REPORTS_URL,
         }
         if snapshot is not None:
             statuses = row_statuses(snapshot)
@@ -93,6 +147,8 @@ class LogbookOverviewView(PrivateView):
                 to_check=sum(
                     1 for row in rows if hasattr(row, "logbook") and row.logbook.to_check.strip()
                 ),
+                snapshot=snapshot.pk,
+                years=year_totals(rows),
             )
         return Response(LogbookOverviewSerializer(payload).data)
 
@@ -120,7 +176,7 @@ class LogbookExportView(PrivateView):
             # Only rows a volunteer verified, as the logbook rebuilt them, in date order.
             for row in snapshot.rows.order_by("line"):
                 if statuses[row.pk] == "linked":
-                    writer.writerow(row.raw_cells)
+                    writer.writerow([sheet_cell(cell) for cell in row.raw_cells])
         response = HttpResponse(buffer.getvalue(), content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = (
             'attachment; filename="Data_operations-from-logbook-verified.csv"'
