@@ -1,13 +1,11 @@
-from catalog.schema import schema
-from django.conf import settings
+from catalog.api import EventsView, EventView, EvidenceView, MapPointsView
 from django.contrib import admin
 from django.db import connection
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.urls import path
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET
-from strawberry.django.views import GraphQLView
+from drf_spectacular.views import SpectacularAPIView
 
 
 @require_GET
@@ -31,14 +29,12 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/csrf/", csrf),
     path("api/health/", health),
+    path("api/v1/events/", EventsView.as_view()),
+    path("api/v1/events/<uuid:id>/", EventView.as_view()),
+    path("api/v1/events/<uuid:id>/evidence/", EvidenceView.as_view()),
+    path("api/v1/map-points/", MapPointsView.as_view()),
     path(
-        "graphql/",
-        csrf_protect(
-            GraphQLView.as_view(
-                schema=schema,
-                graphql_ide="graphiql" if settings.DEBUG else None,
-                allow_queries_via_get=True,
-            )
-        ),
+        "api/v1/schema/",
+        SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),
     ),
 ]

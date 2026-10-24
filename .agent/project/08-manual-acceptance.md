@@ -1,6 +1,9 @@
-# Acceptation de la fondation
-1. Lire docs/architecture.md, docs/data-catalog.md et ADR GraphQL.
-2. Ouvrir http://127.0.0.1:5173/ : base vide honnête, fond cartographique et filtres ; aucun jeu SOS publié par défaut.
-3. Pour revue développeur, exporter le schéma, générer les types puis lancer les tests selon README.
-4. Valider les décisions avec Guillaume et cadrer les données avec SOS/DfG avant migration réelle.
-Acceptation humaine non enregistrée.
+# Recette de la tranche REST
+
+1. Lire docs/PROJECT.md : objectifs, stack et ordre des lots correspondent-ils au projet souhaité ?
+2. Suivre README pour démarrer ; ouvrir http://127.0.0.1:5173/ ; carte et liste vide honnête apparaissent.
+3. Changer le type, inverser une période puis réinitialiser ; vérifier le retour à l’exploration.
+4. Consulter http://127.0.0.1:8010/api/v1/events/ et /api/v1/schema/ ; aucun staging ou audit dans l’API publique.
+5. Recette positive de fiches/données métier : prévue dans L2 après extrait autorisé, ne pas prétendre qu’elle a déjà eu lieu.
+
+Aucun déploiement, aucun import SOS et aucun message envoyé à l’association.

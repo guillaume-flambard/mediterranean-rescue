@@ -1,48 +1,42 @@
 {
-  "phase": "READY_FOR_MANUAL_ACCEPTANCE",
-  "milestone": "platform-foundation",
+  "phase": "VERIFYING",
+  "milestone": "rest-foundation-and-project-charter",
   "product_status": "IN_PROGRESS",
   "requirements": {
-    "total": 7,
-    "covered": 7
+    "total": 5,
+    "covered": 5
   },
   "todos": {
     "p0_open": 0,
-    "p1_open": 0,
-    "done": 11,
-    "p2_open": 3
+    "p1_open": 2,
+    "done": 3,
+    "p2_open": 2
   },
   "acceptance": {
-    "total": 7,
-    "verified": 7,
+    "total": 5,
+    "verified": 3,
     "failed": 0,
-    "pending": 0
+    "pending": 2
   },
   "risks": {
     "critical_open": 0,
     "high_open": 0
   },
   "verification": {
-    "status": "PASS",
-    "backend_postgis_tests": 18,
+    "status": "RUNNING",
+    "backend_postgis_tests": 19,
     "frontend_tests": 2,
-    "schema_codegen": "PASS",
+    "openapi_codegen": "PASS",
     "negative_contract_test": "PASS",
     "typecheck_build": "PASS",
-    "migration_forward_reverse_test": "PASS",
     "production_settings_check": "PASS",
-    "independent_review": "PASS with stated scope",
-    "browser": "loading/empty/map/BaseUI filter/invalid dates/reset in narrow viewport",
-    "github_actions": {
-      "status": "PASS",
-      "run_id": 40089645162,
-      "url": "https://github.com/guillaume-flambard/mediterranean-rescue/actions/runs/40089645162",
-      "checked_code_revision": "cd69cc4",
-      "scope": "full platform workflow including schema drift and negative contract test"
-    },
+    "migration_drift": "PASS",
+    "browser": "loading/empty/map/filter/invalid dates/reset PASS; positive detail visual on real data deferred",
+    "independent_review": "final re-review pending",
+    "github_actions": "pending current revision",
     "evidence": "07-evidence.md"
   },
-  "ready_for_manual_acceptance": true,
+  "ready_for_manual_acceptance": false,
   "human_acceptance": false,
   "next_product_milestones": [
     "rights and source contracts approved",

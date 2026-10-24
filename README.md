@@ -1,14 +1,15 @@
 # Mediterranée Rescue
 
-Fondations d’une plateforme de cartographie historique des actions en Méditerranée : React, Base UI, MapLibre, Django, Strawberry GraphQL et PostgreSQL/PostGIS.
+Fondations d’une plateforme de cartographie historique des actions en Méditerranée : React, Base UI, MapLibre, Django, Django REST Framework et PostgreSQL/PostGIS.
 
 Ce fork est une contribution en cours. Son périmètre et sa future adoption doivent être discutés avec Data for Good et SOS MEDITERRANEE. L’ancienne démonstration statique est conservée dans web/ comme historique ; elle n’est plus la base de l’application.
 
 ## Décisions et données
 
+- [Document de départ et plan concret](docs/PROJECT.md)
 - [Architecture et limites de la première tranche](docs/architecture.md)
 - [Inventaire réel des sources et dictionnaire des trois onglets](docs/data-catalog.md)
-- [Décision GraphQL et typage backend/frontend](docs/decisions/0002-graphql-types.md)
+- [Décision REST et typage backend/frontend](docs/decisions/0003-rest-openapi.md)
 - [Suivi et preuves](.agent/project/state.json)
 
 L’existant [CartONG/SOSMedDashboard](https://github.com/CartONG/SOSMedDashboard) a une carte et des données Sheets accessibles. Sa licence et les droits de republication des données ne sont pas établis. Aucun code ou dataset CartONG n’a été recopié dans cette plateforme. Le fond Natural Earth est du domaine public ; la provenance est conservée dans web/PROVENANCE.md.
@@ -28,7 +29,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Interface : http://127.0.0.1:5173/. Backend : http://127.0.0.1:8010/graphql/. La base initiale est vide, sans exemple synthétique chargé automatiquement. Le mode production de données et le mode d’entraînement sont explicitement séparés par DATA_MODE. Aucun événement réel ne doit être étiqueté fictif pour contourner cette séparation.
+Interface : http://127.0.0.1:5173/. Backend : http://127.0.0.1:8010/api/v1/events/. La base initiale est vide, sans exemple synthétique chargé automatiquement. Le mode production de données et le mode d’entraînement sont explicitement séparés par DATA_MODE. Aucun événement réel ne doit être étiqueté fictif pour contourner cette séparation.
 
 Le script crée .env avec permissions privées, sans afficher ses secrets ni remplacer un fichier existant. Ne pas le committer. La base n’a pas de port publié ; seul l’API est accessible sur l’interface locale. L’image PostGIS officielle amd64 est exécutée sous émulation sur Mac ARM. Les volumes persistent entre redémarrages ; ne pas les supprimer pour résoudre une erreur.
 
@@ -40,7 +41,7 @@ Créer un compte local sans mot de passe par défaut :
 docker compose exec api uv run --no-sync python backend/manage.py createsuperuser
 ```
 
-L’administration Django est à /admin/. Le serveur de développement local sert ses fichiers statiques ; le serveur WSGI de production requiert un proxy pour /static/. Voir infra/README.md. Un éditeur peut préparer des brouillons, mais la permission catalog.publish_event est requise pour publier/retirer. Les droits de la source et sa licence doivent avoir été approuvés. Une publication crée un audit ; les relations d’un événement publié sont gelées dans l’administration. Retirer puis corriger et revoir avant republication. Il n’existe pas de mutation GraphQL publique d’écriture dans cette tranche.
+L’administration Django est à /admin/. Le serveur de développement local sert ses fichiers statiques ; le serveur WSGI de production requiert un proxy pour /static/. Voir infra/README.md. Un éditeur peut préparer des brouillons, mais la permission catalog.publish_event est requise pour publier/retirer. Les droits de la source et sa licence doivent avoir été approuvés. Une publication crée un audit ; les relations d’un événement publié sont gelées dans l’administration. Retirer puis corriger et revoir avant republication. L’API publique est exclusivement en lecture.
 
 ## Importer un export autorisé
 
@@ -53,12 +54,12 @@ docker compose exec api uv run --no-sync python backend/manage.py import_events 
 
 La première commande valide et conserve un staging privé. --apply crée seulement des brouillons, atomiquement. Rejouer le même fichier ne duplique pas le lot ; rejouer un lot appliqué ne duplique pas les événements. Une identité existante exige une révision revue, pas un écrasement implicite. Le connecteur Sheets et son crosswalk font partie de la tranche suivante ; ils ne sont pas simulés ici.
 
-## Types GraphQL et vérification
+## Contrat REST, types et vérification
 
 ```sh
 docker compose run --rm api uv run --no-sync python backend/manage.py test catalog.tests --noinput
 docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
-docker compose run --rm -T api uv run --no-sync python backend/manage.py export_schema catalog.schema > contracts/schema.graphql
+docker compose run --rm -T api uv run --no-sync python backend/manage.py spectacular --validate --fail-on-warn > contracts/openapi.yaml
 cd frontend
 pnpm codegen
 pnpm test
@@ -67,9 +68,9 @@ cd ..
 python3 scripts/check_contract_negative.py
 ```
 
-Le schéma est généré par le backend. Les types de résultats et variables sont générés depuis les opérations frontend et ce schéma, puis consommés par urql. Les scalaires sont mappés explicitement et TypeScript est strict. Ne pas éditer manuellement contracts/schema.graphql ni frontend/src/gql/. La CI refait cette chaîne et refuse les fichiers générés désynchronisés.
+Le contrat OpenAPI est généré et validé par le backend. openapi-typescript génère routes, paramètres et réponses consommés directement par openapi-fetch et TanStack Query. TypeScript est strict. Ne pas éditer manuellement contracts/openapi.yaml ni frontend/src/api/schema.d.ts. La CI refait cette chaîne et refuse les fichiers générés désynchronisés. Les erreurs HTTP ont un contrat explicite ; les champs publics sont une sélection autorisée, pas une exposition de tous les modèles.
 
-Les tests backend tournent sur une vraie base PostGIS distincte, pas SQLite. Le compte DB local est non-superuser mais a CREATEDB pour ces tests ; ce privilège doit être retiré du rôle d’application en production. Les tests contiennent uniquement des fixtures indépendantes. Le test négatif prouve qu’une requête frontend sur un champ inexistant est refusée à la génération.
+Les tests backend tournent sur une vraie base PostGIS distincte, pas SQLite. Le compte DB local est non-superuser mais a CREATEDB pour ces tests ; ce privilège doit être retiré du rôle d’application en production. Les tests contiennent uniquement des fixtures indépendantes. Le test négatif prouve qu’une requête frontend sur un champ inexistant est refusée par TypeScript.
 
 ## Avant toute mise en service
 

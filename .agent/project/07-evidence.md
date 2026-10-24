@@ -29,3 +29,13 @@ EV-F9 : premier run GitHub Actions 40089304145 : tests backend, migrations et co
 EV-F10 : second run 40089444379 : export SDL corrigé PASS ; installation gelée frontend révèle le document de pin pnpm manquant dans le lockfile (CLI local réel 11.25 malgré le pin12). Régénération du lockfile avec le binaire pnpm12.10.1 explicite, sans désactiver frozen-lockfile ni les politiques de supply chain. Vérification locale/CI finale en cours.
 
 EV-F11 : GitHub Actions https://github.com/guillaume-flambard/mediterranean-rescue/actions/runs/40089645162 sur cd69cc4 : SUCCESS. Image backend et DB construite, 18 tests backend, migration contract, contrôle configuration production, export SDL portable, installation pnpm12 gelée, génération TS, refus de dérive, test négatif et tests/build frontend tous PASS. Les échecs précédents sont résolus par corrections, sans contourner les contrôles. F10 et F11 DONE. Fondation READY_FOR_MANUAL_ACCEPTANCE ; produit IN_PROGRESS.
+
+## Tranche REST et cadrage (preuves historiques ci-dessus conservées)
+EV-R0 : décision explicite de Guillaume REST ; ADR0003 et docs/PROJECT.md.
+EV-R1 : 18 tests Django/PostGIS PASS après remplacement des tests de transport. Permissions/contraintes/import/admin et migration réversible conservés. Revue indépendante a retrouvé une erreur du contrat (erreurs HTTP absentes), correction en cours de validation.
+
+EV-R2 : schéma `spectacular --validate --fail-on-warn` PASS ; génération openapi-typescript PASS ; test négatif `scripts/check_contract_negative.py` PASS (route, paramètre, champ inconnus et affectation nullable refusés). Modèles publics read_only : les champs de réponse sont requis même si leur valeur peut être null. Réponses d’erreur déclarées et formatées code/detail/errors optionnel.
+EV-R3 : 19 tests Django/PostGIS PASS (plafond 2001 points → 2000 + truncated, séparation training/production HTTP incluse), migration sans dérive PASS et configuration Django production PASS sans déploiement. 2 tests frontend PASS ; tsc/build PASS. Chunk MapLibre ~1056Ko avant gzip demeure P2, carte chargée à la demande.
+EV-R4 : navigateur local avec backend REST réel, chargement puis vide, fond Natural Earth, Select Base UI Sauvetages, dates inversées refusées, reset PASS. Aucune donnée réelle chargée ; détail positif couvert côté HTTP/contrat/build, recette visuelle métier à effectuer avec un extrait autorisé.
+
+EV-R5 : revue indépendante en lecture seule du backend, contrat, client/UI et document de départ. P1 de build corrigé, build indépendant PASS ; aucun autre P0/P1 identifié. Liens locaux du document/architecture/ADR/README vérifiés. Installation frontend frozen-lockfile PASS, Ruff PASS ; seconde génération OpenAPI/TS identique.

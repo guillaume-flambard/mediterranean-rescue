@@ -1,6 +1,8 @@
 # ADR 0002 : GraphQL et types backend/frontend
 
-Décision : GraphQL pour les lectures applicatives, Strawberry Django côté serveur, urql et GraphQL Code Generator côté React. Demandé et retenu le 24 octobre 2026. REST n’est plus le contrat retenu ; health/CSRF et l’administration restent des routes HTTP ordinaires.
+**Statut : remplacé par [ADR 0003 REST/OpenAPI](0003-rest-openapi.md), sur décision de Guillaume le 24 octobre 2026. Document historique, non applicable au code actif.**
+
+Décision historique : GraphQL pour les lectures applicatives, Strawberry Django côté serveur, urql et GraphQL Code Generator côté React. Demandé et retenu le 24 octobre 2026. REST n’est plus le contrat retenu ; health/CSRF et l’administration restent des routes HTTP ordinaires.
 
 Django conserve le modèle de données, les migrations, les contraintes SQL, les sessions et permissions. Strawberry déclare explicitement les champs publics, avec une intégration ORM. Nous ne générons pas une API publique de tous les modèles et ne publions pas les champs internes.
 

@@ -25,17 +25,17 @@ jobs:
         run: docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
       - name: Production configuration checks (without deployment)
         run: docker compose run --rm -e DJANGO_ENV=production -e DJANGO_ALLOWED_HOSTS=rescue.invalid api uv run --no-sync python backend/manage.py check --deploy --fail-level WARNING
-      - name: Export backend GraphQL schema
-        run: docker compose run --rm -T api uv run --no-sync python backend/manage.py export_schema catalog.schema > contracts/schema.graphql
+      - name: Export and validate OpenAPI contract
+        run: docker compose run --rm -T api uv run --no-sync python backend/manage.py spectacular --validate --fail-on-warn > contracts/openapi.yaml
       - name: Install locked frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
-      - name: Generate types from real operations
+      - name: Generate frontend REST types
         working-directory: frontend
         run: pnpm codegen
       - name: Refuse generated contract drift
-        run: git diff --exit-code -- contracts/schema.graphql frontend/src/gql
-      - name: Prove invalid operations fail generation
+        run: git diff --exit-code -- contracts/openapi.yaml frontend/src/api/schema.d.ts
+      - name: Prove invalid REST use fails type checking
         run: python3 scripts/check_contract_negative.py
       - name: Frontend checks
         working-directory: frontend

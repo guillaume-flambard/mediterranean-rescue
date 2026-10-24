@@ -1,36 +1,33 @@
 import { useState, lazy, Suspense } from "react";
-import { useQuery } from "urql";
 import { Button } from "@base-ui/react/button";
 import { Select } from "@base-ui/react/select";
 import { Dialog } from "@base-ui/react/dialog";
-import { ExploreDocument, EventDetailDocument, type Kind } from "./gql/graphql";
+import { api, type Kind } from "./api/client";
 import { dateLabel, kinds, kindLabel, makeFilter } from "./filters";
 const EventMap = lazy(async () => ({
   default: (await import("./components/Map")).EventMap,
 }));
 
 function Detail({ id }: { id: string }) {
-  const [{ data, fetching, error }, retry] = useQuery({
-    query: EventDetailDocument,
-    variables: { id },
-  });
-  if (fetching && !data) return <p role="status">Chargement de la fiche…</p>;
+  const { data: event, isPending: fetching, error, refetch: retry } = api.useQuery("get", "/api/v1/events/{id}/", { params: { path: { id } } });
+  const [evidenceOffset, setEvidenceOffset] = useState(0);
+  const evidence = api.useQuery("get", "/api/v1/events/{id}/evidence/", { params: { path: { id }, query: { limit: 25, offset: evidenceOffset } } });
+  if (fetching && !event) return <p role="status">Chargement de la fiche…</p>;
   if (error)
     return (
       <div role="alert">
         <p>La fiche n’a pas pu être chargée.</p>
-        <Button onClick={() => retry({ requestPolicy: "network-only" })}>
+        <Button onClick={() => retry()}>
           Réessayer
         </Button>
       </div>
     );
-  const event = data?.event;
   if (!event)
     return <p>Cet événement n’est pas disponible à la publication.</p>;
   return (
     <>
       <div className="detail-date">
-        {dateLabel(event.occurredOn)} · {kindLabel(event.kind)}
+        {dateLabel(event.occurred_on)} · {kindLabel(event.kind)}
       </div>
       <h2>{event.title}</h2>
       {event.source.synthetic && (
@@ -65,19 +62,25 @@ function Detail({ id }: { id: string }) {
       </dl>
       <h3>Sources et provenance</h3>
       <p>
-        <a href={event.sourceUrl} target="_blank" rel="noreferrer">
+        <a href={event.source_url} target="_blank" rel="noreferrer">
           Consulter la source de l’événement ↗
         </a>
       </p>
       <p>{event.source.name}</p>
-      <p className="muted">{event.source.licenseNote}</p>
-      {event.evidence.map((e) => (
+      <p className="muted">{event.source.license_note}</p>
+      {(evidence.data?.items ?? []).map((e) => (
         <p key={e.url}>
           <a href={e.url} target="_blank" rel="noreferrer">
             {e.label} ↗
           </a>
         </p>
       ))}
+      {evidence.error && <p role="alert">Les liens supplémentaires n’ont pas pu être chargés. <Button onClick={() => evidence.refetch()}>Réessayer</Button></p>}
+      {evidence.isPending && <p role="status">Chargement des liens…</p>}
+      <div className="pagination">
+        <Button disabled={evidenceOffset === 0 || evidence.isFetching} onClick={() => setEvidenceOffset(Math.max(0, evidenceOffset - 25))}>Liens précédents</Button>
+        <Button disabled={!evidence.data?.has_next || evidence.isFetching} onClick={() => setEvidenceOffset(evidenceOffset + 25)}>Liens suivants</Button>
+      </div>
       <p className="muted">
         Un effectif inconnu reste inconnu. Les événements peuvent concerner
         plusieurs fois les mêmes personnes.
@@ -92,11 +95,13 @@ export default function App() {
     [offset, setOffset] = useState(0),
     [selected, setSelected] = useState<string | null>(null);
   const invalid = Boolean(start && end && start > end);
-  const [{ data, fetching, error }, retry] = useQuery({
-    query: ExploreDocument,
-    variables: { filters: makeFilter(start, end, kind), offset },
-    pause: invalid,
-  });
+  const filters = makeFilter(start, end, kind);
+  const eventsQuery = api.useQuery("get", "/api/v1/events/", { params: { query: { ...filters, limit: 25, offset } } }, { enabled: !invalid });
+  const mapQuery = api.useQuery("get", "/api/v1/map-points/", { params: { query: filters } }, { enabled: !invalid });
+  const fetching = eventsQuery.isFetching || mapQuery.isFetching;
+  const error = eventsQuery.error || mapQuery.error;
+  const retry = () => { void eventsQuery.refetch(); void mapQuery.refetch(); };
+  const data = eventsQuery.data;
   const update = () => setOffset(0),
     reset = () => {
       setStart("");
@@ -104,7 +109,7 @@ export default function App() {
       setKind("");
       setOffset(0);
     };
-  const page = data?.events;
+  const page = data;
   return (
     <>
       <header className="header">
@@ -131,7 +136,7 @@ export default function App() {
           Interface indépendante en cours de développement. Le périmètre et la
           publication des données seront validés avec les associations.
         </p>
-        {data?.dataMode === "training" && (
+        {data?.data_mode === "training" && (
           <div className="training" role="status">
             Mode entraînement : tous les événements et effectifs affichés sont
             fictifs.
@@ -204,7 +209,7 @@ export default function App() {
             {fetching
               ? "Actualisation…"
               : page
-                ? `${page.totalCount} événements`
+                ? `${page.total_count} événements`
                 : ""}
           </span>
         </form>
@@ -219,7 +224,7 @@ export default function App() {
               La connexion aux données a échoué. Les résultats précédents
               peuvent être périmés.
             </p>
-            <Button onClick={() => retry({ requestPolicy: "network-only" })}>
+            <Button onClick={() => retry()}>
               Réessayer
             </Button>
           </div>
@@ -234,7 +239,7 @@ export default function App() {
               }
             >
               <EventMap
-                points={invalid ? [] : (data?.mapPoints.points ?? [])}
+                points={invalid ? [] : (mapQuery.data?.points ?? [])}
                 onSelect={setSelected}
               />
             </Suspense>
@@ -243,10 +248,10 @@ export default function App() {
                 <i /> Événement publié • points regroupés à faible zoom
               </span>
               <span>
-                {data?.mapPoints.locatedCount ?? 0} événements localisés
+                {mapQuery.data?.located_count ?? 0} événements localisés
               </span>
             </div>
-            {data?.mapPoints.truncated && (
+            {mapQuery.data?.truncated && (
               <p className="notice">
                 Les 2 000 premiers points sont affichés. Affinez la période pour
                 explorer le reste.
@@ -256,13 +261,13 @@ export default function App() {
           <section className="journal" aria-labelledby="journal-title">
             <div className="journal-head">
               <h2 id="journal-title">Événements</h2>
-              <span>{page?.totalCount ?? 0}</span>
+              <span>{page?.total_count ?? 0}</span>
             </div>
             {!data && fetching ? (
               <p className="empty" role="status">
                 Chargement des événements…
               </p>
-            ) : !invalid && page && page.totalCount === 0 ? (
+            ) : !invalid && page && page.total_count === 0 ? (
               <div className="empty">
                 <h3>Aucun événement publié</h3>
                 <p>
@@ -284,7 +289,7 @@ export default function App() {
                       onClick={() => setSelected(event.id)}
                     >
                       <span className="event-date">
-                        {dateLabel(event.occurredOn)}
+                        {dateLabel(event.occurred_on)}
                       </span>
                       <strong>{event.title}</strong>
                       <span className="muted">
@@ -309,12 +314,12 @@ export default function App() {
                 Précédent
               </Button>
               <span>
-                {page?.totalCount
-                  ? `${offset + 1} à ${Math.min(offset + 25, page.totalCount)}`
+                {page?.total_count
+                  ? `${offset + 1} à ${Math.min(offset + 25, page.total_count)}`
                   : "0 résultat"}
               </span>
               <Button
-                disabled={!page?.hasNext || fetching || invalid}
+                disabled={!page?.has_next || fetching || invalid}
                 onClick={() => setOffset(offset + 25)}
               >
                 Suivant
@@ -349,7 +354,7 @@ export default function App() {
               Fiche de l’événement
             </Dialog.Title>
             <Dialog.Close className="dialog-close">Fermer ×</Dialog.Close>
-            {selected && <Detail id={selected} />}
+            {selected && <Detail key={selected} id={selected} />}
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>

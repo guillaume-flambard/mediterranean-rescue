@@ -6,7 +6,6 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      "/graphql": "http://127.0.0.1:8010",
       "/api": "http://127.0.0.1:8010",
       "/admin": "http://127.0.0.1:8010",
     },

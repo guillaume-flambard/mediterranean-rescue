@@ -5,9 +5,10 @@ description = "Historical rescue data platform with provenance and controlled pu
 requires-python = ">=3.12,<3.14"
 dependencies = [
   "Django>=5.2.18,<5.3",
-  "strawberry-graphql-django>=0.93,<0.94",
   "psycopg[binary]>=3.3.6,<3.4",
   "gunicorn>=23,<24",
+  "djangorestframework>=3.16,<4",
+  "drf-spectacular>=0.28,<1",
 ]
 
 [dependency-groups]

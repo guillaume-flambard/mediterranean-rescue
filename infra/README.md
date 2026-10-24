@@ -1,6 +1,6 @@
 # Exécution et exploitation
 
-Compose sert au développement local et à la CI. Le backend WSGI Gunicorn utilise deux processus sans threads pour GeoDjango. Le frontend est un build statique Vite. La production devra avoir un proxy même origine : / vers frontend/dist, /graphql/ et /api/ vers Django, /admin/ vers administration protégée, /static/ vers collectstatic. Pas de CORS global permissif. La session et CSRF restent vérifiés côté Django ; le client public obtient son token via /api/csrf/.
+Compose sert au développement local et à la CI. Le backend WSGI Gunicorn utilise deux processus sans threads pour GeoDjango. Le frontend est un build statique Vite. La production devra avoir un proxy même origine : / vers frontend/dist, /api/ vers Django, /admin/ vers administration protégée, /static/ vers collectstatic. Pas de CORS global permissif. La session et CSRF restent vérifiés côté Django ; les endpoints REST publics de lecture n’exigent pas de token CSRF.
 
 La configuration production échoue sans un secret long. DEBUG est false par défaut en production, HTTPS/cookies sécurisés/HSTS sont activés. Les paramètres de proxy et domaines doivent être décidés au déploiement, pas remplacés par des wildcards. Le rôle PostgreSQL runtime ne sera pas superuser ni CREATEDB ; le compte de migration distinct possédera uniquement les droits nécessaires. Le rôle local rescue a CREATEDB uniquement pour créer la base de test.
 

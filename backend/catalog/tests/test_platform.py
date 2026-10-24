@@ -9,7 +9,6 @@ from django.test import Client, TestCase, TransactionTestCase, override_settings
 
 from catalog.imports import apply_batch, stage_payload
 from catalog.models import Event, ImportBatch, PublicationAudit, Source, StagedRecord
-from catalog.schema import schema
 from catalog.services import set_publication
 
 
@@ -60,22 +59,17 @@ class PlatformTests(TestCase):
             event_id=event.pk, actor=self.actor, publish=True, reason="Fixture review"
         )
 
-    def test_drafts_and_unapproved_sources_never_reach_graph(self):
+    def test_drafts_and_unapproved_sources_never_reach_api(self):
         event = self.event()
-        result = schema.execute_sync("{ events { totalCount items { id source { name } } } }")
-        self.assertIsNone(result.errors)
-        self.assertEqual(result.data["events"]["totalCount"], 0)
-        self.assertIsNone(
-            schema.execute_sync(
-                "query($id: UUID!){event(id:$id){id}}", variable_values={"id": str(event.id)}
-            ).data["event"]
-        )
+        self.assertEqual(self.client.get("/api/v1/events/").json()["total_count"], 0)
+        self.assertEqual(self.client.get(f"/api/v1/events/{event.id}/").status_code, 404)
+        self.assertEqual(self.client.get(f"/api/v1/events/{event.id}/evidence/").status_code, 404)
         self.publish(event)
         self.source.rights_approved = False
         self.source.save()
-        self.assertEqual(
-            schema.execute_sync("{events{totalCount}}").data["events"]["totalCount"], 0
-        )
+        self.assertEqual(self.client.get("/api/v1/events/").json()["total_count"], 0)
+        self.assertEqual(self.client.get("/api/v1/map-points/").json()["located_count"], 0)
+        self.assertEqual(self.client.get(f"/api/v1/events/{event.id}/").status_code, 404)
 
     def test_publication_requires_permission_rights_and_reason(self):
         event = self.event()
@@ -94,17 +88,21 @@ class PlatformTests(TestCase):
 
     def test_publication_audit_and_withdrawal(self):
         event = self.publish(self.event())
-        result = schema.execute_sync(
-            "{events{totalCount items{id kind people position{longitude latitude precision} source{name}}}}"
-        )
-        self.assertIsNone(result.errors)
-        self.assertEqual(result.data["events"]["totalCount"], 1)
-        self.assertIsNone(result.data["events"]["items"][0]["people"])
-        self.assertEqual(result.data["events"]["items"][0]["kind"], "RESCUE")
+        response = self.client.get("/api/v1/events/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["total_count"], 1)
+        self.assertIsNone(data["items"][0]["people"])
+        self.assertEqual(data["items"][0]["kind"], "rescue")
+        detail = self.client.get(f"/api/v1/events/{event.id}/").json()
+        self.assertEqual(detail["position"]["longitude"], 12)
+        self.assertNotIn("external_id", detail)
+        self.assertNotIn("rights_approved", detail["source"])
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
         set_publication(
             event_id=event.pk, actor=self.actor, publish=False, reason="Correction requested"
         )
-        self.assertEqual(Event.objects.public().count(), 0)
+        self.assertEqual(self.client.get(f"/api/v1/events/{event.id}/").status_code, 404)
         self.assertEqual(PublicationAudit.objects.count(), 2)
 
     def test_database_rejects_unreviewed_publication(self):
@@ -151,39 +149,77 @@ class PlatformTests(TestCase):
 
     def test_bounds_and_dates_use_same_public_queryset(self):
         self.publish(self.event())
-        q = "query($f:EventFilter){events(filters:$f){totalCount} mapPoints(filters:$f){locatedCount points{id}}}"
         filters = {
             "start": "2024-02-29",
             "end": "2024-02-29",
-            "bounds": {"west": 11, "south": 33, "east": 13, "north": 35},
+            "bbox": "11,33,13,35",
+            "kind": "rescue",
         }
-        result = schema.execute_sync(q, variable_values={"f": filters})
-        self.assertIsNone(result.errors)
-        self.assertEqual(result.data["events"]["totalCount"], 1)
-        self.assertEqual(result.data["mapPoints"]["locatedCount"], 1)
-        filters["bounds"]["west"] = 14
-        self.assertTrue(schema.execute_sync(q, variable_values={"f": filters}).errors)
-        self.assertTrue(
-            schema.execute_sync(
-                '{events(filters:{start:"2025-01-01",end:"2024-01-01"}){totalCount}}'
-            ).errors
-        )
+        self.assertEqual(self.client.get("/api/v1/events/", filters).json()["total_count"], 1)
+        self.assertEqual(self.client.get("/api/v1/map-points/", filters).json()["located_count"], 1)
+        for invalid in [
+            {"bbox": "14,33,13,35"},
+            {"start": "2025-01-01", "end": "2024-01-01"},
+            {"start": "2023-02-29"},
+            {"bbox": "nan,0,1,1"},
+            {"kind": "unknown"},
+            {"bbox": "1,2"},
+            {"unknown": "x"},
+        ]:
+            for path in ["/api/v1/events/", "/api/v1/map-points/"]:
+                self.assertEqual(self.client.get(path, invalid).status_code, 400)
+        filters["bbox"] = "0,0,1,1"
+        self.assertEqual(self.client.get("/api/v1/events/", filters).json()["total_count"], 0)
 
-    def test_graphql_contract_rejects_unsafe_fields_and_limits(self):
-        self.assertTrue(schema.execute_sync("{events{items{externalId}}}").errors)
-        self.assertTrue(schema.execute_sync("{events(limit:101){totalCount}}").errors)
-        aliases = " ".join(f"a{i}:dataMode" for i in range(11))
-        self.assertTrue(schema.execute_sync("{" + aliases + "}").errors)
-        self.assertTrue(schema.execute_sync('mutation { publishEvent(id:"x") {id} }').errors)
+    def test_rest_contract_rejects_writes_and_invalid_pagination(self):
+        for values in [{"limit": 101}, {"limit": 0}, {"offset": -1}, {"offset": 100001}]:
+            self.assertEqual(self.client.get("/api/v1/events/", values).status_code, 400)
+        self.assertEqual(
+            self.client.get("/api/v1/events/?kind=rescue&kind=transfer").status_code, 400
+        )
+        for method in ["post", "put", "patch", "delete"]:
+            self.assertEqual(getattr(self.client, method)("/api/v1/events/").status_code, 405)
+        self.assertEqual(self.client.get("/graphql/").status_code, 404)
 
     def test_query_budget_is_bounded_for_relations(self):
         for i in range(5):
             self.publish(self.event(external_id=str(i)))
-        with self.assertNumQueries(3):
-            result = schema.execute_sync(
-                "{events{totalCount items{id source{name} evidence{url} vessel{name} voyage{title} port{name}}}}"
-            )
-        self.assertIsNone(result.errors)
+        with self.assertNumQueries(2):
+            response = self.client.get("/api/v1/events/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["items"]), 5)
+        page = self.client.get("/api/v1/events/", {"limit": 2}).json()
+        self.assertTrue(page["has_next"])
+        self.assertEqual(len(page["items"]), 2)
+
+    def test_map_cap_and_http_training_isolation(self):
+        from django.utils import timezone
+
+        Event.objects.bulk_create(
+            [
+                Event(
+                    source=self.source,
+                    external_id=f"cap-{i}",
+                    kind="rescue",
+                    occurred_on=date(2024, 2, 29),
+                    title="Synthetic test fixture",
+                    source_url="https://example.org",
+                    location=Point(12, 34, srid=4326),
+                    location_precision="approximate",
+                    status="published",
+                    published_at=timezone.now(),
+                    reviewed_by=self.actor,
+                )
+                for i in range(2001)
+            ]
+        )
+        result = self.client.get("/api/v1/map-points/").json()
+        self.assertEqual(len(result["points"]), 2000)
+        self.assertEqual(result["located_count"], 2001)
+        self.assertTrue(result["truncated"])
+        with override_settings(DATA_MODE="training"):
+            self.assertEqual(self.client.get("/api/v1/events/").json()["total_count"], 0)
+            self.assertEqual(self.client.get("/api/v1/map-points/").json()["located_count"], 0)
 
     def test_training_data_does_not_leak_into_production(self):
         self.source.synthetic = True
@@ -195,24 +231,16 @@ class PlatformTests(TestCase):
 
     def test_http_csrf_size_and_health(self):
         client = Client(enforce_csrf_checks=True)
-        response = client.post(
-            "/graphql/", data=json.dumps({"query": "{dataMode}"}), content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 403)
-        token = client.get("/api/csrf/").json()["csrfToken"]
-        response = client.post(
-            "/graphql/",
-            data=json.dumps({"query": "{dataMode}"}),
-            content_type="application/json",
-            HTTP_X_CSRFTOKEN=token,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["dataMode"], "production")
+        self.assertEqual(client.get("/api/v1/events/").status_code, 200)
+        self.assertEqual(client.post("/admin/login/", {"username": "invalid"}).status_code, 403)
+        self.assertIn("csrfToken", client.get("/api/csrf/").json())
         self.assertEqual(client.get("/api/health/").status_code, 200)
-        response = client.post(
-            "/graphql/", data="x" * 65537, content_type="application/json", HTTP_X_CSRFTOKEN=token
+        self.assertEqual(
+            client.post(
+                "/api/v1/events/", data="x" * 65537, content_type="application/json"
+            ).status_code,
+            413,
         )
-        self.assertEqual(response.status_code, 413)
 
     def test_published_relations_cannot_be_changed_indirectly_in_admin(self):
         from django.contrib import admin
@@ -256,21 +284,20 @@ class PlatformTests(TestCase):
         self.source.save()
         self.assertEqual(Event.objects.public().count(), 0)
 
-    def test_browser_query_without_content_length_and_dev_proxy_origin(self):
-        client = Client(enforce_csrf_checks=True)
-        response = client.get("/graphql/", {"query": "{dataMode}"}, CONTENT_LENGTH="")
+    def test_browser_query_without_content_length_and_paginated_evidence(self):
+        from catalog.models import Evidence
+
+        response = self.client.get("/api/v1/events/", CONTENT_LENGTH="")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["dataMode"], "production")
-        token = client.get("/api/csrf/").json()["csrfToken"]
-        with override_settings(CSRF_TRUSTED_ORIGINS=["http://127.0.0.1:5173"]):
-            response = client.post(
-                "/graphql/",
-                data=json.dumps({"query": "{dataMode}"}),
-                content_type="application/json",
-                HTTP_X_CSRFTOKEN=token,
-                HTTP_ORIGIN="http://127.0.0.1:5173",
-            )
-            self.assertEqual(response.status_code, 200)
+        event = self.publish(self.event(location=None, location_precision="unknown"))
+        for i in range(3):
+            Evidence.objects.create(event=event, label=str(i), url="https://example.org")
+        result = self.client.get(f"/api/v1/events/{event.id}/evidence/", {"limit": 2}).json()
+        self.assertEqual(len(result["items"]), 2)
+        self.assertTrue(result["has_next"])
+        self.assertEqual(result["total_count"], 3)
+        self.assertIsNone(self.client.get(f"/api/v1/events/{event.id}/").json()["position"])
+        self.assertEqual(self.client.get("/api/v1/map-points/").json()["located_count"], 0)
 
     def test_stale_admin_forms_cannot_undo_publication_or_rights_revocation(self):
         from types import SimpleNamespace

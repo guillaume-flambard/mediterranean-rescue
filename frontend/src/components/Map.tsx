@@ -8,8 +8,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 setWorkerUrl(workerUrl);
-import type { ExploreQuery } from "../gql/graphql";
-type Points = ExploreQuery["mapPoints"]["points"];
+import type { MapPoints as Points } from "../api/client";
 export function EventMap({
   points,
   onSelect,

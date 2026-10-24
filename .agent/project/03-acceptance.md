@@ -7,3 +7,11 @@ AC-F5 (F5) : UI charge le backend et distingue vide/erreur/entraînement ; Base 
 AC-F6 (F6) : import identique idempotent, erreur ne publie rien, checksum/provenance conservés, inconnus non transformés en zéro.
 AC-F7 (F7) : commandes documentées et CI cohérente, contrôle sécurité Django production, pas de secret/payload réel dans Git.
 Preuves en attente dans 07-evidence.md.
+
+## Critères de la tranche REST et cadrage
+AC-R1 = R-REST-1 : brouillon/retrait/révocation/train exclus et champs internes absents ; tests HTTP.
+AC-R2 = R-REST-2 : filtres identiques, 400/404/405, pagination et limite carte ; tests HTTP/budget SQL.
+AC-R3 = R-REST-3 : OpenAPI sans avertissement, régénération déterministe et compilation négative ; CI et commandes locales.
+AC-R4 = R-REST-4 : carte/liste/détail avec hooks REST, test/build et parcours navigateur.
+AC-R5 = R-DOC-1 : document de départ, cinq lots dépendants, critères/risques et README exact ; inspection des liens et revue.
+Preuves courantes : section EV-R de 07-evidence.md (en cours).

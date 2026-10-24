@@ -1,0 +1,568 @@
+openapi: 3.0.3
+info:
+  title: Mediterranean Rescue public API
+  version: 1.0.0
+paths:
+  /api/v1/events/:
+    get:
+      operationId: list_events
+      parameters:
+      - in: query
+        name: bbox
+        schema:
+          type: string
+          minLength: 1
+        description: west,south,east,north in WGS84
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - rescue
+          - transfer
+          - medevac
+          - incident
+          - shipwreck
+          - dead_missing
+          type: string
+          minLength: 1
+        description: |-
+          * `rescue` - Sauvetage
+          * `transfer` - Transfert
+          * `medevac` - Évacuation médicale
+          * `incident` - Incident
+          * `shipwreck` - Naufrage
+          * `dead_missing` - Décès / disparitions
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date
+      tags:
+      - events
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/events/{id}/:
+    get:
+      operationId: retrieve_event
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - events
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/events/{id}/evidence/:
+    get:
+      operationId: list_event_evidence
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      tags:
+      - events
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidencePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/map-points/:
+    get:
+      operationId: list_map_points
+      parameters:
+      - in: query
+        name: bbox
+        schema:
+          type: string
+          minLength: 1
+        description: west,south,east,north in WGS84
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - rescue
+          - transfer
+          - medevac
+          - incident
+          - shipwreck
+          - dead_missing
+          type: string
+          minLength: 1
+        description: |-
+          * `rescue` - Sauvetage
+          * `transfer` - Transfert
+          * `medevac` - Évacuation médicale
+          * `incident` - Incident
+          * `shipwreck` - Naufrage
+          * `dead_missing` - Décès / disparitions
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date
+      tags:
+      - map-points
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+components:
+  schemas:
+    DataModeEnum:
+      enum:
+      - production
+      - training
+      type: string
+      description: |-
+        * `production` - production
+        * `training` - training
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+        errors: {}
+      required:
+      - code
+      - detail
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        summary:
+          type: string
+          readOnly: true
+        occurred_on:
+          type: string
+          format: date
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/KindEnum'
+          readOnly: true
+        people:
+          type: integer
+          readOnly: true
+          nullable: true
+        women:
+          type: integer
+          readOnly: true
+          nullable: true
+        minors:
+          type: integer
+          readOnly: true
+          nullable: true
+        source_url:
+          type: string
+          format: uri
+          readOnly: true
+        source:
+          $ref: '#/components/schemas/Source'
+        vessel:
+          allOf:
+          - $ref: '#/components/schemas/Vessel'
+          nullable: true
+        voyage:
+          allOf:
+          - $ref: '#/components/schemas/Voyage'
+          nullable: true
+        port:
+          allOf:
+          - $ref: '#/components/schemas/Port'
+          nullable: true
+        position:
+          allOf:
+          - $ref: '#/components/schemas/Position'
+          nullable: true
+          readOnly: true
+      required:
+      - id
+      - kind
+      - minors
+      - occurred_on
+      - people
+      - port
+      - position
+      - source
+      - source_url
+      - summary
+      - title
+      - vessel
+      - voyage
+      - women
+    EventPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+        data_mode:
+          $ref: '#/components/schemas/DataModeEnum'
+      required:
+      - data_mode
+      - has_next
+      - items
+      - total_count
+    Evidence:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        label:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - id
+      - label
+      - url
+    EvidencePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+      - total_count
+    KindEnum:
+      enum:
+      - rescue
+      - transfer
+      - medevac
+      - incident
+      - shipwreck
+      - dead_missing
+      type: string
+      description: |-
+        * `rescue` - Sauvetage
+        * `transfer` - Transfert
+        * `medevac` - Évacuation médicale
+        * `incident` - Incident
+        * `shipwreck` - Naufrage
+        * `dead_missing` - Décès / disparitions
+    MapPoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+      required:
+      - id
+      - kind
+      - latitude
+      - longitude
+    MapResult:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapPoint'
+        located_count:
+          type: integer
+        truncated:
+          type: boolean
+      required:
+      - located_count
+      - points
+      - truncated
+    Port:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        country_code:
+          type: string
+          readOnly: true
+      required:
+      - country_code
+      - id
+      - name
+    Position:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        precision:
+          type: string
+      required:
+      - latitude
+      - longitude
+      - precision
+    Source:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+        license_note:
+          type: string
+          readOnly: true
+        synthetic:
+          type: boolean
+          readOnly: true
+      required:
+      - id
+      - license_note
+      - name
+      - synthetic
+      - url
+    Vessel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        imo:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - imo
+      - name
+    Voyage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        started_on:
+          type: string
+          format: date
+          readOnly: true
+        ended_on:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        logbook_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - ended_on
+      - id
+      - logbook_url
+      - started_on
+      - title

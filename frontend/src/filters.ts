@@ -1,11 +1,11 @@
-import type { EventFilter, Kind } from "./gql/graphql";
+import type { EventFilter, Kind } from "./api/client";
 export const kinds: readonly { value: Kind; label: string }[] = [
-  { value: "RESCUE", label: "Sauvetages" },
-  { value: "TRANSFER", label: "Transferts" },
-  { value: "MEDEVAC", label: "Évacuations médicales" },
-  { value: "INCIDENT", label: "Incidents" },
-  { value: "SHIPWRECK", label: "Naufrages" },
-  { value: "DEAD_MISSING", label: "Décès et disparitions" },
+  { value: "rescue", label: "Sauvetages" },
+  { value: "transfer", label: "Transferts" },
+  { value: "medevac", label: "Évacuations médicales" },
+  { value: "incident", label: "Incidents" },
+  { value: "shipwreck", label: "Naufrages" },
+  { value: "dead_missing", label: "Décès et disparitions" },
 ];
 export function kindLabel(value: Kind) {
   return kinds.find((k) => k.value === value)?.label ?? value;

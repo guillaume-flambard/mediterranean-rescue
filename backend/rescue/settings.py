@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
-    "strawberry_django",
+    "rest_framework",
+    "drf_spectacular",
     "catalog",
 ]
 MIDDLEWARE = [
@@ -34,7 +35,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "rescue.middleware.GraphQLRequestLimit",
+    "rescue.middleware.APIRequestLimit",
 ]
 ROOT_URLCONF = "rescue.urls"
 TEMPLATES = [
@@ -102,3 +103,18 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(",")
     if value
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAdminUser"],
+    "URL_FORMAT_OVERRIDE": None,
+    "EXCEPTION_HANDLER": "catalog.api.exception_handler",
+}
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Mediterranean Rescue public API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+}

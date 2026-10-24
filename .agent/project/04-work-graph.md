@@ -1,4 +1,6 @@
-# Graphe fini de la première fondation
+# Graphe de travail
+
+## Historique de la première fondation, remplacée par la tranche REST
 F1 P1 DONE inventaire/architecture → AC-F1, EV-F1.
 F2 P1 DONE modèles/migrations → AC-F2, EV-F2/F3.
 F3 P1 DONE staging/import/publication/administration → AC-F3/F6, EV-F2/F7.
@@ -10,10 +12,17 @@ F8 P1 DONE défauts découverts : worker MapLibre bundlé, GET Content-Length vi
 F9 P1 DONE défauts revue : édition indirecte et formulaires périmés sur contenus publiés → EV-F2/F7.
 
 Produit hors tranche, explicitement en cours : migration réelle/crosswalk, révisions et rapprochements logbook, alias ports/couches qualifiées, identité/hébergement/backup/restauration de production et recette associative.
-P2 : plafonnement des preuves imbriquées GraphQL, amélioration du poids cartographique chargé à la demande, filtres spatiaux pilotés par l’interface.
+P2 historique, pagination des preuves résolue dans REST-2 ; restent amélioration du poids cartographique chargé à la demande, filtres spatiaux pilotés par l’interface.
 
 F10 P1 DONE défaut CI Linux : export SDL par stdout et écriture par l’hôte ; utilisateur conteneur non-root conservé. Readiness DB vérifie désormais le compte applicatif en TCP pour éviter le serveur temporaire d’initialisation.
 
 F11 P1 DONE alignement lockfile et pnpm12.10.1 réel (défaut CI d’installation gelée), dépend F10.
 
 Clôture F10/F11 : EV-F11, CI complète verte sur cd69cc4 ; la dernière mise à jour est documentaire.
+
+## Tranche REST et cadrage, 24 octobre 2026
+REST-1 P1 DONE spécification ADR0003, preuve : décision utilisateur et contrat écrit.
+REST-2 P1 VERIFYING API publique REST/OpenAPI ; R-REST-1/2/3.
+REST-3 P1 VERIFYING client généré et interface ; dépend REST-2, R-REST-3/4.
+REST-4 P1 IN_PROGRESS tests et CI ; dépend REST-2/3.
+REST-5 P1 IN_PROGRESS document de départ, revue indépendante et clôture ; R-DOC-1, dépend REST-4.
