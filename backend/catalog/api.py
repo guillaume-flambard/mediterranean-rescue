@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
-from django.db.models import Q
+from django.db.models import Count, Q
+from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_field
 from rest_framework import serializers
@@ -312,3 +313,38 @@ class MapPointsView(PublicView):
             for event in queryset.only("id", "location", "kind", "occurred_on")[:2000]
         ]
         return Response({"points": points, "located_count": count, "truncated": count > 2000})
+
+
+class TimelineFilters(serializers.Serializer):
+    """The timeline shows every month, so a period filter would hide what it is for."""
+
+    kind = serializers.ChoiceField(choices=EventKind.choices, required=False)
+    q = serializers.CharField(required=False, max_length=80)
+
+
+class MonthCountSerializer(serializers.Serializer):
+    month = serializers.CharField(help_text="YYYY-MM")
+    count = serializers.IntegerField()
+
+
+class TimelineSerializer(serializers.Serializer):
+    months = MonthCountSerializer(many=True)
+
+
+class TimelineView(PublicView):
+    @extend_schema(
+        parameters=[TimelineFilters],
+        responses={200: TimelineSerializer, **ERRORS},
+        operation_id="list_timeline",
+    )
+    def get(self, request):
+        values = parameters(request, TimelineFilters)
+        rows = (
+            filtered_events(values)
+            .annotate(month=TruncMonth("occurred_on"))
+            .values("month")
+            .annotate(count=Count("id"))
+            .order_by("month")
+        )
+        months = [{"month": row["month"].strftime("%Y-%m"), "count": row["count"]} for row in rows]
+        return Response(TimelineSerializer({"months": months}).data)

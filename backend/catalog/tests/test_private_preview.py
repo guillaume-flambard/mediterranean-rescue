@@ -56,6 +56,12 @@ class PreviewTests(PrivateApiTestCase):
         self.assertEqual(self.get(f"preview/events/{body['items'][0]['id']}/").status_code, 200)
         self.assertEqual(self.get(f"preview/events/{old_row}/").status_code, 404)
 
+    def test_timeline_counts_rows_per_month(self):
+        months = self.get("preview/timeline/").json()["months"]
+        self.assertEqual(months, [{"month": "2024-02", "count": 3}])
+        blocked = self.get("preview/timeline/?status=blocked").json()["months"]
+        self.assertEqual(blocked, [{"month": "2024-02", "count": 1}])
+
     def test_reviewers_only(self):
         self.assertEqual(self.get("preview/events/", client=Client()).status_code, 401)
         outsider = Client()

@@ -425,3 +425,53 @@
   .logbook__month-title { padding: var(--space-3) var(--space-4); }
 }
 @media (max-width: 959px) { .logbook__month-title { position: static; } }
+
+/* View C: the map leads, the timeline chooses the period, the list stays beside it. */
+.timeline { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-3); border-radius: 20px; background: var(--sos-white); box-shadow: var(--card-shadow); }
+.timeline--empty { margin: 0; color: var(--color-text-secondary); }
+.timeline__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--space-3); }
+.timeline__head h2 { margin: 0; font-size: 16px; font-weight: 800; }
+.timeline__head p { margin: 0 auto 0 0; color: var(--color-text-secondary); font-size: 14px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
+.timeline__chart { position: relative; display: flex; align-items: flex-end; gap: 1px; height: 72px; }
+.timeline__bar { flex: 1; min-width: 1px; border-radius: 2px 2px 0 0; background: #c9ccd9; transition: background-color 0.2s var(--ease-out); }
+.timeline__bar--in { background: var(--sos-navy); }
+.timeline__window { position: absolute; top: -4px; bottom: -4px; border: 2px solid var(--sos-orange); border-radius: 10px; background: rgb(232 62 27 / 0.06); pointer-events: none; transition: left 0.15s var(--ease-out), width 0.15s var(--ease-out); }
+/* Two native ranges stacked: only their thumbs take the pointer, so both handles stay reachable. */
+.timeline__handles { position: relative; height: 28px; margin-top: -6px; }
+.timeline__handles input {
+  position: absolute; inset: 0; width: 100%; margin: 0; background: transparent; pointer-events: none;
+  appearance: none; -webkit-appearance: none; accent-color: var(--sos-orange-dark-proposed);
+}
+.timeline__handles input::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+.timeline__handles input::-moz-range-track { height: 4px; background: transparent; }
+.timeline__handles input::-webkit-slider-thumb {
+  -webkit-appearance: none; pointer-events: auto; width: 26px; height: 26px; margin-top: -11px; border-radius: 50%;
+  background: var(--sos-white); border: 3px solid var(--sos-orange-dark-proposed); box-shadow: 0 2px 6px rgb(27 39 71 / 0.25); cursor: grab;
+}
+.timeline__handles input::-moz-range-thumb {
+  pointer-events: auto; width: 20px; height: 20px; border-radius: 50%; background: var(--sos-white);
+  border: 3px solid var(--sos-orange-dark-proposed); box-shadow: 0 2px 6px rgb(27 39 71 / 0.25); cursor: grab;
+}
+.timeline__handles input:focus-visible { outline: none; }
+.timeline__handles input:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--sos-navy); outline-offset: 2px; }
+.timeline__years { position: relative; height: 16px; color: var(--color-text-muted); font-size: 11px; font-weight: 700; font-variant-numeric: lining-nums; }
+.timeline__years span { position: absolute; top: 0; transform: translateX(-2px); }
+@media (max-width: 639px) {
+  .explore--view-timeline .timeline { order: 2; }
+  .explore--view-timeline .explore-map--inline > .map-card { height: 46vh; }
+}
+@media (min-width: 960px) {
+  .explore--view-timeline .explore-body { grid-template-columns: minmax(360px, 440px) minmax(0, 1fr); }
+  .explore--view-timeline .card__locator { display: none; }
+}
+/* One timeline per layout: in the column on phones, over the map on wide screens. */
+.timeline--overlay { display: none; }
+.explore--team .explore-intro { display: none; }
+@media (min-width: 960px) {
+  .timeline--inline { display: none; }
+  .explore-map--side { position: sticky; }
+  .explore--view-timeline .explore-map--side .timeline--overlay {
+    display: grid; position: absolute; z-index: 3; left: var(--space-5); right: var(--space-10); bottom: calc(var(--space-6) + var(--space-5));
+    box-shadow: 0 2px 6px rgb(27 39 71 / 0.1), 0 24px 48px -20px rgb(27 39 71 / 0.4);
+  }
+}

@@ -550,6 +550,13 @@ export const en = {
   "explore.logbook.peopleKnown": { one: "{count} person where given", other: "{count} people where given" },
   "explore.logbook.port": "Landed in {port}",
   "explore.logbook.noPort": "Port not given",
+  "timeline.title": "Events per month",
+  "timeline.whole": { one: "Whole period · {count} event", other: "Whole period · {count} events" },
+  "timeline.selected": { one: "{from} to {to} · {count} event", other: "{from} to {to} · {count} events" },
+  "timeline.reset": "Whole period",
+  "timeline.start": "Start of the period",
+  "timeline.end": "End of the period",
+  "timeline.empty": "No event to place on the timeline yet.",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

@@ -187,6 +187,23 @@ class PlatformTests(TestCase):
             self.client.get("/api/v1/map-points/", {"q": "nowhere"}).json()["located_count"], 0
         )
 
+    def test_timeline_counts_published_events_per_month(self):
+        self.publish(self.event(external_id="a", occurred_on=date(2024, 2, 3)))
+        self.publish(self.event(external_id="b", occurred_on=date(2024, 2, 20), kind="transfer"))
+        self.publish(self.event(external_id="c", occurred_on=date(2023, 12, 1)))
+        self.event(external_id="draft", occurred_on=date(2024, 3, 1))
+        months = self.client.get("/api/v1/timeline/").json()["months"]
+        self.assertEqual(
+            months, [{"month": "2023-12", "count": 1}, {"month": "2024-02", "count": 2}]
+        )
+        rescues = self.client.get("/api/v1/timeline/", {"kind": "rescue"}).json()["months"]
+        self.assertEqual(
+            rescues, [{"month": "2023-12", "count": 1}, {"month": "2024-02", "count": 1}]
+        )
+        self.assertEqual(
+            self.client.get("/api/v1/timeline/", {"start": "2024-01-01"}).status_code, 400
+        )
+
     def test_rest_contract_rejects_writes_and_invalid_pagination(self):
         for values in [{"limit": 101}, {"limit": 0}, {"offset": -1}, {"offset": 100001}]:
             self.assertEqual(self.client.get("/api/v1/events/", values).status_code, 400)

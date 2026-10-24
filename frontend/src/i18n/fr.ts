@@ -553,4 +553,11 @@ export const fr: Messages = {
   "explore.logbook.peopleKnown": { one: "{count} personne là où c’est indiqué", other: "{count} personnes là où c’est indiqué" },
   "explore.logbook.port": "Débarquement à {port}",
   "explore.logbook.noPort": "Port non indiqué",
+  "timeline.title": "Événements par mois",
+  "timeline.whole": { one: "Toute la période · {count} événement", other: "Toute la période · {count} événements" },
+  "timeline.selected": { one: "De {from} à {to} · {count} événement", other: "De {from} à {to} · {count} événements" },
+  "timeline.reset": "Toute la période",
+  "timeline.start": "Début de la période",
+  "timeline.end": "Fin de la période",
+  "timeline.empty": "Aucun événement à placer sur la frise pour l’instant.",
 };

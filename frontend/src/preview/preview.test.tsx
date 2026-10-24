@@ -116,12 +116,18 @@ describe("main screen preview", () => {
     expect(await screen.findByText("Nothing matches")).toBeTruthy();
   });
 
-  it("views not built yet are shown as coming, not as empty screens", async () => {
-    fakeServer({ ...EMPTY_PUBLIC, "GET /api/private/v1/me/": () => ({ status: 401, body: { code: "not_authenticated", detail: "x" } }) });
+  it("the view switcher offers three views and keeps the choice in the address", async () => {
+    fakeServer({
+      ...EMPTY_PUBLIC,
+      "GET /api/private/v1/me/": () => ({ status: 401, body: { code: "not_authenticated", detail: "x" } }),
+      "GET /api/v1/timeline/": () => ({ body: { months: [] } }),
+    });
     renderApp();
     const views = await screen.findByRole("group", { name: "View" });
     expect(within(views).getByRole("button", { name: /Feed/ }).getAttribute("aria-pressed")).toBe("true");
-    expect((within(views).getByRole("button", { name: /Timeline/ }) as HTMLButtonElement).disabled).toBe(true);
+    await userEvent.click(within(views).getByRole("button", { name: /Timeline/ }));
+    expect(window.location.search).toBe("?view=timeline");
+    expect((await screen.findAllByText("No event to place on the timeline yet.")).length).toBeGreaterThan(0);
   });
 
   it("the logbook groups events by month and opens one in place", async () => {

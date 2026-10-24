@@ -240,3 +240,34 @@ class PreviewEventView(PrivateView):
             STATUS_BY_PROPOSAL[p.kind] for p in propose_links(row.snapshot) if p.row_id == row.pk
         )
         return Response(PreviewItemSerializer(item(row, row.snapshot, status)).data)
+
+
+class PreviewTimelineFilters(serializers.Serializer):
+    kind = serializers.CharField(required=False, max_length=40)
+    status = serializers.ChoiceField(choices=STATUSES, required=False)
+    q = serializers.CharField(required=False, max_length=80)
+
+
+class PreviewMonthSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class PreviewTimelineSerializer(serializers.Serializer):
+    months = PreviewMonthSerializer(many=True)
+
+
+class PreviewTimelineView(PrivateView):
+    @extend_schema(
+        parameters=[PreviewTimelineFilters],
+        responses={200: PreviewTimelineSerializer, **ERRORS},
+        operation_id="private_preview_timeline",
+    )
+    def get(self, request):
+        counts = {}
+        for entry in preview_items(parameters(request, PreviewTimelineFilters)):
+            if entry["occurred_on"]:
+                month = entry["occurred_on"][:7]
+                counts[month] = counts.get(month, 0) + 1
+        months = [{"month": month, "count": counts[month]} for month in sorted(counts)]
+        return Response(PreviewTimelineSerializer({"months": months}).data)

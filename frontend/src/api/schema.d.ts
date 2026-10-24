@@ -196,6 +196,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/private/v1/preview/timeline/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_preview_timeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/review/identities/": {
         parameters: {
             query?: never;
@@ -398,6 +414,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["list_map_points"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timeline/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_timeline"];
         put?: never;
         post?: never;
         delete?: never;
@@ -670,6 +702,11 @@ export interface components {
             username: string;
             permissions: components["schemas"]["Permissions"];
         };
+        MonthCount: {
+            /** @description YYYY-MM */
+            month: string;
+            count: number;
+        };
         NewPortRequest: {
             /** @default false */
             from_port_list: boolean;
@@ -774,6 +811,10 @@ export interface components {
             located_count: number;
             truncated: boolean;
         };
+        PreviewMonth: {
+            month: string;
+            count: number;
+        };
         PreviewPage: {
             items: components["schemas"]["PreviewItem"][];
             total_count: number;
@@ -800,6 +841,9 @@ export interface components {
         PreviewSource: {
             key: string;
             name: string;
+        };
+        PreviewTimeline: {
+            months: components["schemas"]["PreviewMonth"][];
         };
         Proposal: {
             kind: components["schemas"]["ReviewProposalEnum"];
@@ -950,6 +994,9 @@ export interface components {
         };
         SyncStatus: {
             sheets: components["schemas"]["SyncSheet"][];
+        };
+        Timeline: {
+            months: components["schemas"]["MonthCount"][];
         };
         UploadRequest: {
             /** Format: uuid */
@@ -2034,6 +2081,90 @@ export interface operations {
             };
         };
     };
+    private_preview_timeline: {
+        parameters: {
+            query?: {
+                kind?: string;
+                q?: string;
+                /**
+                 * @description * `to_review` - to_review
+                 *     * `blocked` - blocked
+                 *     * `linked` - linked
+                 */
+                status?: "to_review" | "blocked" | "linked";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewTimeline"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     private_search_identities: {
         parameters: {
             query: {
@@ -3033,6 +3164,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MapResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    list_timeline: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `rescue` - Sauvetage
+                 *     * `transfer` - Transfert
+                 *     * `medevac` - Évacuation médicale
+                 *     * `incident` - Incident
+                 *     * `shipwreck` - Naufrage
+                 *     * `dead_missing` - Décès / disparitions
+                 */
+                kind?: "rescue" | "transfer" | "medevac" | "incident" | "shipwreck" | "dead_missing";
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timeline"];
                 };
             };
             400: {

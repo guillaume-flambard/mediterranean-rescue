@@ -1,4 +1,4 @@
-from catalog.api import EventsView, EventView, EvidenceView, MapPointsView
+from catalog.api import EventsView, EventView, EvidenceView, MapPointsView, TimelineView
 from catalog.private_api import (
     ExactCarriesView,
     IdentitiesView,
@@ -22,7 +22,12 @@ from catalog.private_ports import (
     PortsView,
     VesselsView,
 )
-from catalog.private_preview import PreviewEventsView, PreviewEventView, PreviewMapView
+from catalog.private_preview import (
+    PreviewEventsView,
+    PreviewEventView,
+    PreviewMapView,
+    PreviewTimelineView,
+)
 from catalog.private_sync import SyncStatusView
 from django.contrib import admin
 from django.db import connection
@@ -58,6 +63,7 @@ urlpatterns = [
     path("api/v1/events/<uuid:id>/", EventView.as_view()),
     path("api/v1/events/<uuid:id>/evidence/", EvidenceView.as_view()),
     path("api/v1/map-points/", MapPointsView.as_view()),
+    path("api/v1/timeline/", TimelineView.as_view()),
     path("api/private/v1/me/", MeView.as_view()),
     path("api/private/v1/session/", SessionView.as_view()),
     path("api/private/v1/snapshots/", SnapshotsView.as_view()),
@@ -78,6 +84,7 @@ urlpatterns = [
     path("api/private/v1/preview/events/", PreviewEventsView.as_view()),
     path("api/private/v1/preview/events/<uuid:id>/", PreviewEventView.as_view()),
     path("api/private/v1/preview/map-points/", PreviewMapView.as_view()),
+    path("api/private/v1/preview/timeline/", PreviewTimelineView.as_view()),
     path("api/private/v1/sync/", SyncStatusView.as_view()),
     path(
         "api/v1/schema/",

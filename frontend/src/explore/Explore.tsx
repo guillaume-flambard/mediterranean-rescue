@@ -12,6 +12,7 @@ import { PreviewBody, PublicBody } from "./EventBody";
 import { kindLabel, kindName, peopleText, type Key } from "./labels";
 import { Logbook } from "./Logbook";
 import { MiniMap } from "./MiniMap";
+import { Timeline } from "./Timeline";
 
 const EventMap = lazy(async () => ({ default: (await import("../components/Map")).EventMap }));
 const PAGE = 25;
@@ -21,7 +22,7 @@ type View = "feed" | "logbook" | "timeline";
 const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor"; ready: boolean }[] = [
   { value: "feed", icon: "anchor", ready: true },
   { value: "logbook", icon: "calendar", ready: true },
-  { value: "timeline", icon: "map", ready: false },
+  { value: "timeline", icon: "map", ready: true },
 ];
 type Status = "to_review" | "blocked" | "linked";
 
@@ -98,6 +99,16 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const publicMap = api.useQuery("get", "/api/v1/map-points/", { params: { query: filters } }, { enabled: !invalid && !preview });
   const previewMap = api.useQuery("get", "/api/private/v1/preview/map-points/", { params: { query: filters } }, { enabled: !invalid && preview });
 
+  // The timeline counts every month for the kind and words chosen; the period is what it selects.
+  const timelineFilters = { ...(kind ? { kind } : {}), ...(q ? { q } : {}) };
+  const publicTimeline = api.useQuery("get", "/api/v1/timeline/", { params: { query: timelineFilters } }, { enabled: view === "timeline" && !preview });
+  const previewTimeline = api.useQuery(
+    "get",
+    "/api/private/v1/preview/timeline/",
+    { params: { query: timelineFilters } },
+    { enabled: view === "timeline" && preview },
+  );
+  const timeline = preview ? previewTimeline.data : publicTimeline.data;
   const feed = preview ? previewFeed : publicFeed;
   const map = preview ? previewMap.data : publicMap.data;
   const items: FeedItem[] = preview
@@ -171,7 +182,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   };
 
   return (
-    <div className={`explore${preview ? " explore--team" : ""}`}>
+    <div className={`explore${preview ? " explore--team" : ""} explore--view-${view}`}>
       {!preview && (
       <header className="explore-bar">
         <a href="/" className="explore-bar__brand">
@@ -277,6 +288,20 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
               </p>
             )}
           </div>
+
+          {view === "timeline" && timeline && (
+            <Timeline
+              className="timeline--inline"
+              months={timeline.months}
+              start={start}
+              end={end}
+              onPeriodChange={(from, to) => {
+                setStart(from);
+                setEnd(to);
+                resetView();
+              }}
+            />
+          )}
 
           {preview && (
             <div className="preview-strip">
@@ -406,6 +431,20 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
         </section>
 
         <aside className="explore-map explore-map--side" aria-label={t("map.label")}>
+          {/* On wide screens the timeline floats over the bottom of the map, as in the chosen mock-up. */}
+          {view === "timeline" && timeline && (
+            <Timeline
+              className="timeline--overlay"
+              months={timeline.months}
+              start={start}
+              end={end}
+              onPeriodChange={(from, to) => {
+                setStart(from);
+                setEnd(to);
+                resetView();
+              }}
+            />
+          )}
           <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} followId={followId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
         </aside>
       </div>
