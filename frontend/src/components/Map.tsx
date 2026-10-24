@@ -35,6 +35,7 @@ export function EventMap({
   onSelect,
   activeId = null,
   focusId = null,
+  followId = null,
 }: {
   points: Points;
   onSelect: (id: string) => void;
@@ -42,6 +43,8 @@ export function EventMap({
   activeId?: string | null;
   /** The event to bring into view when it is off screen (an opened one, not a hovered one). */
   focusId?: string | null;
+  /** The event being read in the logbook: the map pans to it only when it is off screen. */
+  followId?: string | null;
 }) {
   const { t } = useI18n();
   const element = useRef<HTMLDivElement>(null);
@@ -205,6 +208,15 @@ export function EventMap({
       map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 700 });
     }
   }, [map, points, activeId, focusId]);
+
+  useEffect(() => {
+    if (!map || !followId) return;
+    const point = points.find((item) => item.id === followId);
+    if (point && !map.getBounds().contains([point.longitude, point.latitude])) {
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 500 });
+    }
+  }, [map, points, followId]);
 
   return (
     <div className="map-wrap">

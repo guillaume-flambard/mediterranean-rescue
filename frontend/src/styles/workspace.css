@@ -1,17 +1,33 @@
 /* Private workspace frame, imports (W02, W03) and port names (W06, W07): UI2. */
+/* Team space header: the navy band of the public site, with the sections as pills under it. */
 .workspace-bar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4);
-  padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);
+  display: grid; gap: var(--space-3); padding: var(--space-3) var(--space-4) var(--space-3);
+  border-radius: 20px; background: var(--sos-navy); color: var(--sos-white);
 }
-.workspace-nav { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-right: auto; }
+.workspace-bar__top { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.workspace-bar__brand { margin: 0 auto 0 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.workspace-bar__brand span { margin-left: var(--space-1); color: rgb(255 255 255 / 0.7); font-weight: 600; }
+.workspace-bar__user { color: rgb(255 255 255 / 0.72); font-size: 13px; white-space: nowrap; }
+.workspace-bar__action.workspace-bar__action {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 var(--space-3);
+  border: 0; border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.1); color: var(--sos-white);
+  font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+}
+.workspace-bar__action:hover { background: rgb(255 255 255 / 0.18); }
+.workspace-bar :focus-visible { outline-color: var(--sos-white); }
+.workspace-nav { display: flex; gap: var(--space-1); overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--space-1)); padding: 0 var(--space-1); }
+.workspace-nav::-webkit-scrollbar { display: none; }
 .workspace-nav__link {
-  display: inline-flex; align-items: center; min-height: var(--control-default-height);
-  padding: 0 var(--space-3); border-radius: var(--radius-pill);
-  color: var(--color-text); font-weight: var(--type-label-weight); text-decoration: none;
+  display: inline-flex; align-items: center; flex: none; min-height: 36px; padding: 0 var(--space-3);
+  border-radius: var(--radius-pill); color: rgb(255 255 255 / 0.85); font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap;
 }
-.workspace-nav__link:hover { background: var(--color-surface-hover); }
-.workspace-nav__link[aria-current="page"] { background: var(--color-brand); color: var(--color-on-brand); }
-.workspace-nav__link:focus-visible { outline: 3px solid var(--color-focus-on-light); outline-offset: 2px; }
+.workspace-nav__link:hover { background: rgb(255 255 255 / 0.1); color: var(--sos-white); }
+.workspace-nav__link[aria-current="page"] { background: var(--sos-white); color: var(--sos-navy); }
+.workspace-nav__link:focus-visible { outline: 3px solid var(--sos-white); outline-offset: 2px; }
+@media (max-width: 639px) {
+  .workspace-bar__user, .workspace-bar__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .workspace-bar__action.workspace-bar__action { width: 36px; padding: 0; justify-content: center; }
+}
 
 .review > h1, .workspace-heading h1 { margin: 0; font-size: var(--type-page-size); line-height: var(--type-page-line); font-weight: var(--type-page-weight); }
 .review h1:focus, .review h2:focus { outline: none; }

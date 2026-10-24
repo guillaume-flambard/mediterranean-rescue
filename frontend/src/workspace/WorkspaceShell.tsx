@@ -5,6 +5,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { AccessProblem } from "../review/AccessProblem";
 import { Link, useLocation } from "../router";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 import { InlineMessage, PendingState } from "../ui/Feedback";
 
 export const ME_QUERY = ["get", "/api/private/v1/me/"] as const;
@@ -63,6 +64,34 @@ export function WorkspaceShell({
   return (
     <main className={className}>
       <header className="workspace-bar">
+        <div className="workspace-bar__top">
+          <p className="workspace-bar__brand">
+            {t("app.brand")} <span>{t("workspace.teamSpace")}</span>
+          </p>
+          <span className="workspace-bar__user" title={t("review.signedInAs", { name: me.data.username })}>
+            {me.data.username}
+          </span>
+          <Link to="/" className="workspace-bar__action" aria-label={t("review.publicSite")} title={t("review.publicSite")}>
+            <Icon name="map" size={18} />
+            <span className="workspace-bar__label">{t("review.publicSite")}</span>
+          </Link>
+          <Button
+            size="sm"
+            variant="quiet"
+            className="workspace-bar__action"
+            aria-label={t("signIn.signOut")}
+            loading={signOut.isPending}
+            onClick={async () => {
+              await signOut.mutateAsync({});
+              resetCsrfToken();
+              queryClient.clear();
+              void me.refetch();
+            }}
+          >
+            <Icon name="signOut" size={18} />
+            <span className="workspace-bar__label">{t("signIn.signOut")}</span>
+          </Button>
+        </div>
         <nav className="workspace-nav" aria-label={t("workspace.nav")}>
           {SECTIONS.filter((item) => item.allowed(me.data)).map((item) => (
             <Link
@@ -75,21 +104,6 @@ export function WorkspaceShell({
             </Link>
           ))}
         </nav>
-        <p className="review-note">{t("review.signedInAs", { name: me.data.username })}</p>
-        <Link to="/">{t("review.publicSite")}</Link>
-        <Button
-          size="sm"
-          variant="quiet"
-          loading={signOut.isPending}
-          onClick={async () => {
-            await signOut.mutateAsync({});
-            resetCsrfToken();
-            queryClient.clear();
-            void me.refetch();
-          }}
-        >
-          {t("signIn.signOut")}
-        </Button>
       </header>
       {allowed ? (
         children(me.data)

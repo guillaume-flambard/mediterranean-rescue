@@ -3,11 +3,14 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api, type Kind } from "../api/client";
 import { kinds } from "../filters";
 import { LOCALES, type Locale } from "../i18n/format";
-import { useI18n, type I18n } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
 import { Link, navigate, useLocation, withQuery } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
 import { SelectField } from "../ui/SelectField";
+import { PreviewBody, PublicBody } from "./EventBody";
+import { kindLabel, kindName, peopleText, type Key } from "./labels";
+import { Logbook } from "./Logbook";
 import { MiniMap } from "./MiniMap";
 
 const EventMap = lazy(async () => ({ default: (await import("../components/Map")).EventMap }));
@@ -17,11 +20,10 @@ const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" 
 type View = "feed" | "logbook" | "timeline";
 const VIEWS: readonly { value: View; icon: "map" | "calendar" | "anchor"; ready: boolean }[] = [
   { value: "feed", icon: "anchor", ready: true },
-  { value: "logbook", icon: "calendar", ready: false },
+  { value: "logbook", icon: "calendar", ready: true },
   { value: "timeline", icon: "map", ready: false },
 ];
 type Status = "to_review" | "blocked" | "linked";
-type Key = Parameters<I18n["t"]>[0];
 
 /** One feed entry, from a published event or from a row of the private export. */
 interface FeedItem {
@@ -36,35 +38,6 @@ interface FeedItem {
   line: number | null;
   /** Where the record comes from, shown on the closed card: the source, or the export row. */
   origin: string;
-}
-
-/** "110 people rescued", "3 people evacuated": the count says what happened to the people. */
-function peopleText(i18n: I18n, kind: string | null, people: number | null) {
-  if (people === null) return i18n.t("explore.people.unknown");
-  const verb = ["rescue", "transfer", "medevac"].includes(kind ?? "") ? kind : "other";
-  return i18n.t(`explore.people.${verb}` as Key, { count: people });
-}
-
-/** Which Google Sheets tab a record comes from, in words. */
-function sheetName(i18n: I18n, sheet: string) {
-  const key = `explore.sheet.${sheet}` as Key;
-  const label = i18n.t(key);
-  return label === key ? sheet : label;
-}
-
-/** The singular name of one event's kind ("Rescue"), as opposed to the plural filter label. */
-function kindName(i18n: I18n, kind: string | null) {
-  if (!kind) return i18n.t("review.unknown");
-  const key = `kindOne.${kind}` as Key;
-  const label = i18n.t(key);
-  return label === key ? kind : label;
-}
-
-function kindLabel(i18n: I18n, kind: string | null) {
-  if (!kind) return i18n.t("review.unknown");
-  const key = `kind.${kind}` as Key;
-  const label = i18n.t(key);
-  return label === key ? kind : label;
 }
 
 function useDebounced<T>(value: T, delay: number) {
@@ -99,6 +72,8 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const [pinnedId, setPinnedId] = useState<string | null>(null);
   // The card under the pointer lights its point; the open card wins over it.
   const [hoverId, setHoverId] = useState<string | null>(null);
+  // In the logbook, the entry being read; the map follows it.
+  const [readId, setReadId] = useState<string | null>(null);
   const invalid = Boolean(start && end && start > end);
   const filters = {
     ...(start ? { start } : {}),
@@ -163,7 +138,8 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     latitude: point.latitude,
     kind: point.kind as Kind,
   }));
-  const activeId = openId ?? pinnedId ?? hoverId;
+  const followId = view === "logbook" ? readId : null;
+  const activeId = openId ?? pinnedId ?? hoverId ?? followId;
   const filtered = Boolean(kind || start || end || q);
 
   useEffect(() => {
@@ -351,7 +327,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
           </div>
 
           <div className="explore-map explore-map--inline" data-open={mapOpen || undefined}>
-            <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
+            <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} followId={followId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
           </div>
 
           {pinnedId && !items.some((item) => item.id === pinnedId) && (
@@ -385,6 +361,18 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                 </BaseButton>
               )}
             </div>
+          ) : view === "logbook" ? (
+            <Logbook
+              items={items}
+              preview={preview}
+              openId={openId}
+              hasMore={Boolean(feed.hasNextPage)}
+              onToggle={(id) => {
+                setPinnedId(null);
+                setOpenId(openId === id ? null : id);
+              }}
+              onRead={setReadId}
+            />
           ) : (
             <ol className="feed" aria-label={t(preview ? "preview.heading" : "events.heading")}>
               {items.map((item) => (
@@ -418,7 +406,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
         </section>
 
         <aside className="explore-map explore-map--side" aria-label={t("map.label")}>
-          <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
+          <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} followId={followId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
         </aside>
       </div>
     </div>
@@ -429,12 +417,14 @@ function MapPanel({
   points,
   activeId,
   focusId,
+  followId,
   onSelect,
   truncated,
 }: {
   points: { id: string; longitude: number; latitude: number; kind: Kind }[];
   activeId: string | null;
   focusId: string | null;
+  followId: string | null;
   onSelect: (id: string) => void;
   truncated: boolean;
 }) {
@@ -442,7 +432,7 @@ function MapPanel({
   return (
     <div className="map-card">
       <Suspense fallback={<div className="map-card__loading">{t("map.loading")}</div>}>
-        <EventMap points={points} onSelect={onSelect} activeId={activeId} focusId={focusId} />
+        <EventMap points={points} onSelect={onSelect} activeId={activeId} focusId={focusId} followId={followId} />
       </Suspense>
       {truncated && <p className="map-card__note">{t("map.truncated")}</p>}
     </div>
@@ -521,101 +511,6 @@ function EventCard({
         {open && (preview ? <PreviewBody id={item.id} /> : <PublicBody id={item.id} />)}
       </div>
     </li>
-  );
-}
-
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="fact">
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </div>
-  );
-}
-
-function PreviewBody({ id }: { id: string }) {
-  const i18n = useI18n();
-  const { t } = i18n;
-  const { data: row, error } = api.useQuery("get", "/api/private/v1/preview/events/{id}/", { params: { path: { id } } });
-  if (error) return <p role="alert">{t("detail.loadError")}</p>;
-  if (!row) return <p className="card__loading">{t("detail.loading")}</p>;
-  const count = (value: number | null) => (value === null ? t("detail.unknownCount") : i18n.number(value));
-  return (
-    <>
-      <dl className="facts">
-        <Fact label={t("preview.detail.women")} value={count(row.women)} />
-        <Fact label={t("preview.detail.minors")} value={count(row.minors)} />
-        {row.sheet === "Other_data" && <Fact label={t("preview.detail.deaths")} value={count(row.deaths)} />}
-        <Fact label={t("preview.detail.boat")} value={row.boat_type ?? t("detail.notProvided")} />
-        <Fact
-          label={t("detail.position")}
-          value={
-            row.position
-              ? `${formatPosition(i18n, row.position.latitude, row.position.longitude)}${row.position.inferred_hemisphere ? ` ${t("explore.positionEstimated")}` : ""}`
-              : t("detail.unknownPosition")
-          }
-        />
-        <Fact label={t("preview.detail.photos")} value={i18n.number(row.image_count)} />
-      </dl>
-      {row.error_codes.length > 0 && (
-        <p className="card__warning">
-          <Icon name="alert" size={16} /> {t("preview.status.blocked")}
-        </p>
-      )}
-      <p className="card__provenance">
-        {t("explore.whereFrom", { source: row.source.name, date: i18n.date(row.exported_at.slice(0, 10)) })}{" "}
-        {t("explore.inSheets", { line: row.line, sheet: sheetName(i18n, row.sheet) })}
-      </p>
-      <Link to={`/workspace/review/${row.snapshot}/rows/${row.id}`} className="pill-button pill-button--primary">
-        {t("preview.detail.check")}
-        <Icon name="arrowRight" size={16} />
-      </Link>
-    </>
-  );
-}
-
-function PublicBody({ id }: { id: string }) {
-  const i18n = useI18n();
-  const { t } = i18n;
-  const { data: event, error } = api.useQuery("get", "/api/v1/events/{id}/", { params: { path: { id } } });
-  const evidence = api.useQuery("get", "/api/v1/events/{id}/evidence/", { params: { path: { id }, query: { limit: 25, offset: 0 } } });
-  if (error) return <p role="alert">{t("detail.loadError")}</p>;
-  if (!event) return <p className="card__loading">{t("detail.loading")}</p>;
-  return (
-    <>
-      {event.source.synthetic && <p className="card__warning">{t("detail.trainingData")}</p>}
-      <p className="card__summary-text">{event.summary || t("detail.noSummary")}</p>
-      <dl className="facts">
-        <Fact label={t("detail.vessel")} value={event.vessel?.name ?? t("detail.notProvided")} />
-        <Fact label={t("detail.voyage")} value={event.voyage?.title ?? t("detail.notProvided")} />
-        <Fact
-          label={t("detail.position")}
-          value={
-            event.position
-              ? `${formatPosition(i18n, event.position.latitude, event.position.longitude)} (${t(
-                  event.position.precision === "approximate" ? "detail.precision.approximate" : "detail.precision.reported",
-                )})`
-              : t("detail.unknownPosition")
-          }
-        />
-      </dl>
-      <div className="card__sources">
-        <a href={event.source_url} target="_blank" rel="noreferrer" className="pill-button pill-button--primary">
-          {t("detail.sourceLink")}
-          <Icon name="external" size={16} />
-        </a>
-        {(evidence.data?.items ?? []).map((item) => (
-          <a key={item.url} href={item.url} target="_blank" rel="noreferrer" className="pill-button">
-            {item.label}
-            <Icon name="external" size={16} />
-          </a>
-        ))}
-      </div>
-      <p className="card__provenance">
-        {event.source.name}. {event.source.license_note}
-      </p>
-      <p className="card__provenance">{t("detail.countsNote")}</p>
-    </>
   );
 }
 

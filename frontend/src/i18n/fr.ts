@@ -545,4 +545,12 @@ export const fr: Messages = {
   "sync.lastChange": "Dernier changement {when} :",
   "sync.counts": "{look} à regarder, {fix} à corriger dans le tableur, {same} inchangés.",
   "explore.sheet.Data_ports": "liste des ports",
+  "workspace.teamSpace": "Espace équipe",
+  "explore.logbook.noDate": "Date non indiquée",
+  "explore.logbook.partial": "suite plus bas",
+  "explore.logbook.events": { one: "{count} événement", other: "{count} événements" },
+  "explore.logbook.people": { one: "{count} personne", other: "{count} personnes" },
+  "explore.logbook.peopleKnown": { one: "{count} personne là où c’est indiqué", other: "{count} personnes là où c’est indiqué" },
+  "explore.logbook.port": "Débarquement à {port}",
+  "explore.logbook.noPort": "Port non indiqué",
 };

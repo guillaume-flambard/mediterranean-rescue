@@ -384,3 +384,44 @@
 .sync-card__change { color: var(--color-text-secondary); }
 .sync-card--error { color: var(--color-error); }
 .sync-card__name::first-letter { text-transform: uppercase; }
+
+/* View B: the logbook, month by month, a rail of dots in the colour of each kind. */
+.logbook { display: grid; gap: var(--space-5); }
+.logbook__month { border-radius: 20px; background: var(--sos-white); box-shadow: var(--card-shadow); overflow: hidden; }
+.logbook__month-title {
+  position: sticky; top: var(--bar-height); z-index: 2; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3);
+  margin: 0; padding: var(--space-4) var(--space-5) var(--space-3); background: var(--sos-white); border-bottom: 1px solid var(--color-border);
+  font-size: 19px; font-weight: 800; letter-spacing: -0.01em; text-transform: capitalize;
+}
+.logbook__month-title span { color: var(--color-text-secondary); font-size: 13px; font-weight: 700; text-transform: none; font-variant-numeric: lining-nums tabular-nums; }
+.logbook__entries { list-style: none; margin: 0; padding: var(--space-2) 0; }
+.logbook__entry { position: relative; scroll-margin-top: calc(var(--bar-height) + 210px); }
+.logbook__entry::before { content: ""; position: absolute; left: calc(var(--space-5) + 77px); top: 0; bottom: 0; width: 2px; background: var(--color-border); }
+.logbook__summary {
+  position: relative; display: grid; grid-template-columns: 58px 16px minmax(0, 1fr) auto; align-items: start; gap: var(--space-3);
+  width: 100%; padding: var(--space-3) var(--space-4) var(--space-3) var(--space-5); border: 0; background: transparent; text-align: left; cursor: pointer;
+  transition: background-color 0.2s var(--ease-out);
+}
+.logbook__summary:hover { background: var(--color-canvas); }
+.logbook__day { padding-top: 2px; font-size: 13px; font-weight: 800; color: var(--color-text-secondary); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.logbook__dot { width: 12px; height: 12px; margin: 5px 2px 0; border-radius: 50%; background: var(--kind-incident); box-shadow: 0 0 0 3px var(--sos-white); }
+.logbook__entry[data-kind="rescue"] .logbook__dot { background: var(--kind-rescue); }
+.logbook__entry[data-kind="transfer"] .logbook__dot { background: var(--kind-transfer); }
+.logbook__entry[data-kind="medevac"] .logbook__dot { background: var(--kind-medevac); }
+.logbook__entry[data-kind="shipwreck"] .logbook__dot { background: var(--kind-shipwreck); }
+.logbook__entry[data-kind="dead_missing"] .logbook__dot { background: var(--kind-dead_missing); }
+.logbook__entry--open .logbook__dot { background: var(--sos-orange); box-shadow: 0 0 0 3px var(--sos-white), 0 0 0 7px rgb(232 62 27 / 0.2); }
+.logbook__text { display: grid; gap: 3px; min-width: 0; }
+.logbook__text b { font-size: 16px; font-weight: 800; }
+.logbook__text > span { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); color: var(--color-text-secondary); font-size: 14px; }
+.logbook__chevron { color: var(--color-text-muted); transition: transform 0.3s var(--ease-out); }
+.logbook__entry--open .logbook__chevron { transform: rotate(180deg); }
+.logbook__entry--open .logbook__summary { background: #fbeee9; }
+.logbook__body { margin: 0 var(--space-4) var(--space-3) calc(var(--space-5) + 90px); border-top: 0; padding: var(--space-2) 0 var(--space-3); }
+@media (max-width: 639px) {
+  .logbook__summary { grid-template-columns: 48px 14px minmax(0, 1fr) auto; gap: var(--space-2); padding-left: var(--space-3); }
+  .logbook__entry::before { left: calc(var(--space-3) + 63px); }
+  .logbook__body { margin-left: var(--space-3); }
+  .logbook__month-title { padding: var(--space-3) var(--space-4); }
+}
+@media (max-width: 959px) { .logbook__month-title { position: static; } }

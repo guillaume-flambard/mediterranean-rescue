@@ -542,6 +542,14 @@ export const en = {
   "sync.lastChange": "Last change {when}:",
   "sync.counts": "{look} to look at, {fix} to fix in the sheet, {same} unchanged.",
   "explore.sheet.Data_ports": "ports list",
+  "workspace.teamSpace": "Team space",
+  "explore.logbook.noDate": "Date not given",
+  "explore.logbook.partial": "more below",
+  "explore.logbook.events": { one: "{count} event", other: "{count} events" },
+  "explore.logbook.people": { one: "{count} person", other: "{count} people" },
+  "explore.logbook.peopleKnown": { one: "{count} person where given", other: "{count} people where given" },
+  "explore.logbook.port": "Landed in {port}",
+  "explore.logbook.noPort": "Port not given",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

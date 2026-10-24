@@ -121,6 +121,31 @@ describe("main screen preview", () => {
     renderApp();
     const views = await screen.findByRole("group", { name: "View" });
     expect(within(views).getByRole("button", { name: /Feed/ }).getAttribute("aria-pressed")).toBe("true");
-    expect((within(views).getByRole("button", { name: /Logbook/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect((within(views).getByRole("button", { name: /Timeline/ }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("the logbook groups events by month and opens one in place", async () => {
+    window.history.replaceState(null, "", "/?view=logbook");
+    fakeServer({
+      ...EMPTY_PUBLIC,
+      "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
+      "GET /api/private/v1/preview/events/": () => ({
+        body: {
+          items: [ITEM, { ...ITEM, id: "00000000-0000-0000-0000-0000000000b2", occurred_on: "2024-01-19", people: null }],
+          total_count: 2,
+          has_next: false,
+          counts: { to_review: 2, blocked: 0, linked: 0 },
+        },
+      }),
+      "GET /api/private/v1/preview/map-points/": () => ({ body: { points: [], located_count: 0, truncated: false } }),
+      "GET /api/private/v1/preview/events/:id/": () => ({ body: ITEM }),
+    });
+    renderApp(<Explore audience="team" />);
+    expect(await screen.findByRole("heading", { name: /February 2024.*1 event · 42 people/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /January 2024.*1 event/ })).toBeTruthy();
+    const entry = screen.getByRole("button", { name: /Rescue operation · 42 people rescued/ });
+    await userEvent.click(entry);
+    expect(entry.getAttribute("aria-expanded")).toBe("true");
+    expect(await screen.findByRole("link", { name: /Verify this event/ })).toBeTruthy();
   });
 });
