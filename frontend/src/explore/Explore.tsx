@@ -85,6 +85,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const linkedId = eventParam(query.get("event"));
   const [openId, setOpenId] = useState<string | null>(linkedId);
   const [pinnedId, setPinnedId] = useState<string | null>(linkedId);
+  const [pinnedFrom, setPinnedFrom] = useState<"link" | "map">("link");
   const show = (id: string | null) => {
     setOpenId(id);
     navigate(withChangedQuery(pathname, query, { event: id }), { replace: true });
@@ -225,6 +226,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
       requestAnimationFrame(() => document.getElementById(`event-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
     } else {
       setPinnedId(id);
+      setPinnedFrom("map");
       requestAnimationFrame(() => document.getElementById("pinned-event")?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
     }
   };
@@ -414,6 +416,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
             <div id="pinned-event" className="feed feed--pinned">
               <PinnedCard
                 id={pinnedId}
+                from={pinnedFrom}
                 preview={preview}
                 onClose={() => {
                   setPinnedId(null);
@@ -631,13 +634,13 @@ function EventCard({
   );
 }
 
-function PinnedCard({ id, preview, onClose }: { id: string; preview: boolean; onClose: () => void }) {
+function PinnedCard({ id, from, preview, onClose }: { id: string; from: "link" | "map"; preview: boolean; onClose: () => void }) {
   const { t } = useI18n();
   return (
     <div className="card card--open card--pinned">
       <div className="card__pinned-head">
         <span>
-          <Icon name="pin" size={16} /> {t("explore.fromMap")}
+          <Icon name={from === "map" ? "pin" : "link"} size={16} /> {t(from === "map" ? "explore.fromMap" : "explore.fromLink")}
         </span>
         <BaseButton className="icon-button" aria-label={t("ui.close")} onClick={onClose}>
           <Icon name="close" size={18} />

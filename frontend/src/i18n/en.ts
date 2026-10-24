@@ -501,6 +501,7 @@ export const en = {
   "explore.noMatchBody": "Try another word, another type or a wider period.",
   "explore.more": "Show more",
   "explore.fromMap": "Picked on the map",
+  "explore.fromLink": "Opened from a link",
   "explore.copyLink": "Copy the link to this record",
   "explore.linkCopied": "Link copied.",
   "boat.rubber": { one: "rubber boat", other: "rubber boats" },

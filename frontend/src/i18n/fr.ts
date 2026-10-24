@@ -504,6 +504,7 @@ export const fr: Messages = {
   "explore.noMatchBody": "Essayez un autre mot, un autre type ou une période plus large.",
   "explore.more": "Afficher la suite",
   "explore.fromMap": "Choisi sur la carte",
+  "explore.fromLink": "Ouverte depuis un lien",
   "explore.copyLink": "Copier le lien de cette fiche",
   "explore.linkCopied": "Lien copié.",
   "boat.rubber": { one: "embarcation pneumatique", other: "embarcations pneumatiques" },
