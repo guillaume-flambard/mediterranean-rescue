@@ -741,6 +741,7 @@ export const en = {
   "logbook.card.step2": "2. Download.",
   "logbook.card.step2Body": { one: "{count} verified operation is ready, in the sheet’s own columns.", other: "{count} verified operations are ready, in the sheet’s own columns." },
   "logbook.card.inSheet": { one: "{count} operation is already in the SOS sheet and stays out of the download.", other: "{count} operations are already in the SOS sheet and stay out of the download." },
+  "logbook.card.notForSheet": { one: "{count} row stays out: a medical evacuation or a row without a number of people, which the SOS sheet does not hold.", other: "{count} rows stay out: medical evacuations or rows without a number of people, which the SOS sheet does not hold." },
   "logbook.evidence.inSheet": "Already in the SOS sheet, at line {line}: nothing to paste. It stays out of the download.",
   "logbook.card.step3": "3. Paste into the SOS sheet.",
   "logbook.card.step3Body": "With the association’s agreement, the existing map then shows them again, with nothing rebuilt. The logbook is read again every six hours.",

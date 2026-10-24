@@ -744,6 +744,7 @@ export const fr: Messages = {
   "logbook.card.step2": "2. Télécharger.",
   "logbook.card.step2Body": { one: "{count} opération vérifiée est prête, dans les colonnes du tableur.", other: "{count} opérations vérifiées sont prêtes, dans les colonnes du tableur." },
   "logbook.card.inSheet": { one: "{count} opération est déjà dans le tableur de SOS et reste hors du téléchargement.", other: "{count} opérations sont déjà dans le tableur de SOS et restent hors du téléchargement." },
+  "logbook.card.notForSheet": { one: "{count} ligne reste à part : une évacuation médicale ou une ligne sans nombre de personnes, que le tableur de SOS ne contient pas.", other: "{count} lignes restent à part : des évacuations médicales ou des lignes sans nombre de personnes, que le tableur de SOS ne contient pas." },
   "logbook.evidence.inSheet": "Déjà dans le tableur de SOS, ligne {line} : rien à coller. Elle reste hors du téléchargement.",
   "logbook.card.step3": "3. Coller dans le tableur de SOS.",
   "logbook.card.step3Body": "Avec l’accord de l’association, la carte existante les affiche alors à nouveau, sans rien reconstruire. Le journal est relu toutes les six heures.",

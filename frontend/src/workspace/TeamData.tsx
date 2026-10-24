@@ -161,6 +161,7 @@ export function LogbookCard() {
         <li>
           <b>{t("logbook.card.step2")}</b> {t("logbook.card.step2Body", { count: data.ready })}
           {data.in_sheet > 0 && ` ${t("logbook.card.inSheet", { count: data.in_sheet })}`}
+          {data.not_for_sheet > 0 && ` ${t("logbook.card.notForSheet", { count: data.not_for_sheet })}`}
         </li>
         <li>
           <b>{t("logbook.card.step3")}</b> {t("logbook.card.step3Body")}

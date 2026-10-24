@@ -39,6 +39,14 @@ def sheet_cell(value):
     return f"'{text}" if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
 
 
+def for_the_sheet(row):
+    """Rows the SOS sheet holds: rescues and transfers with a number of people. The sheet has no
+    medical evacuation, and its map adds up nb_survivor without a guard, so a row without a number
+    would break its monthly chart (CartONG SOSMedDashboard, src/components/Chart.vue)."""
+    candidate = row.candidate or {}
+    return candidate.get("kind") in ("rescue", "transfer") and bool(candidate.get("nb_survivor"))
+
+
 def row_statuses(snapshot):
     return {p.row_id: STATUS_BY_PROPOSAL[p.kind] for p in propose_links(snapshot)}
 
@@ -85,6 +93,9 @@ class LogbookOverviewSerializer(serializers.Serializer):
         help_text="Rebuilt rows the association's sheet now holds; left out of the export."
     )
     ready = serializers.IntegerField(help_text="Verified rows not in the sheet yet: the export.")
+    not_for_sheet = serializers.IntegerField(
+        help_text="Rows the sheet does not hold (medical evacuations, no number of people)."
+    )
     snapshot = serializers.UUIDField(allow_null=True)
     years = LogbookYearSerializer(many=True)
     cumulative = LogbookCumulativeSerializer(allow_null=True)
@@ -177,6 +188,7 @@ class LogbookOverviewView(PrivateView):
             "to_check": 0,
             "in_sheet": 0,
             "ready": 0,
+            "not_for_sheet": 0,
             "snapshot": None,
             "years": [],
             "cumulative": None,
@@ -207,8 +219,13 @@ class LogbookOverviewView(PrivateView):
             payload.update(
                 in_sheet=len(in_sheet),
                 ready=sum(
-                    1 for row in rows if statuses[row.pk] == "linked" and row.pk not in in_sheet
+                    1
+                    for row in rows
+                    if statuses[row.pk] == "linked"
+                    and row.pk not in in_sheet
+                    and for_the_sheet(row)
                 ),
+                not_for_sheet=sum(1 for row in rows if not for_the_sheet(row)),
             )
             sheet = _sheet_people_by_year()
             payload.update(years=year_totals(rows, sheet), cumulative=cumulative_total(rows, sheet))
@@ -240,7 +257,7 @@ class LogbookExportView(PrivateView):
             # Only rows a volunteer verified, as the logbook rebuilt them, in date order, and never
             # a row the association has already pasted into its sheet.
             for row in rows:
-                if statuses[row.pk] == "linked" and row.pk not in in_sheet:
+                if statuses[row.pk] == "linked" and row.pk not in in_sheet and for_the_sheet(row):
                     writer.writerow([sheet_cell(cell) for cell in row.raw_cells])
         response = HttpResponse(buffer.getvalue(), content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = (

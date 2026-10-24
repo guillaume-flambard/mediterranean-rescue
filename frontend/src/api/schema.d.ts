@@ -843,6 +843,8 @@ export interface components {
             in_sheet: number;
             /** @description Verified rows not in the sheet yet: the export. */
             ready: number;
+            /** @description Rows the sheet does not hold (medical evacuations, no number of people). */
+            not_for_sheet: number;
             /** Format: uuid */
             snapshot: string | null;
             years: components["schemas"]["LogbookYear"][];

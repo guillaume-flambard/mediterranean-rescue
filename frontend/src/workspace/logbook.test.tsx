@@ -66,6 +66,7 @@ describe("operations rebuilt from the public logbook", () => {
           to_check: 24,
           in_sheet: 1,
           ready: 2,
+          not_for_sheet: 2,
           snapshot: "00000000-0000-0000-0000-0000000000c0",
           years: [
             { year: 2024, in_sheet: 332, from_logbook: 1616, reported: 1948 },
@@ -85,6 +86,7 @@ describe("operations rebuilt from the public logbook", () => {
     expect(screen.getByText(/61 operations \(3,468 people\) were rebuilt/)).toBeTruthy();
     expect(screen.getByText(/59 operations wait/)).toBeTruthy();
     expect(screen.getByText(/1 operation is already in the SOS sheet and stays out of the download\./)).toBeTruthy();
+    expect(screen.getByText(/2 rows stay out: medical evacuations or rows without a number of people/)).toBeTruthy();
     expect(screen.getByText(/2024: 1,948 people \(sheet 332 \+ logbook 1,616\) · same as the annual report/)).toBeTruthy();
     expect(screen.getByText(/annual report: 1,358, gap of 33 to reconcile/)).toBeTruthy();
     // A gap is never shown as checked (audit of 25 October 2026).

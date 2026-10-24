@@ -3221,6 +3221,10 @@ components:
         ready:
           type: integer
           description: 'Verified rows not in the sheet yet: the export.'
+        not_for_sheet:
+          type: integer
+          description: Rows the sheet does not hold (medical evacuations, no number
+            of people).
         snapshot:
           type: string
           format: uuid
@@ -3243,6 +3247,7 @@ components:
       - last_date
       - last_read_at
       - last_read_status
+      - not_for_sheet
       - people
       - ready
       - reports_url

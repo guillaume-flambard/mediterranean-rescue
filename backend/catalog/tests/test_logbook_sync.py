@@ -117,6 +117,24 @@ class LogbookSyncTests(PrivateApiTestCase):
         pasted = run.snapshot.rows.get(line=2)
         self.assertEqual(self.get(f"review/rows/{pasted.pk}/").json()["evidence"]["sheet_line"], 3)
 
+    def test_a_medical_evacuation_never_reaches_the_sheet(self):
+        # CartONG's chart adds nb_survivor without a guard: a row without a number breaks it.
+        medevac = """<h2 class="list-term-title contain--lg">March 15, 2025</h2>
+            <article class="loop-item loop-item-log"><div class="loop-item-title">
+            <span class="loop-item-time">09:00</span>
+            Ocean Viking completes the medical evacuation of a survivor.</div></article>"""
+        site = {**SITE, ROTATION: SITE[ROTATION] + medevac}
+        run = sync_logbook(actor=self.reviewer, get=site.get)
+        for row in run.snapshot.rows.all():
+            approve_link(row=row, actor=self.reviewer, reason="Checked")
+        overview = self.get("logbook/").json()
+        self.assertEqual(
+            (overview["rows"], overview["ready"], overview["not_for_sheet"]), (3, 2, 1)
+        )
+        lines = self.get("logbook/export/").content.decode().splitlines()
+        self.assertEqual(len(lines), 3)
+        self.assertNotIn("Medevac", "\n".join(lines))
+
     def test_reviewers_only(self):
         self.assertEqual(self.get("logbook/", client=Client()).status_code, 401)
         outsider = Client()
