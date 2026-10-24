@@ -137,6 +137,95 @@ class ReaderTests(SimpleTestCase):
         self.assertIn("repeat_unsure:05:30", rows[0][5])
         self.assertIn("repeat_unsure:06:00", rows[0][5])
 
+    # Data audit of 25 October 2026: cases the reader got wrong on the real logbook, rewritten
+    # with fictitious entries.
+    def test_a_message_that_is_the_only_record_of_a_rescue_counts(self):
+        rows = self.page_rows(
+            [
+                (
+                    "11:57",
+                    "The Ocean Viking emails the authorities, informing about having operated the rescue of 46 people, and requests a Place of Safety for disembarktion.",
+                )
+            ],
+            survivors=46,
+        )
+        self.assertEqual([(kind, people) for kind, _, people, *_ in rows], [("Rescue", 46)])
+        self.assertIn("reported_in_message", rows[0][5])
+
+    def test_a_message_about_disembarkation_after_the_rescue_does_not_count_again(self):
+        rows = self.page_rows(
+            [
+                ("07:51", "Ocean Viking completes the rescue of 93 shipwrecked persons."),
+                (
+                    "08:45",
+                    "Ocean Viking email the authorities about the completed rescue. Ocean Viking completed the recovery operation of the persons in distress. 94 persons, requests disembarkation.",
+                ),
+            ],
+            survivors=93,
+        )
+        self.assertEqual([people for _, _, people, *_ in rows], [93])
+
+    def test_people_taken_from_a_merchant_vessel_are_a_transfer_onto_the_ship(self):
+        rows = self.page_rows(
+            [
+                ("11:28", "The Ocean Viking has visuals on the Merchant Vessel FICTIF."),
+                ("13:48", "Evacuation completed: all 44 survivors on board the Ocean Viking."),
+                (
+                    "13:58",
+                    "The Ocean Viking emails the authorities that the recovery operation is completed.",
+                ),
+            ],
+            survivors=44,
+        )
+        self.assertEqual([(kind, people) for kind, _, people, *_ in rows], [("TransferIn", 44)])
+        self.assertIn("transfer_to_ov", rows[0][5])
+
+    def test_a_transfer_without_a_number_takes_what_the_mission_total_leaves(self):
+        rows = self.page_rows(
+            [
+                ("07:00", "Ocean Viking completes the recovery of 20 shipwrecked persons."),
+                ("12:43", "All survivors are successfully transshipped onto Ocean Viking."),
+            ],
+            survivors=53,
+        )
+        self.assertEqual(
+            [(kind, people) for kind, _, people, *_ in rows], [("Rescue", 20), ("TransferIn", 33)]
+        )
+        self.assertIn("count_from_total:33", rows[1][5])
+        self.assertNotIn("count_unknown", rows[1][5])
+
+    def test_a_named_case_takes_its_own_position_and_boat_never_another_case(self):
+        rows = self.page_rows(
+            [
+                (
+                    "03:34",
+                    "The Ocean Viking completes the recovery operation of distress case AP0095 and safely embarks 97 survivors on board.",
+                ),
+                (
+                    "03:35",
+                    "The Ocean Viking emails the authorities transmitting FINAL SITREP regarding distress case AP0095: at 0235 UTC in position 34 57 N 012 05 E the recovery was completed.",
+                ),
+                (
+                    "11:23",
+                    "The Ocean Viking overhears a Mayday Relay regarding distress case ADC018 involving a blue wooden boat with 80 persons on board.",
+                ),
+                (
+                    "13:13",
+                    "The Ocean Viking is copied on an email regarding distress case ADC019 involving 30 persons on board a black rubber boat. Latitude: 34.5 / Longitude: 12.5",
+                ),
+                (
+                    "13:30",
+                    "The Ocean Viking completes the recovery operation for distress case ADC018 and safely embarks 50 survivors on board.",
+                ),
+            ],
+            survivors=147,
+        )
+        first, second = rows
+        self.assertEqual((round(first[3][0], 2), round(first[3][1], 2)), (34.95, 12.08))
+        self.assertIn("position_from:03:35", first[5])
+        self.assertIsNone(second[3])
+        self.assertEqual(second[4], "Blue wooden boat")
+
     def test_positions_in_every_format_and_nothing_outside_the_region(self):
         self.assertEqual(lb.parse_position("Latitude: 3426 / Longitude: 01209")[2], "compact")
         swapped = lb.parse_position("Latitude: 13.75 / Longitude: 34.27")

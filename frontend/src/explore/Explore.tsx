@@ -1,10 +1,10 @@
 import { Button as BaseButton } from "@base-ui/react/button";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type FocusEvent } from "react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { api, type Kind } from "../api/client";
 import { kinds } from "../filters";
 import { useI18n } from "../i18n/I18nProvider";
-import { Link, navigate, useLocation, withChangedQuery } from "../router";
+import { changeQuery, Link, useLocation } from "../router";
 import { formatPosition } from "../shared/geo";
 import { Icon } from "../ui/Icon";
 import { PreviewBody, PublicBody } from "./EventBody";
@@ -70,7 +70,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const i18n = useI18n();
   const { t } = i18n;
   const preview = audience === "team";
-  const { pathname, query } = useLocation();
+  const { query } = useLocation();
   const requested = VIEWS.find((item) => item.value === query.get("view"));
   const view: View = requested?.value ?? "feed";
 
@@ -88,7 +88,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const [pinnedFrom, setPinnedFrom] = useState<"link" | "map">("link");
   const show = (id: string | null) => {
     setOpenId(id);
-    navigate(withChangedQuery(pathname, query, { event: id }), { replace: true });
+    changeQuery({ event: id }, { replace: true });
   };
   // The card under the pointer lights its point; the open card wins over it.
   const [hoverId, setHoverId] = useState<string | null>(null);
@@ -215,7 +215,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     setKind("");
     setStart("");
     setEnd("");
-    if (logbookOnly) navigate(withChangedQuery(pathname, query, { source: null }), { replace: true });
+    if (logbookOnly) changeQuery({ source: null }, { replace: true });
     resetView();
   };
   // A point picked on the map opens its card in the feed, or pins it on top when it is not loaded.
@@ -271,13 +271,13 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
           {!preview && <Welcome />}
 
           <div className="composer">
-            <div className="views" role="group" aria-label={t("explore.view")}>
+            <div className="views" role="group" aria-label={t("explore.view")} onFocus={revealFocused}>
               {VIEWS.map((item) => (
                 <BaseButton
                   key={item.value}
                   className="views__option"
                   aria-pressed={view === item.value}
-                  onClick={() => navigate(withChangedQuery(pathname, query, { view: item.value === "feed" ? null : item.value }), { replace: true })}
+                  onClick={() => changeQuery({ view: item.value === "feed" ? null : item.value }, { replace: true })}
                 >
                   <Icon name={item.icon} size={16} />
                   {t(`explore.view.${item.value}`)}
@@ -303,7 +303,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                 </BaseButton>
               )}
             </label>
-            <div className="chips" role="group" aria-label={t("filters.kind")}>
+            <div className="chips" role="group" aria-label={t("filters.kind")} onFocus={revealFocused}>
               <BaseButton className="chip" aria-pressed={kind === ""} onClick={() => setKind("")}>
                 {t("filters.allKinds")}
               </BaseButton>
@@ -326,7 +326,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                   className="chip chip--logbook"
                   aria-pressed={logbookOnly}
                   onClick={() => {
-                    navigate(withChangedQuery(pathname, query, { source: logbookOnly ? null : LOGBOOK_SOURCE, event: null }), { replace: true });
+                    changeQuery({ source: logbookOnly ? null : LOGBOOK_SOURCE }, { replace: true });
                     resetView();
                   }}
                 >
@@ -652,6 +652,12 @@ function PinnedCard({ id, from, preview, onClose }: { id: string; from: "link" |
       </div>
     </div>
   );
+}
+
+/** A control reached with the keyboard in a strip that scrolls sideways is brought out from
+ * under the edge fade (acceptance of 25 October 2026, D-B). */
+function revealFocused(event: FocusEvent<HTMLElement>) {
+  event.target.scrollIntoView?.({ block: "nearest", inline: "nearest" });
 }
 
 /** Record ids are UUIDs; anything else in the address is ignored rather than requested. */

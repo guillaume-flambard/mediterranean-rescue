@@ -122,6 +122,24 @@ describe("main screen preview", () => {
     expect(card.getAttribute("aria-expanded")).toBe("true");
   });
 
+  it("the logbook chip filters, and Reset clears it", async () => {
+    // Frontend audit of 25 October 2026: two address changes in one click undid each other.
+    fakeServer({
+      ...EMPTY_PUBLIC,
+      "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
+      "GET /api/private/v1/preview/events/": () => ({
+        body: { items: [], total_count: 0, has_next: false, counts: { to_review: 0, blocked: 0, linked: 0 } },
+      }),
+      "GET /api/private/v1/preview/map-points/": () => ({ body: { points: [], located_count: 0, truncated: false } }),
+    });
+    renderApp(<Explore audience="team" />);
+    const chip = await screen.findByRole("button", { name: /Found in the logbook/ });
+    await userEvent.click(chip);
+    expect(window.location.search).toBe("?source=sos-logbook");
+    await userEvent.click((await screen.findAllByRole("button", { name: "Reset filters" }))[0]!);
+    expect(window.location.search).toBe("");
+  });
+
   it("search words and kind chips reach the server", async () => {
     const { calls } = fakeServer({
       ...EMPTY_PUBLIC,

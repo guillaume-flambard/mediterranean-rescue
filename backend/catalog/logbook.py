@@ -410,55 +410,114 @@ TRANSFER = re.compile(r"(?:transship\w*|transfer\w*)\D{0,60}?\b(\d{1,4})\b", re.
 MEDEVAC = re.compile(r"medical evacuation|medevac", re.I)
 
 
+# A distress case as the crew names it ("AP0095", "AP 0032", "ADC018"): the entries about one
+# boat share it, so its position and its boat are never taken from another case of the same day.
+CASE = re.compile(r"\b(AP|ADC)\s?(?:case\s+)?0*(\d{1,4})\b", re.I)
+# People taken on board from another ship or a platform: the sheet's Transfer "To OV".
+TRANSFER_IN = re.compile(
+    r"transship\w*\s+(?:on)?to\s+(?:the\s+)?(?:Ocean Viking|OV)\b|evacuation\s+(?:is\s+)?complet",
+    re.I,
+)
+VESSEL = re.compile(r"\b(?:merchant vessel|platform|oil rig)\b", re.I)
+# A disembarkation repeats the number of people already counted at the recovery, unless the
+# entry itself reports the rescue ("operated the rescue of 46 people ... for disembarkation").
+RESCUE_WORDS = re.compile(
+    r"\b(?:rescue|recovery)\s+(?:operation\s+)?of\b|operated the rescue|rescues\s+\d", re.I
+)
+
+
+def case_ids(text: str) -> set[str]:
+    return {f"{prefix.upper()}{int(number)}" for prefix, number in CASE.findall(text)}
+
+
+def entry_position(entry: Entry):
+    """The position an entry gives, or ("conflict", raw) when its structured field and its text
+    disagree by more than a few miles: neither is chosen for the person who verifies."""
+    structured = parse_position(entry.coordinates)
+    written = parse_position(entry.text)
+    if (
+        structured
+        and written
+        and max(abs(structured[0] - written[0]), abs(structured[1] - written[1])) > 0.05
+    ):
+        return ("conflict", f"{structured[3]} / {written[3]}")
+    return written or structured
+
+
 def find_rescues(rotation: Rotation, window):
-    """One row per recovery completed by the Ocean Viking, with the boat described before it."""
+    """One row per recovery completed by the Ocean Viking, and one per transfer of people onto
+    it, with the position and boat of that same distress case."""
     rows, repeats = [], []
     start, end = window
+    entries = rotation.entries
+    facts = [
+        (
+            case_ids(entry.text),
+            entry_position(entry),
+            BOAT.search(entry.text),
+            OTHERS.search((entry.title or entry.text)[:80]),
+        )
+        for entry in entries
+    ]
     last_boat = ""
     last_position = None
-    for entry in rotation.entries:
+    vessel_today = None
+    for index, entry in enumerate(entries):
         text = entry.text
-        boat = BOAT.search(text)
-        if boat:
+        ids, position, boat, others = facts[index]
+        if boat and not ids:
             last_boat = re.sub(r"\s+", " ", boat.group(1)).strip().capitalize()
-        position = parse_position(f"{entry.coordinates} {text}")
-        if position:
+        if position and position[0] != "conflict" and not ids:
             last_position = (position, entry)
         flags = []
         if entry.day and start and end and not (start <= entry.day <= end):
             flags.append(f"date_outside:{entry.day}")
         lead = entry.title or text
-        if OTHERS.search(lead[:80]):
+        if others:
             continue
+        if VESSEL.search(text):
+            vessel_today = entry.day
         if MEDEVAC.search(text) and re.search(r"perform|complet|carried out", text, re.I):
-            rows.append(
-                (
-                    "Medevac",
-                    entry,
-                    None,
-                    None,
-                    "",
-                    flags + ["medevac"],
-                )
-            )
+            rows.append(("Medevac", entry, None, None, "", flags + ["medevac"]))
             continue
+        explicit_transfer = TRANSFER_IN.search(text)
+        transfer_in = explicit_transfer or (
+            DONE.search(text)
+            and vessel_today == entry.day
+            and not RESCUE_WORDS.search(text)
+            and PEOPLE.search(text)
+        )
         transfer = TRANSFER.search(text)
         if (
-            transfer
+            not transfer_in
+            and transfer
             and re.search(r"transship|transfer", lead, re.I)
             and re.search(r"complet|perform|carried", text, re.I)
         ):
             rows.append(("Transfer", entry, int(transfer.group(1)), None, "", flags))
             continue
-        # A disembarkation repeats the number of people already counted at the recovery.
-        if not DONE.search(text) or re.search(r"disembark", text, re.I):
-            continue
+        if not transfer_in:
+            if not DONE.search(text):
+                continue
+            # A message about disembarkation repeats a rescue already logged that day; it counts
+            # only when it is the one record of that rescue (16 January 2026: "operated the
+            # rescue of 46 people ... for disembarkation").
+            same_day = any(
+                row[1].day == entry.day and row[0] in ("Rescue", "TransferIn") for row in rows
+            )
+            if re.search(r"disembark", text, re.I) and (same_day or not RESCUE_WORDS.search(text)):
+                continue
         people_match = PEOPLE.search(text)
-        if not people_match:
+        if not people_match and not transfer_in:
             continue
-        people = int(people_match.group(1))
+        people = int(people_match.group(1)) if people_match else None
+        if people is None:
+            flags.append("count_unknown")
         if REPORTED.search(lead):
             flags.append("reported_in_message")
+        kind = "TransferIn" if transfer_in else "Rescue"
+        if transfer_in:
+            flags.append("transfer_to_ov")
         # The same recovery is often logged twice on the same day with the same number. The repeat
         # is kept aside, not dropped: the mission's stated total decides below whether it was a
         # second rescue of the same size.
@@ -466,7 +525,10 @@ def find_rescues(rotation: Rotation, window):
             (
                 row
                 for row in rows
-                if row[0] == "Rescue" and row[1].day == entry.day and row[2] == people
+                if row[0] == kind
+                and row[1].day == entry.day
+                and people is not None
+                and row[2] == people
             ),
             None,
         )
@@ -474,6 +536,7 @@ def find_rescues(rotation: Rotation, window):
         # the second, saying all, is the whole recovery and replaces the partial count.
         if (
             twin is None
+            and people is not None
             and re.search(r"\ball\s+\d", text, re.I)
             and rows
             and rows[-1][0] == "Rescue"
@@ -482,23 +545,86 @@ def find_rescues(rotation: Rotation, window):
         ):
             previous = rows.pop()
             flags.append(f"partial_replaced:{previous[2]}")
-        where = position or (
-            last_position[0] if last_position and last_position[1].day == entry.day else None
-        )
-        if not where:
+        where, from_time = _case_position(entries, facts, index, ids, position, last_position)
+        if where and where[0] == "conflict":
+            flags.append(f"position_conflict:{where[1]}")
+            where = None
+        elif not where:
             flags.append("no_position")
-        elif where[2] != "decimal":
-            flags.append(f"position_read:{where[2]}:{where[3]}")
+        else:
+            if where[2] != "decimal":
+                flags.append(f"position_read:{where[2]}:{where[3]}")
+            if from_time:
+                flags.append(f"position_from:{from_time}")
         if re.search(r"two (?:simultaneous rescues|boats)|from two", text, re.I):
             flags.append("two_boats")
         if twin is not None:
             # A repeat neither takes nor uses up the boat described for the next rescue.
             twin[5].append(f"merged_repeat:{entry.time}")
-            repeats.append((twin, ("Rescue", entry, people, where, twin[4], flags)))
+            repeats.append((twin, (kind, entry, people, where, twin[4], flags)))
             continue
-        rows.append(("Rescue", entry, people, where, last_boat, flags))
+        rows.append(
+            (kind, entry, people, where, _case_boat(entries, facts, index, ids, last_boat), flags)
+        )
         last_boat = ""
-    return restore_same_size_rescues(rotation, rows, repeats)
+    rows = restore_same_size_rescues(rotation, rows, repeats)
+    return fill_count_from_total(rotation, rows)
+
+
+def _case_position(entries, facts, index, ids, position, last_position):
+    """The entry's own position; else, for a named case, the nearest entry of the same day about
+    that case (a FINAL SITREP often follows the recovery); else, with no case named, the last
+    position of the day. Returns (position, time of the entry it comes from or None)."""
+    if position:
+        return position, None
+    entry = entries[index]
+    if ids:
+        nearest = None
+        for other, (other_ids, other_position, _, other_is_others) in enumerate(facts):
+            if (
+                other != index
+                and other_ids & ids
+                and other_position
+                and other_position[0] != "conflict"
+                and not other_is_others
+                and entries[other].day == entry.day
+                and (nearest is None or abs(other - index) < abs(nearest - index))
+            ):
+                nearest = other
+        return (facts[nearest][1], entries[nearest].time) if nearest is not None else (None, None)
+    if last_position and last_position[1].day == entry.day:
+        return last_position[0], last_position[1].time
+    return None, None
+
+
+def _case_boat(entries, facts, index, ids, last_boat):
+    """For a named case, the boat described in an earlier entry about that case; else the last
+    boat described with no case named."""
+    if not ids:
+        return last_boat
+    for other in range(index, -1, -1):
+        other_ids, _, boat, _ = facts[other]
+        if boat and other_ids & ids:
+            return re.sub(r"\s+", " ", boat.group(1)).strip().capitalize()
+    # No boat described for that case: the last one described without any case named.
+    return last_boat
+
+
+def fill_count_from_total(rotation, rows):
+    """A transfer or rescue logged without a number takes the people the mission total leaves,
+    when it is the only one without a number; it says so. Otherwise it stays without a number."""
+    unknown = [row for row in rows if row[0] in ("Rescue", "TransferIn") and row[2] is None]
+    if len(unknown) != 1 or rotation.survivors is None:
+        return rows
+    known = sum(row[2] or 0 for row in rows if row[0] in ("Rescue", "TransferIn"))
+    missing = rotation.survivors - known
+    if missing <= 0:
+        return rows
+    row = unknown[0]
+    row[5][:] = [flag for flag in row[5] if flag != "count_unknown"] + [
+        f"count_from_total:{missing}"
+    ]
+    return [(*item[:2], missing, *item[3:]) if item is row else item for item in rows]
 
 
 def restore_same_size_rescues(rotation, rows, repeats):
@@ -512,8 +638,11 @@ def restore_same_size_rescues(rotation, rows, repeats):
     rows_now = {id(row) for row in rows}
     # The repeat of a partial count that a later "all N" entry replaced goes with that count.
     repeats = [(twin, repeat) for twin, repeat in repeats if id(twin) in rows_now]
-    found = sum(row[2] or 0 for row in rows if row[0] == "Rescue")
-    missing = None if rotation.survivors is None else rotation.survivors - found
+    counted = [row for row in rows if row[0] in ("Rescue", "TransferIn")]
+    found = sum(row[2] or 0 for row in counted)
+    # With a row of unknown size, the mission total cannot say what a repeat was.
+    unknown_size = any(row[2] is None for row in counted)
+    missing = None if rotation.survivors is None or unknown_size else rotation.survivors - found
     restored = []
     if repeats and missing and missing > 0:
         if sum(repeat[2] for _, repeat in repeats) == missing:
@@ -579,11 +708,13 @@ def french_rotations(get: Callable[[str], str | None], after: date):
 # "code:value": date_outside:<day>, medevac, reported_in_message, partial_replaced:<n>, no_position,
 # position_read:<text|compact|swapped>:<as written>, two_boats, news_site, grouped:<operations>,
 # count_unknown, merged_repeat:<time of the repeat> (the mission total agrees), repeat_unsure:<time>,
-# same_size_twice, rotation_total:<stated>/<found>.
+# same_size_twice, rotation_total:<stated>/<found>, transfer_to_ov, count_from_total:<n>,
+# position_conflict:<structured> / <written>, position_from:<time>, port_partial.
 CHECK_CODES = (
     "date_outside", "medevac", "reported_in_message", "partial_replaced", "no_position",
     "position_read", "two_boats", "news_site", "grouped", "count_unknown", "merged_repeat",
-    "same_size_twice", "repeat_unsure", "rotation_total",
+    "same_size_twice", "repeat_unsure", "rotation_total", "transfer_to_ov", "count_from_total",
+    "position_conflict", "position_from", "port_partial",
 )  # fmt: skip
 
 FR_RESCUE = re.compile(
@@ -796,7 +927,11 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
     sheet_rows, provenance, summary, others = [], [], [], []
     for rotation, window in sorted(rotations, key=lambda item: item[1][0] or date.max):
         found = find_rescues(rotation, window)
-        rescued = sum(people or 0 for kind, _, people, *_ in found if kind == "Rescue")
+        rescued = sum(
+            people or 0 for kind, _, people, *_ in found if kind in ("Rescue", "TransferIn")
+        )
+        # Part of the survivors left on another ship before landing: the port is theirs only.
+        partial_port = ["port_partial"] if any(kind == "Transfer" for kind, *_ in found) else []
         matches = rotation.survivors == rescued
         # The rotation's stated total and its rows disagree: every row of it says so.
         total_flag = [] if matches else [f"rotation_total:{rotation.survivors}/{rescued}"]
@@ -821,11 +956,14 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
                 continue
             row = dict.fromkeys(SHEET_HEADER, "")
             row["date"] = entry.day.strftime("%d/%m/%Y") if entry.day else ""
-            row["type_ops"] = kind
-            row["nb_ops"] = "1"
+            row["type_ops"] = "Transfer" if kind == "TransferIn" else kind
+            if kind == "TransferIn":
+                row["transfer_type"] = "To OV"
+            # "Two simultaneous rescues", "from two boats": two operations in one entry.
+            row["nb_ops"] = "2" if "two_boats" in flags else "1"
             if people is not None:
                 row["nb_survivor"] = str(people)
-            if kind == "Rescue":
+            if kind in ("Rescue", "TransferIn"):
                 for name, pattern in DEMOGRAPHICS.items():
                     match = pattern.search(entry.text)
                     if match:
@@ -843,7 +981,9 @@ def extract(get: Callable[[str], str | None], after: date) -> Extraction:
                     "source_url": rotation.url,
                     "entry": f"{entry.day} {entry.time}".strip(),
                     "quote": excerpt(entry.text),
-                    "to_check": "; ".join(flags + total_flag),
+                    "to_check": "; ".join(
+                        flags + total_flag + (partial_port if kind != "Medevac" else [])
+                    ),
                 }
             )
         summary.append(

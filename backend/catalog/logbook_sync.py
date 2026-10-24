@@ -90,7 +90,7 @@ def rows_already_in_sheet(logbook_rows):
     for snapshot in _latest_real_sheets():
         for line, candidate in snapshot.rows.order_by("line").values_list("line", "candidate"):
             candidate = candidate or {}
-            if candidate.get("kind") == "rescue" and candidate.get("nb_survivor"):
+            if candidate.get("kind") in ("rescue", "transfer") and candidate.get("nb_survivor"):
                 lines[(candidate.get("occurred_on"), candidate["nb_survivor"])].append(line)
     logbook_rows = list(logbook_rows)
     # Verified rows take the sheet's lines first: the one SOS pasted is the one it was given.
@@ -101,7 +101,7 @@ def rows_already_in_sheet(logbook_rows):
     for row in sorted(logbook_rows, key=lambda row: (row.pk not in verified, row.line)):
         candidate = row.candidate or {}
         key = (candidate.get("occurred_on"), candidate.get("nb_survivor"))
-        if candidate.get("kind") == "rescue" and lines.get(key):
+        if candidate.get("kind") in ("rescue", "transfer") and lines.get(key):
             found[row.pk] = lines[key].pop(0)
     return found
 

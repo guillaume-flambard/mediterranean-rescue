@@ -22,6 +22,11 @@ const CHECKS = [
   "same_size_twice",
   "repeat_unsure",
   "rotation_total",
+  "transfer_to_ov",
+  "count_from_total",
+  "position_conflict",
+  "position_from",
+  "port_partial",
 ];
 
 export function checkText(i18n: I18n, point: string) {
@@ -29,7 +34,7 @@ export function checkText(i18n: I18n, point: string) {
   if (!CHECKS.includes(code)) return point;
   if (code === "position_read") return i18n.t(`logbook.check.position_read.${value}` as Key, { value: raw });
   // A time keeps its colon: "merged_repeat:07:20".
-  if (code === "merged_repeat" || code === "repeat_unsure")
+  if (["merged_repeat", "repeat_unsure", "position_from", "position_conflict"].includes(code))
     return i18n.t(`logbook.check.${code}` as Key, { value: point.slice(code.length + 1) });
   if (code === "date_outside") return i18n.t("logbook.check.date_outside", { value: i18n.date(value) });
   if (code === "rotation_total") {

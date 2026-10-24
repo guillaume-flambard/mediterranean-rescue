@@ -143,7 +143,7 @@ def cumulative_total(logbook_rows, sheet_until):
     for row in logbook_rows:
         candidate = row.candidate or {}
         day, people = candidate.get("occurred_on"), candidate.get("nb_survivor")
-        if day and people and candidate.get("kind") == "rescue":
+        if day and people and candidate.get("kind") in ("rescue", "transfer"):
             if day <= as_of:
                 before += people
             else:
@@ -160,7 +160,8 @@ def cumulative_total(logbook_rows, sheet_until):
 def year_totals(logbook_rows, sheet_by_year):
     """For each year the logbook covers: people in the sheet, rebuilt, and as SOS reported them.
     `logbook_rows` must leave out the rows the sheet already holds, or they count twice."""
-    rebuilt = _people_by_year(logbook_rows, kinds=("rescue",))
+    # Rescues and transfers onto the Ocean Viking, as the sheet and SOS's figures count them.
+    rebuilt = _people_by_year(logbook_rows)
     return [
         {
             "year": year,

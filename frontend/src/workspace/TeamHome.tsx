@@ -57,7 +57,8 @@ function Home({ me }: { me: Me }) {
     { enabled: reviewer },
   );
 
-  const sheets = (sync.data?.sheets ?? []).filter((sheet) => sheet.sheet !== "Data_ports");
+  // The association's own sheets: the logbook reading has its own step (acceptance of 25 October, D-C).
+  const sheets = (sync.data?.sheets ?? []).filter((sheet) => sheet.sheet !== "Data_ports" && sheet.source_key !== "sos-logbook");
   const failing = sheets.some((sheet) => sheet.last_status === "failed" || sheet.last_status === "refused");
   const counts = queue.data?.counts;
   const prep = publication.data?.preparation ?? [];

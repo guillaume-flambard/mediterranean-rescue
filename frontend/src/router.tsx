@@ -77,6 +77,12 @@ export function withChangedQuery(path: string, query: URLSearchParams, changes: 
   return text ? `${path}?${text}` : path;
 }
 
+/** Changes some query values of the address as it is now (not as a render saw it), so two
+ * changes made in one event handler both stay (frontend audit of 25 October 2026). */
+export function changeQuery(changes: Record<string, string | null>, options: { replace?: boolean } = {}) {
+  navigate(withChangedQuery(window.location.pathname, new URLSearchParams(window.location.search), changes), options);
+}
+
 export function Link({ to, onClick, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) {
   const follow = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event);

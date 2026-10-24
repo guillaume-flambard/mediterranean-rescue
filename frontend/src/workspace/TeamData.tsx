@@ -124,7 +124,11 @@ function FiguresCheck({ data }: { data: Overview }) {
           </li>
         )}
       </ul>
-      {!matches && <p className="logbook-card__check-note">{t("logbook.card.checkGapNote")}</p>}
+      {!matches && (
+        <p className="logbook-card__check-note">
+          {data.cumulative && data.cumulative.in_sheet === 0 ? t("logbook.card.checkNoSheet") : t("logbook.card.checkGapNote")}
+        </p>
+      )}
       {data.cumulative && data.cumulative.after > 0 && (
         <p className="logbook-card__check-note">
           {t("logbook.card.checkAfter", { count: data.cumulative.after, date: i18n.date(data.cumulative.as_of) })}
