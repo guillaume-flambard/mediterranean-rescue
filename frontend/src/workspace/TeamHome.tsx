@@ -102,6 +102,9 @@ function Home({ me }: { me: Me }) {
     },
   ];
 
+  // One orange button on the page: the next thing to do. Later steps wait their turn.
+  const next = steps.findIndex((step) => step.state === "todo");
+
   const close = () => {
     setIntro(false);
     try {
@@ -150,7 +153,7 @@ function Home({ me }: { me: Me }) {
                   {step.detail}
                 </p>
               </div>
-              <Link to={step.path} className={`pill-button${step.state === "todo" ? " pill-button--primary" : ""} team-step__action`}>
+              <Link to={step.path} className={`pill-button${index === next ? " pill-button--primary" : ""} team-step__action`}>
                 {step.action}
                 <Icon name="arrowRight" size={16} />
               </Link>

@@ -87,7 +87,7 @@ describe("team home", () => {
     expect(await within(steps[1]!).findByText(/7 events waiting to be verified\. 2 flagged to fix in the sheet\./)).toBeTruthy();
     expect(await within(steps[3]!).findByText("Waiting for SOS MEDITERRANEE to agree that its data may be published.")).toBeTruthy();
     expect(within(steps[3]!).getByText("Cannot start yet")).toBeTruthy();
-    expect(await screen.findByText("3 names to read.")).toBeTruthy();
+    expect(await screen.findByText("3 port names to match to a known port.")).toBeTruthy();
 
     await userEvent.click(screen.getByRole("button", { name: "Close the welcome message" }));
     expect(screen.queryByRole("heading", { name: "Welcome to the team space" })).toBeNull();
@@ -136,7 +136,7 @@ describe("publish", () => {
       "GET /api/private/v1/publication/events/": () => ({ body: { items: [DRAFT], total_count: 1, has_next: false } }),
     });
     render(<PublishWorkspace />, "/workspace/publish");
-    expect(await screen.findByRole("heading", { name: "Publishing is locked for now" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Nothing can be published yet" })).toBeTruthy();
     await screen.findByText("Port fictif");
     await waitFor(() => expect(screen.queryByRole("checkbox")).toBeNull());
   });

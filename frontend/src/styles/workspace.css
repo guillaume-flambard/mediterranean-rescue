@@ -87,7 +87,7 @@
 .team-intro__close:hover { background: rgb(255 255 255 / 0.14); }
 .team-intro :focus-visible { outline-color: var(--sos-white); }
 .team-intro p { margin: 0; max-width: 70ch; line-height: 1.55; color: rgb(255 255 255 / 0.88); }
-.team-intro__safe { display: flex; align-items: center; gap: var(--space-2); font-weight: 700; color: var(--sos-white) !important; }
+.team-intro__safe { display: flex; align-items: flex-start; gap: var(--space-2); font-weight: 700; color: var(--sos-white) !important; }
 
 .team-steps { display: grid; gap: var(--space-3); }
 .team-steps ol { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
@@ -130,7 +130,7 @@
 .team-role ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .team-role li { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; }
 .team-role li svg { color: var(--color-success); }
-.team-role__no { color: var(--color-text-muted); font-weight: 500 !important; }
+.team-role__no { color: var(--color-text-secondary); font-weight: 500 !important; }
 .team-role__no svg { color: var(--color-text-muted) !important; }
 .team-role p { margin: 0; color: var(--color-text-secondary); font-size: 14px; }
 
@@ -160,3 +160,6 @@
   .team-step__action { grid-column: 1 / -1; }
   .publish-step { padding: var(--space-4); }
 }
+.team-intro__safe svg { flex: none; margin-top: 3px; }
+/* Phones: the section links scroll sideways; a fade on the right says there is more. */
+@media (max-width: 639px) { .workspace-nav { mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); padding-right: 24px; } }

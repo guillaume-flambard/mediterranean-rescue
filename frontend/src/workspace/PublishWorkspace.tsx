@@ -63,7 +63,13 @@ function Publish({ me }: { me: Me }) {
         </div>
       )}
       <Prepare overview={data} />
-      <Decide canPublish={data.can.publish} locked={locked.length > 0} counts={data.events} reviewer={me.permissions.review_identity} />
+      <Decide
+        canPublish={data.can.publish}
+        locked={locked.length > 0}
+        counts={data.events}
+        ready={data.preparation.reduce((sum, item) => sum + item.ready, 0)}
+        reviewer={me.permissions.review_identity}
+      />
     </div>
   );
 }
@@ -144,11 +150,14 @@ function Decide({
   canPublish,
   locked,
   counts,
+  ready,
   reviewer,
 }: {
   canPublish: boolean;
   locked: boolean;
   counts: Record<Status, number>;
+  /** Verified events not prepared yet: the empty list then points to step 1. */
+  ready: number;
   reviewer: boolean;
 }) {
   const i18n = useI18n();
@@ -239,11 +248,22 @@ function Decide({
             }
             empty={
               <EmptyState title={t(`publish.empty.${status}.title` as Key)}>
-                <p>{t(`publish.empty.${status}.body` as Key)}</p>
-                {status === "draft" && reviewer && (
-                  <Link to="/workspace/review" className="pill-button">
-                    {t("home.verify.action")}
-                  </Link>
+                {status === "draft" && ready > 0 ? (
+                  <>
+                    <p>{t("publish.empty.ready", { count: ready })}</p>
+                    <a href="#prepare-title" className="pill-button">
+                      {t("publish.empty.toStep1")}
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <p>{t(`publish.empty.${status}.body` as Key)}</p>
+                    {status === "draft" && reviewer && (
+                      <Link to="/workspace/review" className="pill-button">
+                        {t("home.verify.action")}
+                      </Link>
+                    )}
+                  </>
                 )}
               </EmptyState>
             }

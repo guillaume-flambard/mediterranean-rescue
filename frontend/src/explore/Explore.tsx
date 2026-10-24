@@ -396,10 +396,15 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
                 </BaseButton>
               ) : (
                 !preview && (
-                  <Link to="/about" className="pill-button">
-                    <Icon name="info" size={16} />
-                    {t("events.empty.about")}
-                  </Link>
+                  <div className="explore-state__actions">
+                    <Link to="/about" className="pill-button">
+                      <Icon name="info" size={16} />
+                      {t("events.empty.about")}
+                    </Link>
+                    <a className="pill-button" href="https://map.sosmediterranee.org/" target="_blank" rel="noreferrer">
+                      {t("events.empty.sosMap")}
+                    </a>
+                  </div>
                 )
               )}
             </div>

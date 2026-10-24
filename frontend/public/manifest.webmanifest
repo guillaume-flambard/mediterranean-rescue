@@ -1,7 +1,7 @@
 {
   "name": "Mediterranean Rescue",
   "short_name": "Med Rescue",
-  "description": "Actions at sea, documented.",
+  "description": "Operations at sea, documented.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#EEEDF2",

@@ -46,6 +46,7 @@ export function Welcome() {
         {t("welcome.more")}
         <Icon name="arrowRight" size={16} />
       </Link>
+      <p className="welcome__independent">{t("welcome.independent")}</p>
     </section>
   );
 }
