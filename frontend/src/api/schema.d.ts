@@ -148,6 +148,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/private/v1/preview/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_preview_events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/preview/events/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_preview_event"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/preview/map-points/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_preview_map_points"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/review/identities/": {
         parameters: {
             query?: never;
@@ -667,6 +715,67 @@ export interface components {
             /** Format: double */
             latitude: number;
             precision: string;
+        };
+        PreviewCounts: {
+            to_review: number;
+            blocked: number;
+            linked: number;
+        };
+        PreviewItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            snapshot: string;
+            sheet: string;
+            line: number;
+            /** Format: date-time */
+            exported_at: string;
+            source: components["schemas"]["PreviewSource"];
+            synthetic: boolean;
+            status: components["schemas"]["ReviewStatusEnum"];
+            error_codes: string[];
+            occurred_on: string | null;
+            kind: string | null;
+            people: number | null;
+            women: number | null;
+            minors: number | null;
+            deaths: number | null;
+            port_label: string | null;
+            boat_type: string | null;
+            position: components["schemas"]["PreviewPosition"] | null;
+            image_count: number;
+        };
+        PreviewMap: {
+            points: components["schemas"]["PreviewPoint"][];
+            located_count: number;
+            truncated: boolean;
+        };
+        PreviewPage: {
+            items: components["schemas"]["PreviewItem"][];
+            total_count: number;
+            has_next: boolean;
+            counts: components["schemas"]["PreviewCounts"];
+        };
+        PreviewPoint: {
+            /** Format: uuid */
+            id: string;
+            /** Format: double */
+            longitude: number;
+            /** Format: double */
+            latitude: number;
+            kind: string | null;
+            status: components["schemas"]["ReviewStatusEnum"];
+        };
+        PreviewPosition: {
+            /** Format: double */
+            longitude: number;
+            /** Format: double */
+            latitude: number;
+            inferred_hemisphere: boolean;
+        };
+        PreviewSource: {
+            key: string;
+            name: string;
         };
         Proposal: {
             kind: components["schemas"]["ReviewProposalEnum"];
@@ -1574,6 +1683,255 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LabelDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_preview_events: {
+        parameters: {
+            query?: {
+                end?: string;
+                kind?: string;
+                limit?: number;
+                offset?: number;
+                start?: string;
+                /**
+                 * @description * `to_review` - to_review
+                 *     * `blocked` - blocked
+                 *     * `linked` - linked
+                 */
+                status?: "to_review" | "blocked" | "linked";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_preview_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewItem"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_preview_map_points: {
+        parameters: {
+            query?: {
+                end?: string;
+                kind?: string;
+                start?: string;
+                /**
+                 * @description * `to_review` - to_review
+                 *     * `blocked` - blocked
+                 *     * `linked` - linked
+                 */
+                status?: "to_review" | "blocked" | "linked";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewMap"];
                 };
             };
             400: {

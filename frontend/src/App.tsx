@@ -1,6 +1,9 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { api, type Kind } from "./api/client";
+import { PreviewDetail, previewStatus, type PreviewStatus } from "./preview/PreviewDetail";
+import { Link } from "./router";
+import { StatusLabel } from "./ui/Feedback";
 import { kinds, makeFilter } from "./filters";
 import { LOCALES, type Locale } from "./i18n/format";
 import { useI18n } from "./i18n/I18nProvider";
@@ -12,6 +15,7 @@ import { SelectField } from "./ui/SelectField";
 
 const EventMap = lazy(async () => ({ default: (await import("./components/Map")).EventMap }));
 const PAGE = 25;
+type Mode = "preview" | "public";
 // Each language is named in its own language, as language pickers usually do.
 const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
 
@@ -133,19 +137,46 @@ export default function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const invalid = Boolean(start && end && start > end);
   const filters = makeFilter(start, end, kind);
+  // Signed-in reviewers see the latest private export on this screen; everyone else sees only
+  // published events. The preview is never published and never cached by the browser.
+  const me = api.useQuery("get", "/api/private/v1/me/", {}, { retry: false });
+  const canPreview = me.data?.permissions.review_identity === true;
+  const [modeChoice, setModeChoice] = useState<Mode | null>(null);
+  const mode: Mode = canPreview ? (modeChoice ?? "preview") : "public";
+  const preview = mode === "preview";
   const eventsQuery = api.useQuery(
     "get",
     "/api/v1/events/",
     { params: { query: { ...filters, limit: PAGE, offset } } },
-    { enabled: !invalid },
+    { enabled: !invalid && !preview },
   );
-  const mapQuery = api.useQuery("get", "/api/v1/map-points/", { params: { query: filters } }, { enabled: !invalid });
-  const fetching = eventsQuery.isFetching || mapQuery.isFetching;
-  const error = eventsQuery.error || mapQuery.error;
+  const mapQuery = api.useQuery("get", "/api/v1/map-points/", { params: { query: filters } }, { enabled: !invalid && !preview });
+  const previewEvents = api.useQuery(
+    "get",
+    "/api/private/v1/preview/events/",
+    { params: { query: { ...filters, limit: PAGE, offset } } },
+    { enabled: !invalid && preview },
+  );
+  const previewMap = api.useQuery(
+    "get",
+    "/api/private/v1/preview/map-points/",
+    { params: { query: filters } },
+    { enabled: !invalid && preview },
+  );
+  const fetching = preview ? previewEvents.isFetching || previewMap.isFetching : eventsQuery.isFetching || mapQuery.isFetching;
+  const error = preview ? previewEvents.error || previewMap.error : eventsQuery.error || mapQuery.error;
   const page = eventsQuery.data;
+  const total = preview ? previewEvents.data?.total_count : page?.total_count;
+  const map = preview ? previewMap.data : mapQuery.data;
+  const points = (map?.points ?? []).map((point) => ({ id: point.id, longitude: point.longitude, latitude: point.latitude, kind: point.kind as Kind }));
   const retry = () => {
-    void eventsQuery.refetch();
-    void mapQuery.refetch();
+    if (preview) {
+      void previewEvents.refetch();
+      void previewMap.refetch();
+    } else {
+      void eventsQuery.refetch();
+      void mapQuery.refetch();
+    }
   };
   useEffect(() => {
     document.title = t("app.documentTitle");
@@ -175,6 +206,9 @@ export default function App() {
         <a href="https://sosmediterranee.fr/" target="_blank" rel="noreferrer">
           {t("app.sosLink")}
         </a>
+        <Link to="/workspace" className="workspace-link">
+          {canPreview ? t("preview.workspace") : t("preview.signIn")}
+        </Link>
       </header>
       <main>
         <section className="intro">
@@ -185,6 +219,41 @@ export default function App() {
           <span className="phase">{t("app.phase")}</span>
         </section>
         <p className="context">{t("app.context")}</p>
+        {canPreview && (
+          <div className="preview-bar" role="group" aria-label={t("preview.modeLabel")}>
+            {(["preview", "public"] as const).map((value) => (
+              <Button
+                key={value}
+                size="sm"
+                variant={mode === value ? "primary" : "secondary"}
+                aria-pressed={mode === value}
+                onClick={() => {
+                  setModeChoice(value);
+                  setOffset(0);
+                  setSelected(null);
+                }}
+              >
+                {t(`preview.mode.${value}`)}
+              </Button>
+            ))}
+          </div>
+        )}
+        {preview && (
+          <div className="preview-banner" role="status">
+            <strong>{t("preview.banner.title")}</strong>{" "}
+            {t("preview.banner.body")}
+            {previewEvents.data && (
+              <span className="preview-banner__counts">
+                {" "}
+                {t("preview.banner.counts", {
+                  toReview: previewEvents.data.counts.to_review,
+                  blocked: previewEvents.data.counts.blocked,
+                  linked: previewEvents.data.counts.linked,
+                })}
+              </span>
+            )}
+          </div>
+        )}
         {page?.data_mode === "training" && (
           <div className="training" role="status">
             {t("app.training")}
@@ -225,7 +294,7 @@ export default function App() {
           />
           <Button onClick={reset}>{t("filters.reset")}</Button>
           <span className="result-count" role="status">
-            {fetching ? t("filters.refreshing") : page ? t("events.count", { count: page.total_count }) : ""}
+            {fetching ? t("filters.refreshing") : total !== undefined ? t("events.count", { count: total }) : ""}
           </span>
         </form>
         {invalid && (
@@ -248,22 +317,52 @@ export default function App() {
                 </div>
               }
             >
-              <EventMap points={invalid ? [] : (mapQuery.data?.points ?? [])} onSelect={setSelected} />
+              <EventMap points={invalid ? [] : points} onSelect={setSelected} />
             </Suspense>
             <div className="map-footer">
               <span>
-                <i /> {t("map.legend")}
+                <i /> {t(preview ? "preview.legend" : "map.legend")}
               </span>
-              <span>{t("map.located", { count: mapQuery.data?.located_count ?? 0 })}</span>
+              <span>{t("map.located", { count: map?.located_count ?? 0 })}</span>
             </div>
-            {mapQuery.data?.truncated && <p className="notice">{t("map.truncated")}</p>}
+            {map?.truncated && <p className="notice">{t("map.truncated")}</p>}
           </section>
           <section className="journal" aria-labelledby="journal-title">
             <div className="journal-head">
-              <h2 id="journal-title">{t("events.heading")}</h2>
-              <span>{i18n.number(page?.total_count ?? 0)}</span>
+              <h2 id="journal-title">{t(preview ? "preview.heading" : "events.heading")}</h2>
+              <span>{i18n.number(total ?? 0)}</span>
             </div>
-            {!page && fetching ? (
+            {preview ? (
+              !previewEvents.data ? (
+                <p className="empty" role="status">
+                  {invalid ? t("filters.fixRange") : t("events.loading")}
+                </p>
+              ) : previewEvents.data.total_count === 0 ? (
+                <div className="empty">
+                  <h3>{t("preview.empty.title")}</h3>
+                  <p>{t("preview.empty.body")}</p>
+                </div>
+              ) : (
+                <ul className="events">
+                  {previewEvents.data.items.map((item) => (
+                    <li key={item.id}>
+                      <BaseButton className="event" onClick={() => setSelected(item.id)}>
+                        <span className="event-date">{item.occurred_on ? i18n.date(item.occurred_on) : t("review.unknown")}</span>
+                        <strong>
+                          {item.kind ? kindLabel(item.kind as Kind) : t("review.unknown")}
+                          {item.port_label ? ` · ${item.port_label}` : ""}
+                        </strong>
+                        <span className="muted">{t("preview.item.line", { sheet: item.sheet, line: item.line })}</span>
+                        <span className="preview-item-meta">
+                          {item.people === null ? t("events.peopleUnknown") : t("events.people", { count: item.people })}{" "}
+                          <StatusLabel status={previewStatus(item.status as PreviewStatus)} />
+                        </span>
+                      </BaseButton>
+                    </li>
+                  ))}
+                </ul>
+              )
+            ) : !page && fetching ? (
               <p className="empty" role="status">
                 {t("events.loading")}
               </p>
@@ -299,8 +398,8 @@ export default function App() {
               className="pagination"
               offset={offset}
               limit={PAGE}
-              total={page?.total_count ?? 0}
-              hasNext={Boolean(page?.has_next)}
+              total={total ?? 0}
+              hasNext={Boolean(preview ? previewEvents.data?.has_next : page?.has_next)}
               disabled={fetching || invalid}
               onOffsetChange={setOffset}
             />
@@ -322,7 +421,7 @@ export default function App() {
           if (!open) setSelected(null);
         }}
       >
-        {selected && <Detail key={selected} id={selected} />}
+        {selected && (preview ? <PreviewDetail key={selected} id={selected} kindLabel={kindLabel} /> : <Detail key={selected} id={selected} />)}
       </Dialog>
     </>
   );

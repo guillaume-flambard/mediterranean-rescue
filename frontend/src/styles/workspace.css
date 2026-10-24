@@ -54,3 +54,19 @@
 .ui-file__input:focus-visible + .ui-file__button { outline: 3px solid var(--color-focus-on-light); outline-offset: 2px; }
 .ui-file__input:hover + .ui-file__button { background: var(--color-surface-hover); }
 .ui-file__name { color: var(--color-text-secondary); overflow-wrap: anywhere; }
+
+/* Private preview of the latest export on the main screen (ADR 0011). */
+.workspace-link { font-weight: var(--type-label-weight); }
+.preview-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0; }
+.preview-banner {
+  margin: 0 0 var(--space-3); padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--color-warning); border-radius: var(--radius-medium);
+  background: var(--color-warning-background); color: var(--color-text);
+}
+.preview-banner__counts { font-variant-numeric: tabular-nums; font-weight: var(--type-label-weight); }
+.preview-flag {
+  display: inline-block; margin: 0 0 var(--space-2); padding: 2px var(--space-2);
+  border-radius: var(--radius-pill); background: var(--color-warning-background);
+  font-size: var(--type-label-size); font-weight: var(--type-label-weight);
+}
+.preview-item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }

@@ -22,6 +22,7 @@ from catalog.private_ports import (
     PortsView,
     VesselsView,
 )
+from catalog.private_preview import PreviewEventsView, PreviewEventView, PreviewMapView
 from django.contrib import admin
 from django.db import connection
 from django.http import JsonResponse
@@ -73,6 +74,9 @@ urlpatterns = [
     path("api/private/v1/ports/labels/<str:id>/", PortLabelView.as_view()),
     path("api/private/v1/ports/labels/<str:id>/decision/", PortLabelDecisionView.as_view()),
     path("api/private/v1/vessels/", VesselsView.as_view()),
+    path("api/private/v1/preview/events/", PreviewEventsView.as_view()),
+    path("api/private/v1/preview/events/<uuid:id>/", PreviewEventView.as_view()),
+    path("api/private/v1/preview/map-points/", PreviewMapView.as_view()),
     path(
         "api/v1/schema/",
         SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),
