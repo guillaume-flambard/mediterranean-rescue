@@ -80,7 +80,7 @@ class ContractTests(unittest.TestCase):
             self.assertEqual(definitions[name], "unknown", name)
         for sheet in ("Other_data", "Data_ports"):
             statuses = {c["name_status"] for c in contract["sheets"][sheet]["columns"]}
-            self.assertEqual(statuses, {"dossier_inventory_unverified"})
+            self.assertEqual(statuses, {"snapshot_2026_10_24"})
 
     def test_module_has_no_django_database_or_network_dependency(self):
         source = Path(sheets.__file__).read_text(encoding="utf-8")
@@ -128,11 +128,21 @@ class StructureTests(unittest.TestCase):
 
     def test_trailing_anonymous_column_ignored_only_when_empty(self):
         content = (
-            OPS_HEADER + ",\n" + ops_row() + ",\n" + ops_row(date="04/02/2024") + ",oops\n"
+            OPS_HEADER
+            + ",,\n"
+            + ops_row()
+            + ",,\n"
+            + ops_row(date="04/02/2024")
+            + ",oops,\n"
+            + ops_row(date="05/02/2024")
+            + ",again,\n"
         ).encode()
         result = diagnose(content, "Data_operations")
-        self.assertNotIn("unnamed_column_has_value", codes(result, 2))
-        self.assertIn("unnamed_column_has_value", codes(result, 3))
+        anonymous = [i for i in result["issues"] if i["code"] == "unnamed_column_has_value"]
+        # Reported once per column, as a warning: mapped columns are unaffected and kept.
+        self.assertEqual([(i["severity"], i["column"]) for i in anonymous], [("warning", 24)])
+        self.assertEqual(result["rows"][1]["raw_cells"][23], "oops")
+        self.assertEqual(result["status"]["normalization"], "needs_review")
 
     def test_malformed_quotes_are_rejected_with_location(self):
         self.assertEqual(scan_quoting('a,b\nx,y"z\n'), ("quote_in_unquoted_field", 2))
@@ -279,7 +289,6 @@ class NormalizationTests(unittest.TestCase):
                 ops_row(
                     nb_survivor="3",
                     under_18="5",
-                    nb_nationalities="3",
                     type_nationalities="Pays A;Pays B",
                 )
             ),
@@ -287,13 +296,11 @@ class NormalizationTests(unittest.TestCase):
         )
         candidate = result["rows"][0]["candidate"]
         self.assertIn("subpopulation_exceeds_total", codes(result, 2))
-        self.assertIn("declared_count_differs_from_list", codes(result, 2))
         self.assertEqual((candidate["nb_survivor"], candidate["under_18"]), (3, 5))
-        self.assertEqual(candidate["nb_nationalities"], 3)
         self.assertEqual(candidate["type_nationalities"], ["Pays A", "Pays B"])
 
     def test_deaths_never_feed_survivors_and_kinds_are_distinct(self):
-        content = (OTHER_HEADER + "\n02-04-2024,Dead & Missing,-,-,,,,3,,,,,,,\n").encode()
+        content = (OTHER_HEADER + "\n02/04/2024,Dead & Missing,-,-,,,,3,,,,,,,\n").encode()
         candidate = diagnose(content, "Other_data")["rows"][0]["candidate"]
         self.assertEqual(candidate["kind"], "dead_missing")
         self.assertEqual(candidate["death_nb_people"], 3)
@@ -326,7 +333,7 @@ class ReviewRegressionTests(unittest.TestCase):
         self.assertIn("invalid_decimal", codes(result, 2))
 
     def test_unknown_lists_stay_null(self):
-        content = (OTHER_HEADER + "\n01-04-2024,Incident,34,13,,,,,,,,n/a,n/a,unknown,?\n").encode()
+        content = (OTHER_HEADER + "\n01/04/2024,Incident,34,13,,,,,,,,n/a,n/a,unknown,?\n").encode()
         candidate = diagnose(content, "Other_data")["rows"][0]["candidate"]
         for name in ("testimonies", "image_src", "video_srv"):
             self.assertIsNone(candidate[name], name)
@@ -334,7 +341,6 @@ class ReviewRegressionTests(unittest.TestCase):
             ops_csv(ops_row(nb_nationalities="2", type_nationalities="?")), "Data_operations"
         )
         self.assertIsNone(result["rows"][0]["candidate"]["type_nationalities"])
-        self.assertNotIn("declared_count_differs_from_list", codes(result))
         known_empty = diagnose(ops_csv(ops_row(testimony_name="A")), "Data_operations")
         self.assertIn("testimony_lists_misaligned", codes(known_empty, 2))
 
@@ -364,6 +370,48 @@ class ReviewRegressionTests(unittest.TestCase):
         )
         self.assertIn("unsafe_url_scheme", codes(result, 2))
         self.assertIsNone(result["rows"][0]["candidate"]["image_src"])
+
+
+class RealExportFormatTests(unittest.TestCase):
+    """Formats seen in the public export of 2026-10-24; inputs here are fictitious."""
+
+    REGION = load_contract()["hemisphere_inference"]
+
+    def test_hemisphere_inferred_only_when_one_reading_is_in_region(self):
+        self.assertEqual(
+            parse_coordinate("35° 30.5", "latitude", self.REGION),
+            ("35.5083333333", "degrees_decimal_minutes_inferred_hemisphere"),
+        )
+        self.assertEqual(parse_coordinate("15° 0", "longitude", self.REGION)[0], "15.0000000000")
+        for value, axis, code in [
+            ("0° 18.59", "longitude", "hemisphere_ambiguous"),  # Valencia lies west
+            ("5° 21.43", "longitude", "hemisphere_ambiguous"),
+            ("60° 0", "latitude", "coordinate_outside_region"),
+            ("35° 60", "latitude", "coordinate_minutes_out_of_range"),
+        ]:
+            with self.assertRaisesRegex(CellError, code, msg=value):
+                parse_coordinate(value, axis, self.REGION)
+        with self.assertRaisesRegex(CellError, "hemisphere_missing"):
+            parse_coordinate("35° 30.5", "latitude")
+        self.assertEqual(
+            parse_coordinate("0° 18.59'W", "longitude", self.REGION)[0], "-0.3098333333"
+        )
+
+    def test_region_inference_is_reported_once_and_ambiguity_blocks_the_row(self):
+        content = "nom,latitude,longitude\nA,35° 30.5,14° 15.25\nB,39° 26.32,0° 18.59\n".encode()
+        result = diagnose(content, "Data_ports")
+        self.assertEqual(codes(result).count("hemisphere_inferred_from_region"), 1)
+        self.assertEqual(codes(result, 3), ["hemisphere_ambiguous"])
+        self.assertIsNone(result["rows"][1]["candidate"]["position"])
+        position = result["rows"][0]["candidate"]["position"]
+        self.assertEqual(
+            (position["latitude"], position["longitude"]), ("35.5083333333", "14.2541666667")
+        )
+
+    def test_other_data_dates_use_slashes(self):
+        content = (OTHER_HEADER + "\n21/06/2022,Incident,33° 55,13° 55,,,,,,,,,,,\n").encode()
+        candidate = diagnose(content, "Other_data")["rows"][0]["candidate"]
+        self.assertEqual(candidate["occurred_on"], "2022-06-21")
 
 
 class ProvenanceTests(unittest.TestCase):
@@ -627,7 +675,6 @@ class SyntheticDemonstrationTests(unittest.TestCase):
                 "coordinate_pair_incomplete",
                 "missing_position",
                 "subpopulation_exceeds_total",
-                "declared_count_differs_from_list",
             },
             found,
         )

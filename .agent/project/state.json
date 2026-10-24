@@ -24,7 +24,7 @@
   },
   "verification": {
     "status": "PASS",
-    "diagnostic_host_tests": 41,
+    "diagnostic_host_tests": 44,
     "backend_postgis_tests": 60,
     "frontend_tests": 2,
     "openapi_codegen": "PASS (unchanged)",
@@ -39,18 +39,22 @@
       "note": "No pull request by owner decision (2026-10-24); the workflow runs on push only for main and feat/platform-foundation, so this branch has local evidence only (EV-D4)."
     },
     "previous_milestone": "rest-foundation-and-project-charter, CI run 40093284881 on 87b7d39",
-    "evidence": "07-evidence.md"
+    "evidence": "07-evidence.md",
+    "real_export_diagnostic": "2026-10-24 private snapshot: Data_operations 0 errors / 370 rows; Other_data 2 errors / 9; Data_ports 3 ambiguous / 24 (EV-D5)"
   },
   "ready_for_manual_acceptance": true,
   "human_acceptance": false,
   "next_product_milestones": [
-    "authorized extract and approved field contract (L1)",
-    "identity crosswalk and port aliases",
-    "connect diagnostic to business staging",
-    "logbook and geographic enrichment",
+    "owner review of the hemisphere rule and of the 3 ambiguous ports",
+    "identity crosswalk and port aliases (on fixtures, then on the private snapshot)",
+    "connect diagnostic to business staging, drafts only",
+    "React + Base UI application: design system (tokens, typography, color, motion), reusable components, animations, accessible map/list/detail journeys",
+    "authorized extract and approved field contract with SOS / Data for Good, when Guillaume decides to show the work",
     "identity hosting backups restore and association acceptance"
   ],
   "owner_decisions": [
-    "2026-10-24: no pull request, neither on the fork nor upstream; keep advancing on branches and show Data for Good / SOS later, when Guillaume decides."
+    "2026-10-24: no pull request, neither on the fork nor upstream; keep advancing on branches and show Data for Good / SOS later, when Guillaume decides.",
+    "2026-10-24: one private local download of the public export allowed for diagnostic; never committed or redistributed.",
+    "2026-10-24: once the backend is solid, the product is a React app with Base UI, its own design system, reusable components and animations."
   ]
 }

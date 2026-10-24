@@ -1,6 +1,6 @@
 date,type,latitude,longitude,wind_force,wave_height,boat_type,death_nb_people,inc_action,shipwreck_nb,boat_involved,testimony_name,testimony_src,image_src,video_srv,
-01-04-2024,Shipwreck,34.2,13.1,4,"2,5",Wood,,"Action fictive
+01/04/2024,Shipwreck,34.2,13.1,4,"2,5",Wood,,"Action fictive
 sur deux lignes",1,Bateau fictif,,,,,
-02-04-2024,Dead & Missing,-,-,,,,3,,,,,,,,
-01/04/2024,Incident,34.2,13.1,,,,,,,,,,,,valeur hors contrat
-31-04-2024,Incident,91,181,,,,,,,,,,,,
+02/04/2024,Dead & Missing,-,-,,,,3,,,,,,,,
+01-04-2024,Incident,34.2,13.1,,,,,,,,,,,,valeur hors contrat
+31/04/2024,Incident,91,181,,,,,,,,,,,,

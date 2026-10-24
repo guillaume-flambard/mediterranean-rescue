@@ -93,12 +93,16 @@ def parse_decimal(value):
 
 _DECIMAL_COORDINATE = re.compile(r"[+-]?[0-9]{1,3}(?:[.,][0-9]+)?")
 _DM_COORDINATE = re.compile(
-    r"([0-9]{1,3})\s*°\s*([0-9]{1,2}(?:[.,][0-9]+)?)\s*['′]?\s*([NSEWnsew])"
+    r"([0-9]{1,3})\s*°\s*([0-9]{1,2}(?:[.,][0-9]+)?)\s*['′]?\s*([NSEWnsew])?"
 )
 
 
-def parse_coordinate(value, axis):
-    """Return (WGS84 decimal string, source format); bounds are checked on exact values."""
+def parse_coordinate(value, axis, region=None):
+    """Return (WGS84 decimal string, source format); bounds are checked on exact values.
+
+    Degrees and minutes without a hemisphere are only resolved when `region` (contract
+    hemisphere_inference) leaves a single signed reading inside it; otherwise refused.
+    """
     maximum = Fraction(90 if axis == "latitude" else 180)
     if len(value) > MAX_NUMBER_CHARS:
         raise CellError("invalid_coordinate")
@@ -114,14 +118,27 @@ def parse_coordinate(value, axis):
             raise CellError("invalid_coordinate")
         degrees = Fraction(match[1])
         minutes = Fraction(match[2].replace(",", "."))
-        hemisphere = match[3].upper()
-        if hemisphere not in ("NS" if axis == "latitude" else "EW"):
-            raise CellError("coordinate_axis_mismatch")
         if minutes >= 60:
             raise CellError("coordinate_minutes_out_of_range")
-        exact = (degrees + minutes / 60) * (-1 if hemisphere in "SW" else 1)
-        fmt = "degrees_decimal_minutes_hemisphere"
+        unsigned = degrees + minutes / 60
         text = None
+        if match[3]:
+            hemisphere = match[3].upper()
+            if hemisphere not in ("NS" if axis == "latitude" else "EW"):
+                raise CellError("coordinate_axis_mismatch")
+            exact = unsigned * (-1 if hemisphere in "SW" else 1)
+            fmt = "degrees_decimal_minutes_hemisphere"
+        else:
+            if region is None:
+                raise CellError("hemisphere_missing")
+            low, high = (Fraction(bound) for bound in region[axis])
+            inside = {reading for reading in (unsigned, -unsigned) if low <= reading <= high}
+            if len(inside) > 1:
+                raise CellError("hemisphere_ambiguous")
+            if not inside:
+                raise CellError("coordinate_outside_region")
+            exact = inside.pop()
+            fmt = "degrees_decimal_minutes_inferred_hemisphere"
     if abs(exact) > maximum:
         raise CellError("coordinate_out_of_range")
     if text is None:
@@ -204,6 +221,9 @@ class _Diagnostic:
         self.header_cells = []
         self.mapping_ok = False
         self.dataset_label = dataset_label
+        self.unnamed_values = Counter()
+        self.region = contract.get("hemisphere_inference")
+        self.inferred_hemispheres = 0
 
     def issue(self, severity, code, line=None, column=None, field=None):
         self.issues.append(
@@ -263,6 +283,11 @@ class _Diagnostic:
                 self.blank_rows += 1
                 continue
             self.add_row(cells, start, reader.line_num, seen)
+        for column in sorted(self.unnamed_values):
+            # Values outside the contract are kept raw; mapped columns are not shifted.
+            self.issue("warning", "unnamed_column_has_value", column=column)
+        if self.inferred_hemispheres:
+            self.issue("warning", "hemisphere_inferred_from_region")
         if text.endswith(("\n", "\r")):
             self.source_read = "complete"
         else:
@@ -331,7 +356,7 @@ class _Diagnostic:
             return  # no silent shift of cells into other columns
         for index, (name, value) in enumerate(zip(self.header_cells, cells), 1):
             if not name.strip() and value.strip():
-                self.issue("error", "unnamed_column_has_value", line=start, column=index)
+                self.unnamed_values[index] += 1
         if not self.mapping_ok:
             return
         raw = {
@@ -463,15 +488,17 @@ class _Diagnostic:
             return
         lat = lon = None
         try:
-            lat = parse_coordinate(lat_raw, "latitude")
+            lat = parse_coordinate(lat_raw, "latitude", self.region)
         except CellError as exc:
             flag("error", str(exc), "latitude")
         try:
-            lon = parse_coordinate(lon_raw, "longitude")
+            lon = parse_coordinate(lon_raw, "longitude", self.region)
         except CellError as exc:
             flag("error", str(exc), "longitude")
         if lat is None or lon is None:
             return
+        if "inferred" in lat[1] or "inferred" in lon[1]:
+            self.inferred_hemispheres += 1
         if Decimal(lat[0]) == 0 and Decimal(lon[0]) == 0:
             flag("warning", "coordinate_zero_zero", "latitude")
         candidate["position"] = {
@@ -489,10 +516,6 @@ class _Diagnostic:
             if parent and candidate.get(name) is not None and candidate.get(parent) is not None:
                 if candidate[name] > candidate[parent]:
                     flag("warning", "subpopulation_exceeds_total", name)
-            declared = column.get("declared_count")
-            if declared and candidate.get(declared) is not None and candidate.get(name) is not None:
-                if candidate[declared] != len(candidate[name]):
-                    flag("warning", "declared_count_differs_from_list", declared)
 
     def errors(self):
         return [issue for issue in self.issues if issue["severity"] == "error"]
@@ -565,7 +588,11 @@ EXPLANATIONS = {
     "exact_duplicate_row": "Ligne identique à une ligne précédente ; signalée, jamais fusionnée.",
     "extra_cells": "Plus de cellules que d’en-têtes ; ligne non normalisée.",
     "missing_cells": "Moins de cellules que d’en-têtes ; ligne non normalisée.",
-    "unnamed_column_has_value": "Valeur dans une colonne sans en-tête.",
+    "unnamed_column_has_value": "Colonne sans en-tête contenant des valeurs (conservées brutes, hors contrat).",
+    "hemisphere_missing": "Degrés et minutes sans hémisphère, et aucune règle d’inférence au contrat.",
+    "hemisphere_ambiguous": "Sans hémisphère, les deux lectures tombent dans la région : aucune position devinée.",
+    "coordinate_outside_region": "Sans hémisphère, aucune lecture ne tombe dans la région du contrat.",
+    "hemisphere_inferred_from_region": "Hémisphère déduit des bornes de la région du contrat (règle proposée, non validée).",
     "missing_date": "Date absente.",
     "invalid_date_format": "Date dans un format inattendu.",
     "date_format_of_other_sheet": "Date au format de l’autre onglet ; non convertie.",
@@ -593,7 +620,6 @@ EXPLANATIONS = {
     "testimony_lists_misaligned": "Listes de témoignages de longueurs différentes ; aucune paire devinée.",
     "testimony_pair_incomplete": "Témoignage sans libellé ou sans lien.",
     "subpopulation_exceeds_total": "Sous-population supérieure à son total ; à revoir, rien n’est corrigé.",
-    "declared_count_differs_from_list": "Nombre déclaré différent de la liste ; rien n’est déduit.",
     "missing_required_value": "Valeur obligatoire absente.",
     "no_data_rows": "Aucune ligne de données.",
 }
@@ -674,8 +700,10 @@ def render_report(result, contract=None):
         "",
         "## Limites",
         "",
-        "- Le contrat est observé dans le code CartONG, pas approuvé par l’association. Les noms "
-        "d’en-tête d’Other_data et Data_ports ne sont pas confirmés par ce code, qui les lit par position.",
+        "- Le contrat vient du code CartONG et de l’export du 24 octobre 2026 ; il n’est pas "
+        "approuvé par l’association.",
+        "- L’hémisphère absent n’est déduit que si une seule lecture tombe dans la région du "
+        "contrat ; cette règle est une proposition à valider.",
         "- Unités, définitions des compteurs et marqueurs d’inconnu restent à valider.",
         "- Les cellules originales sont dans `diagnostic.json` et `snapshot.csv`, privés.",
         "",

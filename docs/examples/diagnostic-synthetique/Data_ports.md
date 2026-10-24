@@ -29,6 +29,7 @@ Ligne physique de début dans le snapshot ; colonne numérotée à partir de 1.
 
 ## Limites
 
-- Le contrat est observé dans le code CartONG, pas approuvé par l’association. Les noms d’en-tête d’Other_data et Data_ports ne sont pas confirmés par ce code, qui les lit par position.
+- Le contrat vient du code CartONG et de l’export du 24 octobre 2026 ; il n’est pas approuvé par l’association.
+- L’hémisphère absent n’est déduit que si une seule lecture tombe dans la région du contrat ; cette règle est une proposition à valider.
 - Unités, définitions des compteurs et marqueurs d’inconnu restent à valider.
 - Les cellules originales sont dans `diagnostic.json` et `snapshot.csv`, privés.

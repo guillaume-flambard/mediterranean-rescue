@@ -19,6 +19,17 @@
   },
   "unknown_markers": ["", "n/a", "unknown", "inconnu", "?", "-"],
   "unknown_markers_status": "proposed_not_validated",
+  "header_check": {
+    "snapshot": "Public export of 2026-10-24 (private local copy, not redistributed)",
+    "result": "All header names below were found exactly. Data_operations also has three unnamed trailing columns holding values (one copies type_nationalities)."
+  },
+  "hemisphere_inference": {
+    "status": "proposed_not_validated",
+    "reason": "The 2026-10-24 export writes degrees and minutes without hemisphere (e.g. 35° 30.5).",
+    "rule": "A value without hemisphere is resolved only if exactly one signed reading lies inside this coarse Mediterranean box; otherwise hemisphere_ambiguous or coordinate_outside_region.",
+    "latitude": ["30", "46"],
+    "longitude": ["-6", "36.5"]
+  },
   "sheets": {
     "Data_operations": {
       "binding": "header",
@@ -41,9 +52,9 @@
         {"name": "wind_force", "type": "decimal", "name_status": "consumer_code", "definition_status": "unknown", "note": "Unit unknown."},
         {"name": "wave_height", "type": "decimal", "name_status": "consumer_code", "definition_status": "unconfirmed", "note": "Unit unknown; comma decimals observed."},
         {"name": "boat_type", "type": "text", "name_status": "consumer_code"},
-        {"name": "nb_nationalities", "type": "count", "name_status": "dossier_inventory_unverified", "definition_status": "unconfirmed", "note": "Not read by the observed consumer."},
-        {"name": "type_nationalities", "type": "text_list", "name_status": "consumer_code", "declared_count": "nb_nationalities"},
-        {"name": "transfer_type", "type": "text", "name_status": "dossier_inventory_unverified", "note": "The observed consumer reads transfertType, i.e. a header transfert_type. Which spelling the source uses is unknown; no alias is applied."},
+        {"name": "nb_nationalities", "type": "count", "name_status": "snapshot_2026_10_24", "definition_status": "unknown", "note": "Not read by the observed consumer. Not the length of type_nationalities: equal in 42 of 259 rows of the 2026-10-24 export."},
+        {"name": "type_nationalities", "type": "text_list", "name_status": "consumer_code"},
+        {"name": "transfer_type", "type": "text", "name_status": "snapshot_2026_10_24", "note": "The source header is transfer_type (2026-10-24 export); the observed consumer reads transfertType and therefore never gets this value."},
         {"name": "Port_disembarkation", "type": "text", "name_status": "consumer_code", "note": "Free port label; aliases need human approval."},
         {"name": "image_src", "type": "url_list", "name_status": "consumer_code"},
         {"name": "video_srv", "type": "url_list", "name_status": "consumer_code"},
@@ -53,33 +64,34 @@
     },
     "Other_data": {
       "binding": "position",
-      "date_format": "DD-MM-YYYY",
+      "date_format": "DD/MM/YYYY",
+      "date_format_note": "The observed consumer parses DD-MM-YYYY, but every date of the 2026-10-24 export uses slashes, day first.",
       "kind_field": "type",
       "kinds": {"Shipwreck": "shipwreck", "Dead & Missing": "dead_missing", "Incident": "incident"},
       "columns": [
-        {"name": "date", "type": "date", "required": true, "name_status": "dossier_inventory_unverified"},
-        {"name": "type", "type": "kind", "required": true, "name_status": "dossier_inventory_unverified"},
-        {"name": "latitude", "type": "latitude", "required": true, "name_status": "dossier_inventory_unverified"},
-        {"name": "longitude", "type": "longitude", "required": true, "name_status": "dossier_inventory_unverified"},
-        {"name": "wind_force", "type": "decimal", "name_status": "dossier_inventory_unverified", "definition_status": "unknown"},
-        {"name": "wave_height", "type": "decimal", "name_status": "dossier_inventory_unverified", "definition_status": "unconfirmed"},
-        {"name": "boat_type", "type": "text", "name_status": "dossier_inventory_unverified"},
-        {"name": "death_nb_people", "type": "count", "name_status": "dossier_inventory_unverified", "definition_status": "unknown", "note": "Deaths and missing; certainty level unknown. Never feeds survivor counts."},
-        {"name": "inc_action", "type": "text", "name_status": "dossier_inventory_unverified"},
-        {"name": "shipwreck_nb", "type": "count", "name_status": "dossier_inventory_unverified", "definition_status": "unknown"},
-        {"name": "boat_involved", "type": "text", "name_status": "dossier_inventory_unverified"},
-        {"name": "testimony_name", "type": "label_list", "name_status": "dossier_inventory_unverified", "paired_with": "testimony_src"},
-        {"name": "testimony_src", "type": "url_list", "name_status": "dossier_inventory_unverified", "paired_with": "testimony_name"},
-        {"name": "image_src", "type": "url_list", "name_status": "dossier_inventory_unverified"},
-        {"name": "video_srv", "type": "url_list", "name_status": "dossier_inventory_unverified"}
+        {"name": "date", "type": "date", "required": true, "name_status": "snapshot_2026_10_24"},
+        {"name": "type", "type": "kind", "required": true, "name_status": "snapshot_2026_10_24"},
+        {"name": "latitude", "type": "latitude", "required": true, "name_status": "snapshot_2026_10_24"},
+        {"name": "longitude", "type": "longitude", "required": true, "name_status": "snapshot_2026_10_24"},
+        {"name": "wind_force", "type": "decimal", "name_status": "snapshot_2026_10_24", "definition_status": "unknown"},
+        {"name": "wave_height", "type": "decimal", "name_status": "snapshot_2026_10_24", "definition_status": "unconfirmed"},
+        {"name": "boat_type", "type": "text", "name_status": "snapshot_2026_10_24"},
+        {"name": "death_nb_people", "type": "count", "name_status": "snapshot_2026_10_24", "definition_status": "unknown", "note": "Deaths and missing; certainty level unknown. Never feeds survivor counts."},
+        {"name": "inc_action", "type": "text", "name_status": "snapshot_2026_10_24"},
+        {"name": "shipwreck_nb", "type": "count", "name_status": "snapshot_2026_10_24", "definition_status": "unknown"},
+        {"name": "boat_involved", "type": "text", "name_status": "snapshot_2026_10_24"},
+        {"name": "testimony_name", "type": "label_list", "name_status": "snapshot_2026_10_24", "paired_with": "testimony_src"},
+        {"name": "testimony_src", "type": "url_list", "name_status": "snapshot_2026_10_24", "paired_with": "testimony_name"},
+        {"name": "image_src", "type": "url_list", "name_status": "snapshot_2026_10_24"},
+        {"name": "video_srv", "type": "url_list", "name_status": "snapshot_2026_10_24"}
       ]
     },
     "Data_ports": {
       "binding": "position",
       "columns": [
-        {"name": "nom", "type": "text", "required": true, "name_status": "dossier_inventory_unverified", "note": "Port label; the observed consumer only uses position 1."},
-        {"name": "latitude", "type": "latitude", "required": true, "name_status": "dossier_inventory_unverified"},
-        {"name": "longitude", "type": "longitude", "required": true, "name_status": "dossier_inventory_unverified"}
+        {"name": "nom", "type": "text", "required": true, "name_status": "snapshot_2026_10_24", "note": "Port label; the observed consumer only uses position 1."},
+        {"name": "latitude", "type": "latitude", "required": true, "name_status": "snapshot_2026_10_24"},
+        {"name": "longitude", "type": "longitude", "required": true, "name_status": "snapshot_2026_10_24"}
       ]
     }
   }

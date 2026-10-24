@@ -39,13 +39,15 @@ Source du contrat : [OpsData.ts](https://github.com/CartONG/SOSMedDashboard/blob
 
 Pas de event_id stable, voyage_id, source_id ni navire dans cet onglet. Le numéro de ligne est une localisation de snapshot, pas une identité. Colonnes terminales vides observées : ignorer seulement si entièrement vides, sinon signaler une dérive.
 
+Constat sur l'export du 24 octobre 2026 (diagnostic privé, voir [ADR 0004](decisions/0004-data-first.md)) : en-tête `transfer_type` confirmé ; trois colonnes finales sans en-tête remplies ; coordonnées `D° M.M` sans hémisphère ; `nb_nationalities` différent de la longueur de `type_nationalities` dans la majorité des lignes ; aucune ligne datée après 2024.
+
 ## Other_data
 
 Contrat : [OtherData.ts](https://github.com/CartONG/SOSMedDashboard/blob/main/src/classes/data/OtherData.ts).
 
 Vérifié au commit `c5f4e9a2` : ce code lit l’onglet **par position** (`x[0]` à `x[14]`) et jette la ligne d’en-tête. Les noms ci-dessous ne sont donc pas confirmés par le code ; l’ordre l’est : date, type, latitude, longitude, wind_force, wave_height, boat_type, death_nb_people, inc_action, shipwreck_nb, boat_involved, testimony_name, testimony_src, image_src, video_srv. Voir [ADR 0004](decisions/0004-data-first.md) et `contracts/sheets-v1.json`.
 
-- date : code attend DD-MM-YYYY, différent de Data_operations.
+- date : le code attend DD-MM-YYYY, mais l'export du 24 octobre 2026 utilise DD/MM/YYYY comme Data_operations.
 - type : Shipwreck, Dead & Missing, Incident.
 - latitude / longitude : coordonnées texte.
 - wind_force / wave_height : numériques à normaliser ; ancien GeoJSON les laisse comme texte.

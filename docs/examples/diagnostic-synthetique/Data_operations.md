@@ -11,7 +11,7 @@
 
 | Enregistrements lus | Lignes diagnostiquées | Lignes vides ignorées | Erreurs de fichier | Lignes en erreur | Lignes avec avertissement | Erreurs | Avertissements |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 8 | 7 | 1 | 0 | 4 | 3 | 11 | 5 |
+| 8 | 7 | 1 | 0 | 4 | 3 | 11 | 4 |
 
 ## Contrôles déclenchés
 
@@ -21,7 +21,6 @@
 | `coordinate_out_of_range` | 1 | Coordonnée hors des bornes, comparée exactement avant conversion. |
 | `coordinate_pair_incomplete` | 1 | Une seule des deux coordonnées est connue. |
 | `date_format_of_other_sheet` | 1 | Date au format de l’autre onglet ; non convertie. |
-| `declared_count_differs_from_list` | 1 | Nombre déclaré différent de la liste ; rien n’est déduit. |
 | `exact_duplicate_row` | 1 | Ligne identique à une ligne précédente ; signalée, jamais fusionnée. |
 | `fractional_count` | 1 | Effectif non entier. |
 | `impossible_date` | 1 | Date qui n’existe pas au calendrier. |
@@ -48,7 +47,6 @@ Ligne physique de début dans le snapshot ; colonne numérotée à partir de 1.
 | error | 5 | 11 | latitude | `coordinate_out_of_range` |
 | warning | 5 | 8 | under_18_unacc | `subpopulation_exceeds_total` |
 | warning | 5 | 9 | under_5 | `subpopulation_exceeds_total` |
-| warning | 5 | 16 | nb_nationalities | `declared_count_differs_from_list` |
 | error | 6 | 1 | date | `date_format_of_other_sheet` |
 | error | 6 | 2 | type_ops | `unknown_kind` |
 | error | 6 | 20 | image_src | `url_with_credentials` |
@@ -58,6 +56,7 @@ Ligne physique de début dans le snapshot ; colonne numérotée à partir de 1.
 
 ## Limites
 
-- Le contrat est observé dans le code CartONG, pas approuvé par l’association. Les noms d’en-tête d’Other_data et Data_ports ne sont pas confirmés par ce code, qui les lit par position.
+- Le contrat vient du code CartONG et de l’export du 24 octobre 2026 ; il n’est pas approuvé par l’association.
+- L’hémisphère absent n’est déduit que si une seule lecture tombe dans la région du contrat ; cette règle est une proposition à valider.
 - Unités, définitions des compteurs et marqueurs d’inconnu restent à valider.
 - Les cellules originales sont dans `diagnostic.json` et `snapshot.csv`, privés.
