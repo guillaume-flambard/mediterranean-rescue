@@ -8,8 +8,13 @@ from .models import (
     Evidence,
     ImportBatch,
     Port,
+    PortAlias,
     PublicationAudit,
+    RowIdentityLink,
+    SheetRow,
+    SheetSnapshot,
     Source,
+    SourceIdentity,
     StagedRecord,
     Vessel,
     Voyage,
@@ -124,6 +129,12 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 admin.site.register(PublicationAudit, ReadOnlyAdmin)
 admin.site.register(ImportBatch, ReadOnlyAdmin)
 admin.site.register(StagedRecord, ReadOnlyAdmin)
+# Crosswalk records change only through catalog.crosswalk services (reviewed, with a reason).
+admin.site.register(SheetSnapshot, ReadOnlyAdmin)
+admin.site.register(SheetRow, ReadOnlyAdmin)
+admin.site.register(SourceIdentity, ReadOnlyAdmin)
+admin.site.register(RowIdentityLink, ReadOnlyAdmin)
+admin.site.register(PortAlias, ReadOnlyAdmin)
 
 
 class FrozenPublishedRelationAdmin(admin.ModelAdmin):
@@ -164,6 +175,7 @@ class VoyageAdmin(FrozenPublishedRelationAdmin):
 @admin.register(Port)
 class PortAdmin(FrozenPublishedRelationAdmin):
     event_field = "port"
+    readonly_fields = ["created_from"]
 
 
 class EvidenceForm(forms.ModelForm):

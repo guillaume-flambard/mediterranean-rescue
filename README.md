@@ -67,6 +67,16 @@ Le dossier de sortie doit être nouveau ; rien n’est jamais écrasé. Il reço
 
 `--synthetic` étiquette une fixture fictive. Exemples générés à partir des fixtures de `backend/catalog/tests/fixtures/sheets/` : [docs/examples/synthetic-diagnostic](docs/examples/synthetic-diagnostic/). Tests sans Docker : `cd backend && python3 -m unittest catalog.tests.test_sheets` ; ils tournent aussi dans la suite Django ci-dessous.
 
+## Correspondance des identités et référentiel des ports
+
+Un export diagnostiqué peut être enregistré dans le staging privé, puis relié à des identités durables par une personne qui en a la permission (`catalog.review_identity`). Voir [ADR 0005](docs/decisions/0005-identity-crosswalk-and-ports.md).
+
+```sh
+docker compose exec api uv run --no-sync python backend/manage.py stage_sheet --source ma-source --sheet Data_operations --file /app/data/local/Data_operations.csv --actor mon-compte
+```
+
+La commande affiche seulement des compteurs de propositions (`new`, `exact_carry`, `candidates`, `blocked`, `linked`, ou pour les ports `new_port`, `existing_port`). Les approbations passent par les services de `backend/catalog/crosswalk.py` ; l’administration montre ces enregistrements en lecture seule. Aucune proposition ne crée de lien, aucun événement n’est créé ni publié.
+
 ## Contrat REST, types et vérification
 
 ```sh

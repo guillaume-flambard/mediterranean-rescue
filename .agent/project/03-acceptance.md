@@ -23,3 +23,6 @@ AC-D3 : BOM, cellule multi-ligne, doublon, même fichier rejoué, ligne déplac�
 AC-D4 : plus de 5 Mio, plus de 10 000 enregistrements, UTF-8 invalide, CSV interrompu, dossier existant, erreur d’écriture, sentinelles absentes de stdout/stderr/rapport, modes 0700/0600, .gitignore local.
 AC-D5 : trois fixtures fictives étiquetées, rapport lisible, aucune conclusion sur le vrai jeu de données.
 Régressions : suite Django/PostGIS existante, migrations, check --deploy, OpenAPI et types inchangés, négatif TS, tests et build frontend.
+
+## Critères de la tranche X
+AC-X1 à AC-X5 : voir docs/decisions/0005-identity-crosswalk-and-ports.md.

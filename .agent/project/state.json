@@ -1,6 +1,6 @@
 {
   "phase": "READY_FOR_MANUAL_ACCEPTANCE",
-  "milestone": "sheets-offline-diagnostic",
+  "milestone": "identity-crosswalk-and-ports",
   "product_status": "IN_PROGRESS",
   "requirements": {
     "total": 5,
@@ -9,8 +9,8 @@
   "todos": {
     "p0_open": 0,
     "p1_open": 0,
-    "done": 6,
-    "p2_open": 4
+    "done": 11,
+    "p2_open": 2
   },
   "acceptance": {
     "total": 5,
@@ -25,7 +25,7 @@
   "verification": {
     "status": "PASS",
     "diagnostic_host_tests": 46,
-    "backend_postgis_tests": 60,
+    "backend_postgis_tests": 95,
     "frontend_tests": 2,
     "openapi_codegen": "PASS (unchanged)",
     "negative_contract_test": "PASS",
@@ -40,15 +40,17 @@
     },
     "previous_milestone": "rest-foundation-and-project-charter, CI run 40093284881 on 87b7d39",
     "evidence": "07-evidence.md",
-    "real_export_diagnostic": "2026-10-24 private snapshot: Data_operations 0 errors / 370 rows; Other_data 2 errors / 9; Data_ports 3 ambiguous / 24 (EV-D5)"
+    "real_export_diagnostic": "2026-10-24 private snapshot: Data_operations 0 errors / 370 rows; Other_data 2 errors / 9; Data_ports 3 ambiguous / 24 (EV-D5)",
+    "crosswalk_review": "PASS after fixes (P0 0, P1 0)",
+    "mutation_checks_crosswalk": "8/10 killed, 2 absorbed by a second guard",
+    "real_export_crosswalk_trial": "rolled back: 370 identities, 21 ports, 30 port labels to read (EV-X5)"
   },
   "ready_for_manual_acceptance": true,
   "human_acceptance": false,
   "next_product_milestones": [
-    "owner review of the hemisphere rule and of the 3 ambiguous ports",
-    "identity crosswalk and port aliases (on fixtures, then on the private snapshot)",
-    "connect diagnostic to business staging, drafts only",
-    "React + Base UI application: design system (tokens, typography, color, motion), reusable components, animations, accessible map/list/detail journeys",
+    "human reading of the 30 unresolved port labels and 3 ambiguous ports",
+    "event drafts from approved identities (external_id = <sheet>:<uuid>), never published automatically",
+    "React + Base UI application in English with French translation: design system (tokens, typography, color, motion), reusable components, animations, review screens for identities and ports, accessible map/list/detail",
     "authorized extract and approved field contract with SOS / Data for Good, when Guillaume decides to show the work",
     "identity hosting backups restore and association acceptance"
   ],

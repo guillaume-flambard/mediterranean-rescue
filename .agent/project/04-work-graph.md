@@ -38,3 +38,12 @@ D4 P1 DONE CLI privée bornée, statuts distincts, pas d’écrasement ; AC-D4, 
 D5 P1 DONE démonstration synthétique étiquetée et rapport lisible ; AC-D5, dépend D4.
 D6 P1 DONE revue indépendante et régressions ; dépend D1..D5. Un P1 et sept P2 corrigés avec régressions (EV-D3).
 Suite, bloquée par L1 : extrait autorisé, contrat approuvé, crosswalk d’identités, alias de ports, branchement sur le staging.
+
+## Tranche X : correspondance des identités et référentiel des ports, 24 octobre 2026
+Spécification : docs/decisions/0005-identity-crosswalk-and-ports.md. Branche feat/ports-and-crosswalk, empilée sur feat/sheets-diagnostic.
+X0 P1 DONE conventions de langue (AGENTS.md) et rapport du diagnostic en anglais par défaut avec traduction française.
+X1 P1 DONE snapshot persistant et staging privé ; AC-X1.
+X2 P1 DONE identités et liens approuvés, propositions calculées ; AC-X2, AC-X3.
+X3 P1 DONE référentiel des ports et lectures de libellés (ports, navire, pas un port) ; AC-X4.
+X4 P1 DONE revue indépendante, régressions, essai privé sur l'export réel ; AC-X5.
+Suite : interface de revue (application React), brouillons d'événements depuis les identités, revue humaine des 29 libellés non résolus et des 3 ports ambigus.
