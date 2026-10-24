@@ -1,5 +1,7 @@
 # Mediterranée Rescue : document de départ
 
+**Decision de priorisation du 24 octobre 2026 :** [terminer le chantier en cours sans gel, puis recadrer le prochain backend sur des besoins prouves](EXECUTION-PRIORITIES-2026-10-24.md). Ce document precise l'ordre de travail et ne remplace aucune ADR ni aucune recette du lot en cours.
+
 Version 1, 24 octobre 2026. Responsable du fork : Guillaume Flambard. Statut : projet indépendant en construction, à cadrer avec Data for Good et SOS MEDITERRANEE. Ce document est la référence de lancement ; les contrats détaillés, preuves et tâches exécutables sont liés en fin de document.
 
 ## 1. Ce que nous voulons construire
