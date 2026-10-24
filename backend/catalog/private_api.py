@@ -15,7 +15,13 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .api import ErrorSerializer, parameters
-from .crosswalk import REVIEW_PERMISSION, approve_exact_carries, approve_link, propose_links
+from .crosswalk import (
+    REVIEW_PERMISSION,
+    STAGE_PERMISSION,
+    approve_exact_carries,
+    approve_link,
+    propose_links,
+)
 from .models import SHEETS, RowIdentityLink, SheetRow, SheetSnapshot, SourceIdentity
 
 PROPOSAL_KINDS = ("new", "exact_carry", "candidates", "blocked", "linked")
@@ -57,12 +63,28 @@ class PrivateSessionScheme(SessionScheme):
     name = "privateSession"
 
 
+def has_any_perm(user, *permissions):
+    return bool(
+        user
+        and user.is_authenticated
+        and user.is_active
+        and any(user.has_perm(permission) for permission in permissions)
+    )
+
+
 class CanReviewIdentities(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
-        return bool(
-            user and user.is_authenticated and user.is_active and user.has_perm(REVIEW_PERMISSION)
-        )
+        return has_any_perm(request.user, REVIEW_PERMISSION)
+
+
+class CanStageSnapshots(BasePermission):
+    def has_permission(self, request, view):
+        return has_any_perm(request.user, STAGE_PERMISSION)
+
+
+class CanStageOrReview(BasePermission):
+    def has_permission(self, request, view):
+        return has_any_perm(request.user, STAGE_PERMISSION, REVIEW_PERMISSION)
 
 
 def private_error_code(exc):
@@ -121,6 +143,7 @@ class PageParams(serializers.Serializer):
 
 class PermissionsSerializer(serializers.Serializer):
     review_identity = serializers.BooleanField()
+    stage_snapshot = serializers.BooleanField()
 
 
 class MeSerializer(serializers.Serializer):
@@ -131,7 +154,10 @@ class MeSerializer(serializers.Serializer):
 def me_payload(user):
     return {
         "username": user.get_username(),
-        "permissions": {"review_identity": user.has_perm(REVIEW_PERMISSION)},
+        "permissions": {
+            "review_identity": user.has_perm(REVIEW_PERMISSION),
+            "stage_snapshot": user.has_perm(STAGE_PERMISSION),
+        },
     }
 
 

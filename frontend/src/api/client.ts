@@ -61,6 +61,28 @@ export type ReviewStatus = components["schemas"]["ReviewStatusEnum"];
 export type QueueItem = components["schemas"]["QueueItem"];
 export type RowDetail = components["schemas"]["RowDetail"];
 export type IdentityCandidate = components["schemas"]["Candidate"];
+export type Me = components["schemas"]["Me"];
+export type Sheet = components["schemas"]["SheetEnum"];
+export type ImportOptions = components["schemas"]["ImportOptions"];
+export type Diagnostic = components["schemas"]["Diagnostic"];
+export type ImportDetail = components["schemas"]["ImportDetail"];
+export type ImportSummary = components["schemas"]["ImportSummary"];
+export type PortLabel = components["schemas"]["Label"];
+export type PortLabelDetail = components["schemas"]["LabelDetail"];
+export type PortLabelStatus = components["schemas"]["PortLabelStatusEnum"];
+export type PortInterpretation = components["schemas"]["PortInterpretationEnum"];
+export type PortRef = components["schemas"]["PortRef"];
+export type VesselRef = components["schemas"]["VesselRef"];
+type UploadRequest = components["schemas"]["UploadRequest"];
+
+/** Multipart body for an export upload; openapi-fetch sends a FormData body as is. */
+export function uploadBody(values: { source: string; sheet: Sheet; file: File }): UploadRequest {
+  const form = new FormData();
+  form.set("source", values.source);
+  form.set("sheet", values.sheet);
+  form.set("file", values.file, values.file.name);
+  return form as unknown as UploadRequest;
+}
 
 /** Error code of the private API envelope, or "network" when no response was readable. */
 export function errorCode(error: unknown): string {

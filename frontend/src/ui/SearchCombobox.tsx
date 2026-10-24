@@ -13,6 +13,8 @@ export interface SearchComboboxProps<T> {
   value: T | null;
   onValueChange: (value: T | null) => void;
   placeholder?: string;
+  /** Shown before anything is typed; defaults to the identity search hint. */
+  startHint?: string;
   debounceMs?: number;
 }
 
@@ -27,6 +29,7 @@ export function SearchCombobox<T>({
   value,
   onValueChange,
   placeholder,
+  startHint,
   debounceMs = 250,
 }: SearchComboboxProps<T>) {
   const { t } = useI18n();
@@ -74,7 +77,7 @@ export function SearchCombobox<T>({
       : !trimmed
         ? value
           ? null
-          : t("ui.search.start")
+          : (startHint ?? t("ui.search.start"))
         : results.length === 0
           ? t("ui.search.none", { query: trimmed })
           : null;

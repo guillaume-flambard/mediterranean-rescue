@@ -4,6 +4,70 @@
  */
 
 export interface paths {
+    "/api/private/v1/imports/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_list_imports"];
+        put?: never;
+        post: operations["private_stage_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/imports/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_retrieve_import"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/imports/diagnose/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["private_diagnose_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/imports/options/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_import_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/me/": {
         parameters: {
             query?: never;
@@ -14,6 +78,70 @@ export interface paths {
         get: operations["private_me"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/ports/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_search_ports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/ports/labels/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_list_port_labels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/ports/labels/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_retrieve_port_label"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/private/v1/ports/labels/{id}/decision/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["private_decide_port_label"];
         delete?: never;
         options?: never;
         head?: never;
@@ -134,6 +262,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/private/v1/vessels/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_list_vessels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events/": {
         parameters: {
             query?: never;
@@ -208,11 +352,28 @@ export interface components {
          * @enum {string}
          */
         ActionEnum: "create_identity" | "link";
+        /**
+         * @description * `read_rejected` - read_rejected
+         *     * `read_partial` - read_partial
+         *     * `file_errors` - file_errors
+         * @enum {string}
+         */
+        BlockingReasonEnum: "read_rejected" | "read_partial" | "file_errors";
         Candidate: {
             /** Format: uuid */
             id: string;
             external_id: string;
             summary: components["schemas"]["Summary"];
+        };
+        Counts: {
+            records_read: number;
+            rows_diagnosed: number;
+            blank_rows_skipped: number;
+            file_errors: number;
+            rows_with_errors: number;
+            rows_with_warnings: number;
+            errors: number;
+            warnings: number;
         };
         /**
          * @description * `production` - production
@@ -236,10 +397,31 @@ export interface components {
             identity?: string;
             reason: string;
         };
+        Diagnostic: {
+            source: components["schemas"]["SourceRef"];
+            sheet: components["schemas"]["SheetEnum"];
+            sha256: string;
+            bytes: number;
+            contract_version: string;
+            source_read: string;
+            normalization: string;
+            counts: components["schemas"]["Counts"];
+            issues_by_code: components["schemas"]["IssueCount"][];
+            issues: components["schemas"]["Issue"][];
+            issues_truncated: boolean;
+            stageable: boolean;
+            blocking_reason: (components["schemas"]["BlockingReasonEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: uuid */
+            existing_snapshot: string | null;
+        };
         Error: {
             code: string;
             detail: string;
             errors?: unknown;
+        };
+        ErrorCount: {
+            code: string;
+            rows: number;
         };
         Event: {
             /** Format: uuid */
@@ -288,6 +470,62 @@ export interface components {
         IdentityPage: {
             items: components["schemas"]["Candidate"][];
         };
+        ImportDetail: {
+            /** Format: uuid */
+            id: string;
+            source: components["schemas"]["SourceRef"];
+            sheet: components["schemas"]["SheetEnum"];
+            /** Format: date-time */
+            created_at: string;
+            staged_by: string;
+            sha256: string;
+            byte_count: number;
+            row_count: number;
+            source_read: string;
+            contract_version: string;
+            rows_with_errors: number;
+            errors_by_code: components["schemas"]["ErrorCount"][];
+            review: components["schemas"]["QueueCounts"] | null;
+        };
+        ImportOptions: {
+            sources: components["schemas"]["SourceOption"][];
+            sheets: components["schemas"]["SheetEnum"][];
+            max_bytes: number;
+        };
+        ImportPage: {
+            items: components["schemas"]["ImportSummary"][];
+            total_count: number;
+            has_next: boolean;
+        };
+        ImportSummary: {
+            /** Format: uuid */
+            id: string;
+            source: components["schemas"]["SourceRef"];
+            sheet: components["schemas"]["SheetEnum"];
+            /** Format: date-time */
+            created_at: string;
+            staged_by: string;
+            row_count: number;
+            source_read: string;
+        };
+        Issue: {
+            severity: components["schemas"]["IssueSeverityEnum"];
+            code: string;
+            line: number | null;
+            column: number | null;
+            field: string | null;
+        };
+        IssueCount: {
+            code: string;
+            severity: components["schemas"]["IssueSeverityEnum"];
+            count: number;
+        };
+        /**
+         * @description * `error` - error
+         *     * `warning` - warning
+         * @enum {string}
+         */
+        IssueSeverityEnum: "error" | "warning";
         /**
          * @description * `rescue` - Sauvetage
          *     * `transfer` - Transfert
@@ -298,6 +536,50 @@ export interface components {
          * @enum {string}
          */
         KindEnum: "rescue" | "transfer" | "medevac" | "incident" | "shipwreck" | "dead_missing";
+        Label: {
+            id: string;
+            label: string;
+            source: components["schemas"]["LabelSource"];
+            status: components["schemas"]["PortLabelStatusEnum"];
+            operations: number;
+            port_list_row: components["schemas"]["PortListRow"] | null;
+            suggested_port: components["schemas"]["PortRef"] | null;
+            reading: components["schemas"]["Reading"] | null;
+        };
+        LabelCounts: {
+            to_read: number;
+            read: number;
+        };
+        LabelDecisionRequest: {
+            interpretation: components["schemas"]["PortInterpretationEnum"];
+            ports?: string[];
+            new_port?: components["schemas"]["NewPortRequest"];
+            /** Format: uuid */
+            vessel?: string;
+            reason: string;
+        };
+        LabelDetail: {
+            id: string;
+            label: string;
+            source: components["schemas"]["LabelSource"];
+            status: components["schemas"]["PortLabelStatusEnum"];
+            operations: number;
+            port_list_row: components["schemas"]["PortListRow"] | null;
+            suggested_port: components["schemas"]["PortRef"] | null;
+            reading: components["schemas"]["Reading"] | null;
+            port_list_cells: components["schemas"]["Received"] | null;
+            operation_lines: components["schemas"]["OperationLine"][];
+        };
+        LabelPage: {
+            items: components["schemas"]["Label"][];
+            total_count: number;
+            has_next: boolean;
+            counts: components["schemas"]["LabelCounts"];
+        };
+        LabelSource: {
+            key: string;
+            name: string;
+        };
         MapPoint: {
             /** Format: uuid */
             id: string;
@@ -316,14 +598,68 @@ export interface components {
             username: string;
             permissions: components["schemas"]["Permissions"];
         };
+        NewPortRequest: {
+            /** @default false */
+            from_port_list: boolean;
+            /** Format: double */
+            longitude?: number;
+            /** Format: double */
+            latitude?: number;
+            country_code?: string;
+        };
+        /** @enum {unknown} */
+        NullEnum: null;
+        OperationLine: {
+            line: number;
+            occurred_on: string | null;
+        };
         Permissions: {
             review_identity: boolean;
+            stage_snapshot: boolean;
         };
         Port: {
             /** Format: uuid */
             readonly id: string;
             readonly name: string;
             readonly country_code: string;
+        };
+        /**
+         * @description * `port` - port
+         *     * `ports` - ports
+         *     * `vessel` - vessel
+         *     * `not_a_port` - not_a_port
+         * @enum {string}
+         */
+        PortInterpretationEnum: "port" | "ports" | "vessel" | "not_a_port";
+        /**
+         * @description * `to_read` - to_read
+         *     * `read` - read
+         * @enum {string}
+         */
+        PortLabelStatusEnum: "to_read" | "read";
+        PortListRow: {
+            /** Format: uuid */
+            id: string;
+            line: number;
+            position: components["schemas"]["PortPosition"] | null;
+            error_codes: string[];
+        };
+        PortPosition: {
+            /** Format: double */
+            longitude: number;
+            /** Format: double */
+            latitude: number;
+        };
+        PortRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            country_code: string;
+            position: components["schemas"]["PortPosition"] | null;
+            location_source: string;
+        };
+        PortSearch: {
+            items: components["schemas"]["PortRef"][];
         };
         Position: {
             /** Format: double */
@@ -360,6 +696,15 @@ export interface components {
             has_next: boolean;
             counts: components["schemas"]["QueueCounts"];
         };
+        Reading: {
+            interpretation: components["schemas"]["PortInterpretationEnum"];
+            ports: components["schemas"]["PortRef"][];
+            vessel: components["schemas"]["VesselRef"] | null;
+            approved_by: string;
+            /** Format: date-time */
+            approved_at: string;
+            reason: string;
+        };
         Received: {
             headers: string[];
             cells: string[];
@@ -393,6 +738,13 @@ export interface components {
             proposal: components["schemas"]["Proposal"];
             decision: components["schemas"]["Decision"] | null;
         };
+        /**
+         * @description * `Data_operations` - Data_operations
+         *     * `Other_data` - Other_data
+         *     * `Data_ports` - Data_ports
+         * @enum {string}
+         */
+        SheetEnum: "Data_operations" | "Other_data" | "Data_ports";
         SignInRequest: {
             username: string;
             password: string;
@@ -429,9 +781,20 @@ export interface components {
             readonly license_note: string;
             readonly synthetic: boolean;
         };
+        SourceOption: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            synthetic: boolean;
+        };
         SourceRef: {
             key: string;
             name: string;
+        };
+        Staged: {
+            created: boolean;
+            snapshot: components["schemas"]["ImportDetail"];
         };
         Summary: {
             occurred_on: string | null;
@@ -439,11 +802,27 @@ export interface components {
             people: number | null;
             deaths: number | null;
         };
+        UploadRequest: {
+            /** Format: uuid */
+            source: string;
+            sheet: components["schemas"]["SheetEnum"];
+            /** Format: binary */
+            file: string;
+        };
         Vessel: {
             /** Format: uuid */
             readonly id: string;
             readonly name: string;
             readonly imo: string;
+        };
+        VesselList: {
+            items: components["schemas"]["VesselRef"][];
+        };
+        VesselRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            imo: string;
         };
         Voyage: {
             /** Format: uuid */
@@ -465,6 +844,402 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    private_list_imports: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_stage_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["UploadRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Staged"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Staged"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_retrieve_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_diagnose_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["UploadRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Diagnostic"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_import_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOptions"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     private_me: {
         parameters: {
             query?: never;
@@ -480,6 +1255,325 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Me"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_search_ports: {
+        parameters: {
+            query?: {
+                limit?: number;
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortSearch"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_list_port_labels: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                /**
+                 * @description * `to_read` - to_read
+                 *     * `read` - read
+                 */
+                status?: "to_read" | "read";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_retrieve_port_label: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelDetail"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_decide_port_label: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelDecisionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelDetail"];
                 };
             };
             400: {
@@ -1120,6 +2214,81 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SnapshotPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_list_vessels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VesselList"];
                 };
             };
             400: {

@@ -31,8 +31,6 @@
 
 .review { max-width: var(--layout-max-content-width); margin: 0 auto; padding: var(--space-6) var(--layout-page-gutter-mobile); display: grid; gap: var(--space-4); color: var(--color-text); }
 .review :where(h1, h2, h3) { font-family: var(--font-family-sans); }
-.review__header { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); }
-.review__header h1 { margin: 0; font-size: var(--type-page-size); line-height: var(--type-page-line); font-weight: var(--type-page-weight); }
 .review__layout { display: grid; gap: var(--space-6); }
 .review__queue { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
 .review__inspector { min-width: 0; }

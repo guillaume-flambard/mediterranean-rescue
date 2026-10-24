@@ -7,6 +7,11 @@ import { useLocation } from "./router";
 const Catalog = import.meta.env.DEV ? lazy(() => import("./dev/Catalog")) : null;
 // The private workspace loads on demand; the public site never downloads it.
 const ReviewWorkspace = lazy(async () => ({ default: (await import("./review/ReviewWorkspace")).ReviewWorkspace }));
+const ImportsWorkspace = lazy(async () => ({ default: (await import("./imports/ImportsWorkspace")).ImportsWorkspace }));
+const PortsWorkspace = lazy(async () => ({ default: (await import("./ports/PortsWorkspace")).PortsWorkspace }));
+const WorkspaceHome = lazy(async () => ({ default: (await import("./workspace/WorkspaceHome")).WorkspaceHome }));
+
+const within = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
 // Last resort: an unexpected rendering error shows a message instead of a blank page.
 class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -40,11 +45,15 @@ function Routes() {
         <Catalog />
       </Suspense>
     );
-  if (pathname === "/workspace/review" || pathname.startsWith("/workspace/review/"))
-    return (
-      <Suspense fallback={null}>
-        <ReviewWorkspace />
-      </Suspense>
-    );
+  const workspace = within(pathname, "/workspace/review") ? (
+    <ReviewWorkspace />
+  ) : within(pathname, "/workspace/imports") ? (
+    <ImportsWorkspace />
+  ) : within(pathname, "/workspace/ports") ? (
+    <PortsWorkspace />
+  ) : pathname === "/workspace" || pathname === "/workspace/" ? (
+    <WorkspaceHome />
+  ) : null;
+  if (workspace) return <Suspense fallback={null}>{workspace}</Suspense>;
   return <App />;
 }

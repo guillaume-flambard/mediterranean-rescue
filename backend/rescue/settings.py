@@ -112,7 +112,10 @@ REST_FRAMEWORK = {
     "URL_FORMAT_OVERRIDE": None,
     "EXCEPTION_HANDLER": "catalog.api.exception_handler",
     # Sign-in attempts per client address (LocMemCache by default, one process).
-    "DEFAULT_THROTTLE_RATES": {"sign_in": os.environ.get("SIGN_IN_RATE", "10/min")},
+    "DEFAULT_THROTTLE_RATES": {
+        "sign_in": os.environ.get("SIGN_IN_RATE", "10/min"),
+        "imports": os.environ.get("IMPORT_RATE", "30/min"),
+    },
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "Mediterranean Rescue public API",
@@ -126,5 +129,10 @@ SPECTACULAR_SETTINGS = {
         "KindEnum": "catalog.models.EventKind",
         "ReviewProposalEnum": "catalog.private_api.PROPOSAL_KINDS",
         "ReviewStatusEnum": "catalog.private_api.STATUSES",
+        "SheetEnum": "catalog.models.SHEETS",
+        "PortLabelStatusEnum": "catalog.private_ports.LABEL_STATUSES",
+        "PortInterpretationEnum": "catalog.private_ports.INTERPRETATIONS",
+        "IssueSeverityEnum": "catalog.private_imports.SEVERITIES",
+        "BlockingReasonEnum": "catalog.private_imports.BLOCKING_REASONS",
     },
 }

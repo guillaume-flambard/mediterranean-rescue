@@ -17,13 +17,23 @@ export function fakeServer(routes: Record<string, Handler>) {
     const request = input instanceof Request ? input : new Request(new URL(String(input), "http://localhost"), init);
     const url = new URL(request.url, "http://localhost");
     if (request.signal.aborted) throw new DOMException("Aborted", "AbortError");
-    const text = request.method === "GET" ? "" : await request.text();
+    let payload: unknown = null;
+    if (request.method !== "GET") {
+      if ((request.headers.get("Content-Type") ?? "").startsWith("multipart/form-data")) {
+        // Uploads: fields as strings, files by name.
+        const form = await request.formData();
+        payload = Object.fromEntries([...form.entries()].map(([key, value]) => [key, typeof value === "string" ? value : value.name]));
+      } else {
+        const text = await request.text();
+        payload = text ? JSON.parse(text) : null;
+      }
+    }
     const call: FakeCall = {
       method: request.method,
       path: url.pathname,
       query: url.searchParams,
       headers: request.headers,
-      body: text ? JSON.parse(text) : null,
+      body: payload,
     };
     calls.push(call);
     // Like Django: a write without the CSRF header is refused before any handler runs.

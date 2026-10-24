@@ -59,26 +59,39 @@ def _require_reason(reason):
         raise ValidationError("A review reason is required")
 
 
+def diagnose_for(source, sheet, content, contract=None):
+    contract = contract or load_contract()
+    if sheet not in contract["sheets"]:
+        raise ValidationError("Unknown sheet")
+    return diagnose(content, sheet, contract, "synthetic" if source.synthetic else "unreviewed")
+
+
+def blocking_reason(result):
+    """Why a diagnosed export cannot be staged, or None. Shared with the private import API."""
+    status = result["status"]["source_read"]
+    if status in ("rejected", "partial"):
+        return f"read_{status}"
+    row_lines = {row["line"] for row in result["rows"]}
+    if any(
+        issue["severity"] == "error" and issue["line"] not in row_lines
+        for issue in result["issues"]
+    ):
+        return "file_errors"
+    return None
+
+
 @transaction.atomic
 def stage_snapshot(*, source, sheet, content, actor):
     """Diagnose an export and keep it in private staging. Idempotent per content."""
     _require(actor, STAGE_PERMISSION)
-    contract = load_contract()
-    if sheet not in contract["sheets"]:
-        raise ValidationError("Unknown sheet")
-    label = "synthetic" if source.synthetic else "unreviewed"
-    result = diagnose(content, sheet, contract, label)
+    result = diagnose_for(source, sheet, content)
     status = result["status"]["source_read"]
-    if status in ("rejected", "partial"):
+    blocking = blocking_reason(result)
+    if blocking in ("read_rejected", "read_partial"):
         raise ValidationError(f"Snapshot not stageable: CSV reading is {status}")
-    row_lines = {row["line"] for row in result["rows"]}
-    file_errors = [
-        issue
-        for issue in result["issues"]
-        if issue["severity"] == "error" and issue["line"] not in row_lines
-    ]
-    if file_errors:
+    if blocking == "file_errors":
         raise ValidationError("Snapshot not stageable: file-level errors, see the diagnostic")
+    row_lines = {row["line"] for row in result["rows"]}
     snapshot, created = SheetSnapshot.objects.get_or_create(
         source=source,
         sheet=sheet,

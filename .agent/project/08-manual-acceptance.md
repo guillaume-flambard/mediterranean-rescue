@@ -15,3 +15,9 @@ Aucun déploiement, aucun import SOS et aucun message envoyé à l’association
 3. Prendre une anomalie (ligne, colonne) et la retrouver dans `snapshot.csv` et `diagnostic.json`.
 4. Relancer la même commande : refus sans modification. Vérifier qu’aucun événement n’existe dans l’administration.
 5. Lire les limites et choisir le premier extrait réel à faire valider par le référent.
+
+# Retour de Guillaume sur W04/W05 (24 octobre 2026, 17 h 19, Paris)
+
+« Dans l'admin, je comprends que dalle. New identity, etc. Je comprends rien. Mais ça, on verra après. »
+
+Le vocabulaire de revue (identité, rattachement, report exact, ligne liée) n'est pas compréhensible sans explication. À reprendre avec ses retours : dire en clair ce que chaque choix fait (« c'est un événement nouveau » ou « c'est le même événement qu'une ligne d'un export précédent »), avant le terme technique. Les écrans suivants (imports, ports) s'écrivent d'emblée en langage simple. Recette W04/W05 : non faite, en attente.

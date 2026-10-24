@@ -102,7 +102,7 @@ describe("access", () => {
   it("says the permission is missing instead of showing an empty queue", async () => {
     fakeServer({ "GET /api/private/v1/me/": () => ({ body: { username: "x", permissions: { review_identity: false } } }) });
     renderAt("/workspace/review");
-    expect(await screen.findByText(/do not have the permission to review identities/)).toBeTruthy();
+    expect(await screen.findByText(/your account cannot open this section/)).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
   });
 });

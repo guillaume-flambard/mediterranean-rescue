@@ -9,6 +9,19 @@ from catalog.private_api import (
     SessionView,
     SnapshotsView,
 )
+from catalog.private_imports import (
+    DiagnoseView,
+    ImportDetailView,
+    ImportOptionsView,
+    ImportsView,
+)
+from catalog.private_ports import (
+    PortLabelDecisionView,
+    PortLabelsView,
+    PortLabelView,
+    PortsView,
+    VesselsView,
+)
 from django.contrib import admin
 from django.db import connection
 from django.http import JsonResponse
@@ -51,6 +64,15 @@ urlpatterns = [
     path("api/private/v1/review/rows/<uuid:id>/decision/", ReviewDecisionView.as_view()),
     path("api/private/v1/review/snapshots/<uuid:id>/exact-carries/", ExactCarriesView.as_view()),
     path("api/private/v1/review/identities/", IdentitiesView.as_view()),
+    path("api/private/v1/imports/", ImportsView.as_view()),
+    path("api/private/v1/imports/options/", ImportOptionsView.as_view()),
+    path("api/private/v1/imports/diagnose/", DiagnoseView.as_view()),
+    path("api/private/v1/imports/<uuid:id>/", ImportDetailView.as_view()),
+    path("api/private/v1/ports/", PortsView.as_view()),
+    path("api/private/v1/ports/labels/", PortLabelsView.as_view()),
+    path("api/private/v1/ports/labels/<str:id>/", PortLabelView.as_view()),
+    path("api/private/v1/ports/labels/<str:id>/decision/", PortLabelDecisionView.as_view()),
+    path("api/private/v1/vessels/", VesselsView.as_view()),
     path(
         "api/v1/schema/",
         SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),

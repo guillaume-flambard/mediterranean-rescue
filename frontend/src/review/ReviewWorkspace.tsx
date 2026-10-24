@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { api, errorCode, resetCsrfToken, type QueueItem, type ReviewStatus } from "../api/client";
+import { api, errorCode, type QueueItem, type ReviewStatus } from "../api/client";
 import { useI18n } from "../i18n/I18nProvider";
 import { Link, matchRoute, navigate, useLocation, withQuery } from "../router";
 import { Button } from "../ui/Button";
@@ -11,6 +11,7 @@ import { FilterBar } from "../ui/FilterBar";
 import { Pagination } from "../ui/Pagination";
 import { SelectField } from "../ui/SelectField";
 import { TextField } from "../ui/TextField";
+import { ME_QUERY, WorkspaceShell } from "../workspace/WorkspaceShell";
 import { AccessProblem } from "./AccessProblem";
 import { countLabel, kindLabel, RowReview, serverMessageKey } from "./RowReview";
 
@@ -24,32 +25,47 @@ function readStatus(value: string | null): ReviewStatus {
   return STATUSES.includes(value as ReviewStatus) ? (value as ReviewStatus) : "to_review";
 }
 
+function readRoute(pathname: string) {
+  const params = matchRoute(ROW_PATTERN, pathname);
+  return params?.snapshot && params.row && UUID.test(params.snapshot) && UUID.test(params.row)
+    ? { snapshot: params.snapshot, row: params.row }
+    : null;
+}
+
 // W04 (review queue) with W05 (row review) as an inspector on wide screens, a page on narrow ones.
 export function ReviewWorkspace() {
+  const { t } = useI18n();
+  const { pathname } = useLocation();
+  return (
+    <WorkspaceShell
+      section="review"
+      title={t("review.title")}
+      className={`review${readRoute(pathname) ? " review--inspecting" : ""}`}
+    >
+      {() => <ReviewQueue />}
+    </WorkspaceShell>
+  );
+}
+
+function ReviewQueue() {
   const i18n = useI18n();
   const { t } = i18n;
   const queryClient = useQueryClient();
   const { pathname, query } = useLocation();
-  const params = matchRoute(ROW_PATTERN, pathname);
-  const route =
-    params?.snapshot && params.row && UUID.test(params.snapshot) && UUID.test(params.row)
-      ? { snapshot: params.snapshot, row: params.row }
-      : null;
+  const route = readRoute(pathname);
   const status = readStatus(query.get("status"));
   const offset = Math.max(0, Number(query.get("offset")) || 0);
 
-  const me = api.useQuery("get", "/api/private/v1/me/", {});
-  const snapshots = api.useQuery("get", "/api/private/v1/snapshots/", { params: { query: { limit: 100 } } }, { enabled: me.isSuccess });
+  const snapshots = api.useQuery("get", "/api/private/v1/snapshots/", { params: { query: { limit: 100 } } });
   const requested = route?.snapshot ?? query.get("snapshot");
   const snapshotId = (requested && UUID.test(requested) ? requested : null) ?? snapshots.data?.items[0]?.id ?? null;
   const queue = api.useQuery(
     "get",
     "/api/private/v1/review/rows/",
     { params: { query: { snapshot: snapshotId ?? "", status, limit: PAGE, offset } } },
-    { enabled: Boolean(snapshotId) && me.isSuccess },
+    { enabled: Boolean(snapshotId) },
   );
   const carry = api.useMutation("post", "/api/private/v1/review/snapshots/{id}/exact-carries/");
-  const signOut = api.useMutation("delete", "/api/private/v1/session/");
 
   // Selection is page-scoped and reset whenever the visible page changes (contract C15).
   const pageKey = `${snapshotId}|${status}|${offset}`;
@@ -85,30 +101,6 @@ export function ReviewWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total, offset]);
 
-  if (me.isPending) return <PendingState label={t("review.loading")} />;
-  if (me.error) {
-    const code = errorCode(me.error);
-    if (code === "not_authenticated") return <AccessProblem code={code} />;
-    return (
-      <main className="review">
-        <h1>{t("review.title")}</h1>
-        {code === "permission_denied" ? (
-          <AccessProblem code={code} />
-        ) : (
-          <InlineMessage tone="error">{t("review.loadError")}</InlineMessage>
-        )}
-      </main>
-    );
-  }
-  if (!me.data.permissions.review_identity) {
-    return (
-      <main className="review">
-        <h1>{t("review.title")}</h1>
-        <AccessProblem code="permission_denied" />
-      </main>
-    );
-  }
-
   const items = queue.data?.items ?? [];
   const counts = queue.data?.counts ?? { to_review: 0, blocked: 0, linked: 0 };
   // The next row after the current one in this list; the next page when this one is done.
@@ -139,7 +131,7 @@ export function ReviewWorkspace() {
       // the current state.
       setCarryError(t(serverMessageKey(code)));
       if (code === "conflict") void queue.refetch();
-      if (code === "not_authenticated") void me.refetch();
+      if (code === "not_authenticated") void queryClient.invalidateQueries({ queryKey: ME_QUERY });
     }
   };
 
@@ -153,25 +145,8 @@ export function ReviewWorkspace() {
   }));
 
   return (
-    <main className={`review${route ? " review--inspecting" : ""}`}>
-      <div className="review__header">
-        <h1>{t("review.title")}</h1>
-        <p className="review-note">{t("review.signedInAs", { name: me.data.username })}</p>
-        <Link to="/">{t("review.publicSite")}</Link>
-        <Button
-          size="sm"
-          variant="quiet"
-          loading={signOut.isPending}
-          onClick={async () => {
-            await signOut.mutateAsync({});
-            resetCsrfToken();
-            queryClient.clear();
-            void me.refetch();
-          }}
-        >
-          {t("signIn.signOut")}
-        </Button>
-      </div>
+    <>
+      <h1>{t("review.title")}</h1>
       <div className="review__layout">
         <section className="review__queue" aria-labelledby="queue-title">
           <h2 id="queue-title" className="sr-only">
@@ -348,6 +323,6 @@ export function ReviewWorkspace() {
           </div>
         </form>
       </Dialog>
-    </main>
+    </>
   );
 }

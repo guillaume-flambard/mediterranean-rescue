@@ -146,7 +146,7 @@
 .ui-disclosure__panel { overflow: hidden; height: var(--collapsible-panel-height); transition: height var(--motion-normal) var(--motion-easing); }
 .ui-disclosure__panel[data-starting-style], .ui-disclosure__panel[data-ending-style] { height: 0; }
 
-.ui-status { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-pill); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-label-weight); border: 1px solid currentColor; }
+.ui-status { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-pill); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-label-weight); border: 1px solid currentColor; white-space: nowrap; }
 .ui-status--error { color: var(--color-error); background: var(--color-error-background); }
 .ui-status--warning { color: var(--color-warning); background: var(--color-warning-background); }
 .ui-status--success { color: var(--color-success); background: var(--color-success-background); }

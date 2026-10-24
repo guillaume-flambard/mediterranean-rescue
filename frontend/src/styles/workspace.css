@@ -1,0 +1,56 @@
+/* Private workspace frame, imports (W02, W03) and port names (W06, W07): UI2. */
+.workspace-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4);
+  padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);
+}
+.workspace-nav { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-right: auto; }
+.workspace-nav__link {
+  display: inline-flex; align-items: center; min-height: var(--control-default-height);
+  padding: 0 var(--space-3); border-radius: var(--radius-pill);
+  color: var(--color-text); font-weight: var(--type-label-weight); text-decoration: none;
+}
+.workspace-nav__link:hover { background: var(--color-surface-hover); }
+.workspace-nav__link[aria-current="page"] { background: var(--color-brand); color: var(--color-on-brand); }
+.workspace-nav__link:focus-visible { outline: 3px solid var(--color-focus-on-light); outline-offset: 2px; }
+
+.review > h1, .workspace-heading h1 { margin: 0; font-size: var(--type-page-size); line-height: var(--type-page-line); font-weight: var(--type-page-weight); }
+.review h1:focus, .review h2:focus { outline: none; }
+.workspace-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.workspace-heading .ui-button { text-decoration: none; }
+.workspace-lead { margin: 0; max-width: 65ch; color: var(--color-text-secondary); }
+.workspace-panel {
+  display: grid; gap: var(--space-3); padding: var(--space-4);
+  border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface);
+}
+.workspace-panel h2 { margin: 0; font-size: var(--type-section-size); }
+.workspace-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.workspace-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-3); margin: 0; }
+.workspace-facts div { display: grid; gap: var(--space-1); }
+.workspace-facts dt { color: var(--color-text-secondary); font-size: var(--type-label-size); }
+.workspace-facts dd { margin: 0; font-weight: var(--type-label-weight); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.workspace-issues, .workspace-locations { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+.workspace-locations { font-size: var(--type-label-size); }
+.workspace-details summary { cursor: pointer; font-weight: var(--type-label-weight); }
+.workspace-details[open] summary { margin-bottom: var(--space-2); }
+.workspace-severity { font-size: var(--type-label-size); font-weight: var(--type-label-weight); padding: 0 var(--space-2); border-radius: var(--radius-pill); }
+.workspace-severity--error { background: var(--color-error-background); color: var(--color-error); }
+.workspace-severity--warning { background: var(--color-warning-background); color: var(--color-text); }
+.workspace-coordinates { display: grid; gap: var(--space-3); }
+@media (min-width: 560px) { .workspace-coordinates { grid-template-columns: 1fr 1fr; } }
+.workspace-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.workspace-chips li {
+  display: inline-flex; align-items: center; gap: var(--space-1); padding-left: var(--space-3);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-pill);
+}
+
+/* Native file input kept focusable and clickable over a visible button and the chosen name. */
+.ui-file__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ui-file__input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.ui-file__button {
+  display: inline-flex; align-items: center; min-height: var(--control-default-height); padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-control); border-radius: var(--radius-medium); background: var(--color-surface);
+  font-weight: var(--type-label-weight);
+}
+.ui-file__input:focus-visible + .ui-file__button { outline: 3px solid var(--color-focus-on-light); outline-offset: 2px; }
+.ui-file__input:hover + .ui-file__button { background: var(--color-surface-hover); }
+.ui-file__name { color: var(--color-text-secondary); overflow-wrap: anywhere; }

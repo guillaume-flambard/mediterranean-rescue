@@ -57,7 +57,11 @@ class AccessTests(PrivateApiTestCase):
     def test_me_lists_useful_permissions_and_is_never_cached(self):
         response = self.get("me/")
         self.assertEqual(
-            response.json(), {"username": "reviewer", "permissions": {"review_identity": True}}
+            response.json(),
+            {
+                "username": "reviewer",
+                "permissions": {"review_identity": True, "stage_snapshot": True},
+            },
         )
         self.assertEqual(response["Cache-Control"], "no-store")
 
