@@ -1022,6 +1022,7 @@ export interface components {
         Proposal: {
             kind: components["schemas"]["ReviewProposalEnum"];
             candidates: components["schemas"]["Candidate"][];
+            repeats_line: number | null;
         };
         PublicationAbilities: {
             prepare: boolean;
@@ -1078,6 +1079,8 @@ export interface components {
             status: components["schemas"]["ReviewStatusEnum"];
             proposal: components["schemas"]["ReviewProposalEnum"];
             candidate_count: number;
+            /** @description For a row entered twice: the earlier line it copies. */
+            repeats_line: number | null;
             occurred_on: string | null;
             kind: string | null;
             people: number | null;
@@ -1111,10 +1114,11 @@ export interface components {
          *     * `exact_carry` - exact_carry
          *     * `candidates` - candidates
          *     * `blocked` - blocked
+         *     * `repeat` - repeat
          *     * `linked` - linked
          * @enum {string}
          */
-        ReviewProposalEnum: "new" | "exact_carry" | "candidates" | "blocked" | "linked";
+        ReviewProposalEnum: "new" | "exact_carry" | "candidates" | "blocked" | "repeat" | "linked";
         /**
          * @description * `to_review` - to_review
          *     * `blocked` - blocked

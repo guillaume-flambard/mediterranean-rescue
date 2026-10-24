@@ -790,6 +790,9 @@ export const en = {
   "publish.locked.someBody": "{sources} has not yet agreed in writing to the publication of its data: its operations cannot be ticked. The others can be published.",
   "home.role.notYours": "(not part of your role)",
   "app.skip": "Skip to the events",
+  "review.proposalShort.repeat": "Copy of row {line}",
+  "review.proposal.repeat": "This row is entered twice in the sheet.",
+  "review.repeat": "This row copies row {line} of the same sheet, cell for cell. It is not counted twice and there is nothing to verify: delete the copy in Google Sheets and it disappears at the next reading.",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

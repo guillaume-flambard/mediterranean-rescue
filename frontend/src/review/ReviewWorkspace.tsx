@@ -13,7 +13,7 @@ import { SelectField } from "../ui/SelectField";
 import { TextField } from "../ui/TextField";
 import { ME_QUERY, WorkspaceShell } from "../workspace/WorkspaceShell";
 import { AccessProblem } from "./AccessProblem";
-import { countLabel, kindLabel, RowReview, serverMessageKey } from "./RowReview";
+import { codeText, countLabel, kindLabel, RowReview, serverMessageKey } from "./RowReview";
 
 const PAGE = 25;
 const STATUSES: readonly ReviewStatus[] = ["to_review", "blocked", "linked"];
@@ -251,8 +251,10 @@ function ReviewQueue() {
                   key: "proposal",
                   header: t("review.col.proposal"),
                   render: (item) =>
-                    item.status === "blocked"
-                      ? item.error_codes.join(", ")
+                    item.proposal === "repeat"
+                      ? t("review.proposalShort.repeat", { line: item.repeats_line ?? "?" })
+                      : item.status === "blocked"
+                      ? item.error_codes.map((code) => codeText(i18n, code)).join(" ")
                       : t(`review.proposalShort.${item.proposal}` as Parameters<typeof t>[0], {
                           count: item.candidate_count,
                         }),

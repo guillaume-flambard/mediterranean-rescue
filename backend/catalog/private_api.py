@@ -24,12 +24,14 @@ from .crosswalk import (
 )
 from .models import SHEETS, RowIdentityLink, SheetRow, SheetSnapshot, SourceIdentity
 
-PROPOSAL_KINDS = ("new", "exact_carry", "candidates", "blocked", "linked")
+PROPOSAL_KINDS = ("new", "exact_carry", "candidates", "blocked", "repeat", "linked")
 STATUS_BY_PROPOSAL = {
     "new": "to_review",
     "exact_carry": "to_review",
     "candidates": "to_review",
     "blocked": "blocked",
+    # A row entered twice in the sheet is fixed there, like an error (acceptance D4).
+    "repeat": "blocked",
     "linked": "linked",
 }
 STATUSES = ("to_review", "blocked", "linked")
@@ -291,6 +293,9 @@ class QueueItemSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=STATUSES)
     proposal = serializers.ChoiceField(choices=PROPOSAL_KINDS)
     candidate_count = serializers.IntegerField()
+    repeats_line = serializers.IntegerField(
+        allow_null=True, help_text="For a row entered twice: the earlier line it copies."
+    )
     occurred_on = serializers.CharField(allow_null=True)
     kind = serializers.CharField(allow_null=True)
     people = serializers.IntegerField(allow_null=True)
@@ -353,6 +358,7 @@ class ReviewRowsView(PrivateView):
                     "candidate_count": len(proposal.identity_ids)
                     if proposal.kind != "linked"
                     else 0,
+                    "repeats_line": proposal.repeats_line,
                     **summary(row.candidate),
                     "error_codes": row.error_codes,
                 }
@@ -384,6 +390,7 @@ class CandidateSerializer(serializers.Serializer):
 class ProposalSerializer(serializers.Serializer):
     kind = serializers.ChoiceField(choices=PROPOSAL_KINDS)
     candidates = CandidateSerializer(many=True)
+    repeats_line = serializers.IntegerField(allow_null=True)
 
 
 class DecisionSerializer(serializers.Serializer):
@@ -475,6 +482,7 @@ def row_detail(row):
         "evidence": logbook_evidence(row),
         "proposal": {
             "kind": proposal.kind,
+            "repeats_line": proposal.repeats_line,
             "candidates": [
                 {
                     "id": pk,

@@ -134,7 +134,7 @@ def summarize(snapshot):
             counts["unchanged"] += 1
         elif proposal.kind in ("new", "candidates"):
             counts["to_look_at"] += 1
-        elif proposal.kind == "blocked":
+        elif proposal.kind in ("blocked", "repeat"):
             counts["to_fix"] += 1
         else:
             counts["already_verified"] += 1

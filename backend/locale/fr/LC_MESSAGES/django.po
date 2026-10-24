@@ -4,6 +4,21 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+msgid "Verify events"
+msgstr "Vérifier les événements"
+
+msgid "Prepare events"
+msgstr "Préparer les événements"
+
+msgid "Publish events"
+msgstr "Publier des événements"
+
+msgid "Manual import"
+msgstr "Import manuel"
+
+msgid "Coordinator"
+msgstr "Coordination"
+
 msgid "short key"
 msgstr "clé courte"
 
@@ -139,9 +154,6 @@ msgstr "Administration de Mediterranean Rescue"
 msgid "Accounts, roles and source agreements"
 msgstr "Comptes, rôles et accords des sources"
 
-msgid "Publish events"
-msgstr "Publier des événements"
-
 msgid "Withdraw events"
 msgstr "Retirer des événements"
 
@@ -161,7 +173,7 @@ msgid "Access"
 msgstr "Accès"
 
 msgid "Roles you can give: Verify events, Prepare events, Manual import. Publish events is given by a superuser. Untick Active to close an account without deleting its history."
-msgstr "Rôles que vous pouvez donner : Verify events (vérifier), Prepare events (préparer), Manual import (import manuel). Publish events (publier) est donné par un superutilisateur. Décocher « Actif » ferme un compte sans effacer son historique."
+msgstr "Rôles que vous pouvez donner : Vérifier les événements, Préparer les événements, Import manuel. Publier les événements est donné par un superutilisateur. Décocher « Actif » ferme un compte sans effacer son historique."
 
 msgid "Only a superuser can change this person's password."
 msgstr "Seul un superutilisateur peut changer le mot de passe de cette personne."

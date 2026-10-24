@@ -3697,9 +3697,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Candidate'
+        repeats_line:
+          type: integer
+          nullable: true
       required:
       - candidates
       - kind
+      - repeats_line
     PublicationAbilities:
       type: object
       properties:
@@ -3830,6 +3834,10 @@ components:
           $ref: '#/components/schemas/ReviewProposalEnum'
         candidate_count:
           type: integer
+        repeats_line:
+          type: integer
+          nullable: true
+          description: 'For a row entered twice: the earlier line it copies.'
         occurred_on:
           type: string
           nullable: true
@@ -3856,6 +3864,7 @@ components:
       - occurred_on
       - people
       - proposal
+      - repeats_line
       - status
     QueuePage:
       type: object
@@ -3931,6 +3940,7 @@ components:
       - exact_carry
       - candidates
       - blocked
+      - repeat
       - linked
       type: string
       description: |-
@@ -3938,6 +3948,7 @@ components:
         * `exact_carry` - exact_carry
         * `candidates` - candidates
         * `blocked` - blocked
+        * `repeat` - repeat
         * `linked` - linked
     ReviewStatusEnum:
       enum:

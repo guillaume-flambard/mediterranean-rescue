@@ -279,6 +279,20 @@ COORDINATOR_ROLE = "Coordinator"
 # Roles only a superuser may give or take: otherwise a coordinator could create an account with a
 # password they know, make it a publisher and publish under another name.
 RESTRICTED_ROLES = (COORDINATOR_ROLE, "Publish events")
+# Group names are stored in English (migration 0008); the admin says them in the reader's language.
+ROLE_LABELS = {
+    "Verify events": _("Verify events"),
+    "Prepare events": _("Prepare events"),
+    "Publish events": _("Publish events"),
+    "Manual import": _("Manual import"),
+    COORDINATOR_ROLE: _("Coordinator"),
+}
+
+
+def role_label(group):
+    return ROLE_LABELS.get(group.name, group.name)
+
+
 User = get_user_model()
 admin.site.unregister(User)
 
@@ -290,7 +304,7 @@ class VolunteerUserAdmin(UserAdmin):
 
     @admin.display(description=_("roles"))
     def roles(self, obj):
-        return ", ".join(group.name for group in obj.groups.all())
+        return ", ".join(str(role_label(group)) for group in obj.groups.all())
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related("groups")
@@ -320,7 +334,10 @@ class VolunteerUserAdmin(UserAdmin):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "groups" and not request.user.is_superuser:
             kwargs["queryset"] = Group.objects.exclude(name__in=RESTRICTED_ROLES)
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+        field = super().formfield_for_manytomany(db_field, request, **kwargs)
+        if db_field.name == "groups" and field is not None:
+            field.label_from_instance = role_label
+        return field
 
     def has_change_permission(self, request, obj=None):
         if obj is not None and not request.user.is_superuser and (obj.is_staff or obj.is_superuser):

@@ -216,7 +216,18 @@ class IdentityTests(CrosswalkTestCase):
         first_export, _ = self.stage(ops_csv(ops_row()))
         approve_link(row=first_export.rows.get(), actor=self.reviewer, reason="Initial")
         doubled, _ = self.stage(ops_csv(ops_row(), ops_row()))
-        self.assertEqual(kinds(propose_links(doubled)), ["candidates", "candidates"])
+        self.assertEqual(kinds(propose_links(doubled)), ["candidates", "repeat"])
+
+    def test_a_row_copied_twice_in_the_sheet_is_never_counted_twice(self):
+        # Acceptance of 24 October 2026, D4: the copy stayed "looks new" and could not be decided.
+        snapshot, _ = self.stage(ops_csv(ops_row(), ops_row(date="07/02/2024"), ops_row()))
+        proposals = propose_links(snapshot)
+        self.assertEqual(kinds(proposals), ["new", "new", "repeat"])
+        self.assertEqual(proposals[2].repeats_line, 2)
+        copy = snapshot.rows.get(line=4)
+        with self.assertRaisesMessage(ValidationError, "repeats row 2"):
+            approve_link(row=copy, actor=self.reviewer, reason="Looks new")
+        self.assertFalse(RowIdentityLink.objects.filter(row=copy).exists())
 
 
 class PortTests(CrosswalkTestCase):

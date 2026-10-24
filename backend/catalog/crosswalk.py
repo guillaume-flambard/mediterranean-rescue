@@ -24,8 +24,10 @@ STAGE_PERMISSION = "catalog.add_sheetsnapshot"
 class LinkProposal:
     row_id: object
     line: int
-    kind: str  # linked | blocked | exact_carry | candidates | new
+    kind: str  # linked | blocked | repeat | exact_carry | candidates | new
     identity_ids: tuple = ()
+    # For a repeat: the earlier line of the same snapshot whose cells it copies exactly.
+    repeats_line: int | None = None
 
 
 @dataclass(frozen=True)
@@ -144,9 +146,23 @@ def _linked_rows_elsewhere(snapshot):
     )
 
 
+def repeated_lines(rows):
+    """Row id -> the earlier line it copies cell for cell, for rows entered twice in a sheet.
+    The diagnosis reports them (exact_duplicate_row); they are never merged nor counted twice."""
+    first_line, repeats = {}, {}
+    for row in sorted(rows, key=lambda row: row.line):
+        key = json.dumps(row.raw_cells, ensure_ascii=False)
+        if key in first_line:
+            repeats[row.pk] = first_line[key]
+        else:
+            first_line[key] = row.line
+    return repeats
+
+
 def propose_links(snapshot):
     """Compute one proposal per row of the snapshot, in line order. Creates nothing."""
     rows = list(snapshot.rows.select_related("identity_link").order_by("line"))
+    repeats = repeated_lines(rows)
     taken = {row.identity_link.identity_id for row in rows if hasattr(row, "identity_link")}
     identities_by_fingerprint = defaultdict(set)
     latest_by_identity = {}
@@ -177,6 +193,9 @@ def propose_links(snapshot):
             continue
         if not _is_linkable(row):
             proposals.append(LinkProposal(row.pk, row.line, "blocked"))
+            continue
+        if row.pk in repeats:
+            proposals.append(LinkProposal(row.pk, row.line, "repeat", repeats_line=repeats[row.pk]))
             continue
         identity_id = carry_target.get(row.pk)
         # An identity proposed for two rows (old and corrected content) is never automatic.
@@ -213,6 +232,16 @@ def approve_link(*, row, actor, reason, identity=None, _exact_carry=False):
         raise ValidationError("A row in error cannot be linked; fix the source or the contract")
     if RowIdentityLink.objects.filter(row=row).exists():
         raise ValidationError("This row is already linked")
+    earlier = (
+        SheetRow.objects.filter(snapshot=snapshot, line__lt=row.line, raw_cells=row.raw_cells)
+        .order_by("line")
+        .values_list("line", flat=True)
+        .first()
+    )
+    if earlier is not None:
+        raise ValidationError(
+            f"This row repeats row {earlier} of the same update; delete the copy in the sheet"
+        )
     if identity is None:
         identity = SourceIdentity.objects.create(
             source=snapshot.source, sheet=snapshot.sheet, created_by=actor, reason=reason

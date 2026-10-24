@@ -87,6 +87,14 @@ class CoordinatorTests(TestCase):
         self.assertEqual(list(volunteer.groups.all()), [verify])
         self.assertFalse(volunteer.is_staff)
 
+    def test_roles_are_named_in_the_readers_language(self):
+        # Acceptance of 24 October 2026, D7: role names stayed English in the French admin.
+        form = self.client.get(
+            f"/admin/auth/user/{self.volunteer.pk}/change/", HTTP_ACCEPT_LANGUAGE="fr"
+        )
+        self.assertContains(form, "Vérifier les événements")
+        self.assertNotContains(form, ">Verify events<")
+
     def test_cannot_make_a_publisher_or_take_over_one(self):
         url = f"/admin/auth/user/{self.volunteer.pk}/change/"
         publish = Group.objects.get(name="Publish events")

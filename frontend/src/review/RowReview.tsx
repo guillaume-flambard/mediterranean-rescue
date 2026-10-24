@@ -181,7 +181,7 @@ export interface RowReviewProps {
 }
 
 /** A diagnostic code in words; the code itself when the catalog has no sentence for it. */
-function codeText(i18n: I18n, code: string) {
+export function codeText(i18n: I18n, code: string) {
   const key = `diag.code.${code}` as Parameters<I18n["t"]>[0];
   const text = i18n.t(key);
   return text === key ? code : text;
@@ -344,6 +344,9 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
       )}
       <section aria-labelledby="interpreted-title">
         <h3 id="interpreted-title">{t("review.interpreted")}</h3>
+        {row.proposal.kind === "repeat" && (
+          <InlineMessage tone="warning">{t("review.repeat", { line: row.proposal.repeats_line ?? "?" })}</InlineMessage>
+        )}
         {row.error_codes.length > 0 && (
           <InlineMessage tone="error">
             {t("review.blocked")} {row.error_codes.map((code) => codeText(i18n, code)).join(" ")}

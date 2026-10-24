@@ -581,7 +581,24 @@ body:has(.explore--team) { background: #eeedf2; }
 /* Acceptance of 24 October 2026: a skip link, focus never clipped, the bar fits a phone. */
 .skip-link { position: absolute; left: var(--space-3); top: -60px; z-index: 100; padding: var(--space-2) var(--space-3); border-radius: 12px; background: var(--sos-white); color: var(--sos-navy); font-weight: 800; }
 .skip-link:focus { top: var(--space-2); }
-.views { padding-top: 4px; padding-bottom: 4px; }
+/* Strips that scroll sideways: room for the 3 px ring and its 2 px offset, never clipped. */
+.views, .chips { padding-top: 6px; padding-bottom: 6px; margin-top: -6px; margin-bottom: -6px; }
+/* More to see on the side: the edge fades only where there is more, and only while there is
+   more (scroll-driven; browsers without it keep the static fade on the right). */
+@supports (animation-timeline: scroll()) {
+  @property --fade-start { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @property --fade-end { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @keyframes strip-edges {
+    0% { --fade-start: 0px; --fade-end: 48px; }
+    8%, 92% { --fade-start: 32px; --fade-end: 48px; }
+    100% { --fade-start: 32px; --fade-end: 0px; }
+  }
+  .chips, .composer .views, .publish-tabs, .workspace-nav {
+    mask-image: linear-gradient(90deg, transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+    animation: strip-edges linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
 @media (max-width: 639px) {
   .explore-bar__language .ui-select__trigger { padding: 0 var(--space-2); gap: 4px; }
   .explore-bar__language .ui-select__trigger svg { flex: none; }

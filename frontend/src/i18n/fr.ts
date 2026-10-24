@@ -490,8 +490,8 @@ export const fr: Messages = {
   "filters.active": "actifs",
   "preview.count": { one: "{count} événement", other: "{count} événements" },
   "explore.search": "Rechercher",
-  "explore.searchPublic": "Chercher un port, un navire, un mot…",
-  "explore.searchPreview": "Chercher un port ou une embarcation…",
+  "explore.searchPublic": "Un port, un navire, un mot…",
+  "explore.searchPreview": "Un port ou une embarcation…",
   "explore.period": "Période",
   "explore.periodSet": "Du {from} au {to}",
   "explore.toCheck": { one: "{count} pas encore vérifié", other: "{count} pas encore vérifiés" },
@@ -793,4 +793,7 @@ export const fr: Messages = {
   "publish.locked.someBody": "{sources} n’a pas encore donné son accord écrit pour publier ses données : ses opérations ne peuvent pas être cochées. Les autres peuvent être publiées.",
   "home.role.notYours": "(ne fait pas partie de votre rôle)",
   "app.skip": "Aller aux événements",
+  "review.proposalShort.repeat": "Copie de la ligne {line}",
+  "review.proposal.repeat": "Cette ligne est saisie deux fois dans le tableur.",
+  "review.repeat": "Cette ligne recopie la ligne {line} du même tableur, case par case. Elle n’est pas comptée deux fois et il n’y a rien à vérifier : supprimez la copie dans Google Sheets, elle disparaîtra à la prochaine lecture.",
 };

@@ -25,6 +25,7 @@ function rowDetail(overrides: Partial<RowDetail> = {}): RowDetail {
     proposal: {
       kind: "candidates",
       candidates: [{ id: IDENTITY, external_id: `Data_operations:${IDENTITY}`, summary: { occurred_on: "2024-02-03", kind: "rescue", people: 40, deaths: null } }],
+      repeats_line: null,
     },
     decision: null,
     evidence: null,
@@ -39,6 +40,7 @@ function queueItem(overrides: Partial<QueueItem> = {}): QueueItem {
     status: "to_review",
     proposal: "candidates",
     candidate_count: 1,
+    repeats_line: null,
     occurred_on: "2024-02-03",
     kind: "rescue",
     people: 42,
@@ -185,7 +187,7 @@ describe("row review (W05)", () => {
     const { calls } = server((body) => ({
       body: rowDetail({
         status: "linked",
-        proposal: { kind: "linked", candidates: [] },
+        proposal: { kind: "linked", candidates: [], repeats_line: null },
         decision: { identity: IDENTITY, external_id: `Data_operations:${IDENTITY}`, match: "new", approved_by: "reviewer", approved_at: "2026-10-24T12:00:00Z", reason: (body as { reason: string }).reason },
       }),
     }));
@@ -265,7 +267,7 @@ describe("review regressions", () => {
   it("'and next' opens the row after the current one once the server confirmed", async () => {
     server({
       "POST /api/private/v1/review/rows/:id/decision/": () => ({
-        body: rowDetail({ status: "linked", proposal: { kind: "linked", candidates: [] } }),
+        body: rowDetail({ status: "linked", proposal: { kind: "linked", candidates: [], repeats_line: null } }),
       }),
     });
     renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
@@ -276,6 +278,17 @@ describe("review regressions", () => {
     await waitFor(() =>
       expect(window.location.pathname).toBe(`/workspace/review/${SNAPSHOT}/rows/00000000-0000-0000-0000-0000000000b2`),
     );
+  });
+
+  it("a row entered twice in the sheet says where the first one is and offers no decision", async () => {
+    server({
+      "GET /api/private/v1/review/rows/:id/": () => ({
+        body: rowDetail({ status: "blocked", proposal: { kind: "repeat", candidates: [], repeats_line: 2 } }),
+      }),
+    });
+    renderAt(`/workspace/review/${SNAPSHOT}/rows/${ROW}`);
+    expect(await screen.findByText(/This row copies row 2 of the same sheet, cell for cell\./)).toBeTruthy();
+    expect(screen.queryByRole("radio", { name: "A new event" })).toBeNull();
   });
 
   it("asks before leaving a row with a typed reason", async () => {
