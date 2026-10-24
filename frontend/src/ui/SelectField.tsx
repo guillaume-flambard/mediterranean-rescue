@@ -1,4 +1,5 @@
 import { Select } from "@base-ui/react/select";
+import { Icon } from "./Icon";
 
 export interface SelectOption<V extends string> {
   value: V;
@@ -35,7 +36,7 @@ export function SelectField<V extends string>({
         <Select.Trigger className="ui-select__trigger">
           <Select.Value lang={selected?.lang}>{current}</Select.Value>
           <Select.Icon className="ui-select__icon" aria-hidden>
-            ⌄
+            <Icon name="chevronDown" size={16} />
           </Select.Icon>
         </Select.Trigger>
         <Select.Portal>

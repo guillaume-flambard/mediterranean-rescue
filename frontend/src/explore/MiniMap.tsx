@@ -8,7 +8,13 @@ function place(longitude: number, latitude: number) {
 }
 
 // A static locator drawn from the same coastline as the map: no WebGL, cheap enough for every card.
-export function MiniMap({ position, label }: { position: { longitude: number; latitude: number } | null; label: string }) {
+export function MiniMap({
+  position,
+  label,
+}: {
+  position: { longitude: number; latitude: number } | null;
+  label: string;
+}) {
   const point = position ? place(position.longitude, position.latitude) : null;
   return (
     <svg className="mini-map" viewBox={MED_VIEWBOX} role="img" aria-label={label} preserveAspectRatio="xMidYMid slice">

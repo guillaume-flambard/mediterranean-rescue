@@ -116,19 +116,36 @@ export function EventMap({
         type: "circle",
         source: "events",
         filter: ["!", ["has", "point_count"]],
-        paint: { "circle-color": "#e83e1b", "circle-radius": 6, "circle-stroke-color": "white", "circle-stroke-width": 2 },
+        // Each kind keeps its colour from the filter chips; orange-red is kept for selection.
+        paint: {
+          "circle-color": [
+            "match",
+            ["get", "kind"],
+            "transfer", "#404d6d",
+            "medevac", "#17634a",
+            "incident", "#b7791f",
+            "shipwreck", "#9f2534",
+            "dead_missing", "#1b2747",
+            "#2563a8",
+          ],
+          "circle-radius": 6,
+          "circle-stroke-color": "white",
+          "circle-stroke-width": 2,
+        },
       });
       instance.addSource("active", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      // The hovered or open event sits above every group: a halo and a solid orange point.
+      instance.addLayer({
+        id: "active-halo",
+        type: "circle",
+        source: "active",
+        paint: { "circle-color": "rgba(232, 62, 27, 0.22)", "circle-radius": 22, "circle-blur": 0.15 },
+      });
       instance.addLayer({
         id: "active",
         type: "circle",
         source: "active",
-        paint: {
-          "circle-color": "rgba(232, 62, 27, 0.18)",
-          "circle-radius": 16,
-          "circle-stroke-color": "#e83e1b",
-          "circle-stroke-width": 2.5,
-        },
+        paint: { "circle-color": "#e83e1b", "circle-radius": 9, "circle-stroke-color": "white", "circle-stroke-width": 3 },
       });
       instance.on("click", "events", (e) => {
         const id = e.features?.[0]?.properties?.id;
@@ -171,7 +188,8 @@ export function EventMap({
         [Math.min(...lons), Math.min(...lats)],
         [Math.max(...lons), Math.max(...lats)],
       ],
-      { padding: 48, maxZoom: 6, duration: 0 },
+      // Capped so coasts stay recognisable with the simplified land layer.
+      { padding: 48, maxZoom: 5, duration: 0 },
     );
   }, [map, points]);
 
@@ -180,8 +198,9 @@ export function EventMap({
     if (!map) return;
     const active = points.filter((point) => point.id === activeId);
     map.getSource<GeoJSONSource>("active")?.setData(asFeatures(active));
+    // An opened event always travels to the centre, so the card and its place read together.
     const point = points.find((item) => item.id === focusId);
-    if (point && !map.getBounds().contains([point.longitude, point.latitude])) {
+    if (point) {
       const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 700 });
     }

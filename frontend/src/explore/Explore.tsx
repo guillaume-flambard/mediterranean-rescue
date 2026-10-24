@@ -35,6 +35,16 @@ interface FeedItem {
   title: string | null;
   status: Status | null;
   line: number | null;
+  /** Where the record comes from, shown on the closed card: the source, or the export row. */
+  origin: string;
+}
+
+/** The singular name of one event's kind ("Rescue"), as opposed to the plural filter label. */
+function kindName(i18n: I18n, kind: string | null) {
+  if (!kind) return i18n.t("review.unknown");
+  const key = `kindOne.${kind}` as Key;
+  const label = i18n.t(key);
+  return label === key ? kind : label;
 }
 
 function kindLabel(i18n: I18n, kind: string | null) {
@@ -114,6 +124,7 @@ export function Explore() {
           title: null,
           status: row.status as Status,
           line: row.line,
+          origin: t("explore.origin.row", { sheet: row.sheet, line: row.line }),
         })),
       )
     : (publicFeed.data?.pages ?? []).flatMap((p) =>
@@ -127,6 +138,7 @@ export function Explore() {
           title: event.title,
           status: null,
           line: null,
+          origin: t("explore.origin.source", { source: event.source.name }),
         })),
       );
   const total = preview ? previewFeed.data?.pages[0]?.total_count : publicFeed.data?.pages[0]?.total_count;
@@ -198,42 +210,22 @@ export function Explore() {
             <p>{t("app.lead")}</p>
           </div>
 
-          {canPreview && (
-            <div className="segmented" role="group" aria-label={t("preview.modeLabel")}>
-              {(["preview", "public"] as const).map((value) => (
+          <div className="composer">
+            <div className="views" role="group" aria-label={t("explore.view")}>
+              {VIEWS.map((item) => (
                 <BaseButton
-                  key={value}
-                  className="segmented__option"
-                  aria-pressed={mode === value}
-                  onClick={() => {
-                    setModeChoice(value);
-                    resetView();
-                  }}
+                  key={item.value}
+                  className="views__option"
+                  aria-pressed={view === item.value}
+                  disabled={!item.ready}
+                  onClick={() => navigate(withQuery("/", { view: item.value === "feed" ? null : item.value }), { replace: true })}
                 >
-                  {value === "preview" && <Icon name="lock" size={15} />}
-                  {t(`preview.mode.${value}`)}
+                  <Icon name={item.icon} size={16} />
+                  {t(`explore.view.${item.value}`)}
+                  {!item.ready && <span className="views__soon">{t("explore.soon")}</span>}
                 </BaseButton>
               ))}
             </div>
-          )}
-
-          <div className="views" role="group" aria-label={t("explore.view")}>
-            {VIEWS.map((item) => (
-              <BaseButton
-                key={item.value}
-                className="views__option"
-                aria-pressed={view === item.value}
-                disabled={!item.ready}
-                onClick={() => navigate(withQuery("/", { view: item.value === "feed" ? null : item.value }), { replace: true })}
-              >
-                <Icon name={item.icon} size={16} />
-                {t(`explore.view.${item.value}`)}
-                {!item.ready && <span className="views__soon">{t("explore.soon")}</span>}
-              </BaseButton>
-            ))}
-          </div>
-
-          <div className="composer">
             <label className="composer__field">
               <Icon name="search" className="composer__icon" />
               <span className="sr-only">{t("explore.search")}</span>
@@ -295,19 +287,39 @@ export function Explore() {
             )}
           </div>
 
-          {preview && (
-            <div className="notice-preview" role="status">
-              <Icon name="lock" size={18} />
-              <div>
-                <strong>{t("preview.banner.title")}</strong> <span className="notice-preview__body">{t("preview.banner.body")}</span>
-                {counts && (
-                  <p className="notice-preview__counts">
-                    <span className="count count--to_review">{t("explore.toCheck", { count: counts.to_review })}</span>
-                    <span className="count count--blocked">{t("explore.blocked", { count: counts.blocked })}</span>
-                    <span className="count count--linked">{t("explore.checked", { count: counts.linked })}</span>
-                  </p>
-                )}
+          {canPreview && (
+            <div className="preview-strip">
+              <div className="segmented" role="group" aria-label={t("preview.modeLabel")}>
+                {(["preview", "public"] as const).map((value) => (
+                  <BaseButton
+                    key={value}
+                    className="segmented__option"
+                    aria-pressed={mode === value}
+                    onClick={() => {
+                      setModeChoice(value);
+                      resetView();
+                    }}
+                  >
+                    {value === "preview" && <Icon name="lock" size={15} />}
+                    {t(`preview.mode.${value}`)}
+                  </BaseButton>
+                ))}
               </div>
+              {preview && (
+                <div className="notice-preview" role="status">
+                  <Icon name="lock" size={18} />
+                  <div>
+                    <strong>{t("preview.banner.title")}</strong> <span className="notice-preview__body">{t("preview.banner.body")}</span>
+                    {counts && (
+                      <p className="notice-preview__counts">
+                        <span className="count count--to_review">{t("explore.toCheck", { count: counts.to_review })}</span>
+                        <span className="count count--blocked">{t("explore.blocked", { count: counts.blocked })}</span>
+                        <span className="count count--linked">{t("explore.checked", { count: counts.linked })}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {trainingData && (
@@ -438,8 +450,9 @@ function MapPanel({
   );
 }
 
+// Short labels for the card badge; the full sentence stays in the opened record.
 function statusKey(status: Status): Key {
-  return `preview.status.${status}` as Key;
+  return `explore.status.${status}` as Key;
 }
 
 function EventCard({
@@ -481,7 +494,7 @@ function EventCard({
           </span>
           <span className="card__kind">
             <i className="card__kind-dot" aria-hidden="true" />
-            {item.title ?? kindLabel(i18n, item.kind)}
+            {item.title ?? kindName(i18n, item.kind)}
           </span>
           <span className="card__facts">
             <span className="card__people">
@@ -495,6 +508,7 @@ function EventCard({
               </span>
             )}
           </span>
+          <span className="card__origin">{item.origin}</span>
         </span>
         <span className="card__locator">
           <MiniMap

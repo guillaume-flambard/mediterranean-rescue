@@ -507,6 +507,17 @@ export const en = {
   "explore.view.logbook": "Logbook",
   "explore.view.timeline": "Timeline",
   "explore.soon": "soon",
+  "kindOne.rescue": "Rescue",
+  "kindOne.transfer": "Transfer",
+  "kindOne.medevac": "Medical evacuation",
+  "kindOne.incident": "Incident",
+  "kindOne.shipwreck": "Shipwreck",
+  "kindOne.dead_missing": "Dead or missing",
+  "explore.origin.row": "Row {line} · {sheet}",
+  "explore.origin.source": "Source: {source}",
+  "explore.status.to_review": "To check",
+  "explore.status.blocked": "Blocked",
+  "explore.status.linked": "Checked",
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };
