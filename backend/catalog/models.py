@@ -55,8 +55,14 @@ class Source(UUIDModel):
 
     def clean(self):
         if self.rights_approved and not self.license_note.strip():
+            # Tied to the field: Django then skips the same check of the constraint, so the
+            # message is shown once, next to the box to fill (acceptance of 25 October, L3).
             raise ValidationError(
-                _("Write who agreed and on which terms before ticking “publication agreed”.")
+                {
+                    "license_note": _(
+                        "Write who agreed and on which terms before ticking “publication agreed”."
+                    )
+                }
             )
 
     def __str__(self):

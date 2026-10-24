@@ -165,6 +165,15 @@ class AdminPublicationReasonTests(TestCase):
 
 
 class ConstraintTests(TestCase):
+    def test_the_licence_refusal_is_said_once_next_to_the_field(self):
+        from django.core.exceptions import ValidationError
+
+        source = Source(key="s", name="S", url="https://example.org", rights_approved=True)
+        with self.assertRaises(ValidationError) as refused:
+            source.full_clean()
+        self.assertEqual(list(refused.exception.message_dict), ["license_note"])
+        self.assertEqual(len(refused.exception.message_dict["license_note"]), 1)
+
     def test_the_database_refuses_what_the_forms_refuse(self):
         source = Source.objects.create(key="s", name="S", url="https://example.org")
         with self.assertRaises(IntegrityError), transaction.atomic():

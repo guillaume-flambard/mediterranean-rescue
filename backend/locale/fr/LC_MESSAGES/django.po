@@ -11,7 +11,7 @@ msgid "Prepare events"
 msgstr "Préparer les événements"
 
 msgid "Publish events"
-msgstr "Publier des événements"
+msgstr "Publier les événements"
 
 msgid "Manual import"
 msgstr "Import manuel"

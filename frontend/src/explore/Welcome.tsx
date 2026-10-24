@@ -17,7 +17,7 @@ function dismissedBefore() {
 
 // First visit on the public screen: the three things a newcomer needs before reading a number,
 // and the way to the full explanation. Closing it is remembered on this browser only.
-export function Welcome() {
+export function Welcome({ training = false }: { training?: boolean }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(() => !dismissedBefore());
   if (!open) return null;
@@ -39,7 +39,7 @@ export function Welcome() {
       </div>
       <ul className="welcome__points">
         {POINTS.map((point) => (
-          <li key={point}>{t(`welcome.${point}`)}</li>
+          <li key={point}>{t(point === "what" && training ? "welcome.whatTraining" : `welcome.${point}`)}</li>
         ))}
       </ul>
       <Link to="/about" className="welcome__more">

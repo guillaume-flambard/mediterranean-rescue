@@ -25,6 +25,14 @@ describe("catalogs", () => {
     }
   });
 
+  it("puts a narrow no-break space before French high punctuation", () => {
+    for (const [key, message] of Object.entries(fr)) {
+      const text = typeof message === "string" ? message : Object.values(message).join(" ");
+      expect(text, key).not.toMatch(/[ \u00a0][:;?!]/);
+      expect(text, key).not.toMatch(/«[ \u00a0]|[ \u00a0]»/);
+    }
+  });
+
   it("uses no em or en dash in product copy", () => {
     for (const catalog of [en, fr]) {
       expect(JSON.stringify(catalog)).not.toMatch(/[\u2013\u2014]/);

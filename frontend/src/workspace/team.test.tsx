@@ -112,13 +112,13 @@ describe("team home", () => {
     expect(screen.getByRole("heading", { name: "Welcome to the team space" })).toBeTruthy();
     const steps = within(screen.getByRole("region", { name: "To do" })).getAllByRole("listitem");
     expect(steps.map((step) => within(step).getByRole("heading").textContent)).toEqual([
-      "Check that the sheet is being read",
+      "Sheet reading",
       "Verify new or changed events",
       "Prepare verified events",
       "Publish",
     ]);
     expect(await within(steps[1]!).findByText(/7 events waiting to be verified\. 2 need a fix in the sheet \(found by the automatic checks\)\./)).toBeTruthy();
-    expect(await within(steps[3]!).findByText("Waiting for the written agreement of: Fictitious source.")).toBeTruthy();
+    expect(await within(steps[3]!).findByText("No written agreement recorded from: Fictitious source.")).toBeTruthy();
     expect(within(steps[3]!).getByText("Cannot start yet")).toBeTruthy();
     expect(await screen.findByText("3 port names to match to a known port.")).toBeTruthy();
 

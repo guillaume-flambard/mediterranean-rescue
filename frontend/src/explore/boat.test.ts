@@ -14,7 +14,7 @@ describe("boat types", () => {
     expect(boatLabel(fr, "Steel / Iron boat")).toBe("Embarcation métallique");
     expect(boatLabel(fr, "Small wooden boat")).toBe("Petite embarcation en bois");
     expect(boatLabel(fr, "2 Rubber Boats")).toBe("2 embarcations pneumatiques");
-    expect(boatLabel(fr, "Pleasure craft")).toBe("Bateau de plaisance");
+    expect(boatLabel(fr, "Pleasure craft")).toBe("Embarcation de plaisance");
   });
 
   it("keeps English readable and consistent", () => {

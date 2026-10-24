@@ -93,7 +93,7 @@ describe("operations rebuilt from the public logbook", () => {
     expect(screen.getByText(/annual report: 1,358, gap of 33 to reconcile/)).toBeTruthy();
     // A gap is never shown as checked (audit of 25 October 2026).
     expect(screen.getByText("Compared with SOS’s published figures: 81 people still to reconcile")).toBeTruthy();
-    expect(screen.queryByText("Same figures as SOS published")).toBeNull();
+    expect(screen.queryByText("Same yearly totals of people as SOS MEDITERRANEE’s reports")).toBeNull();
     expect(screen.getByText(/Total on Oct 2, 2026: 43,560 people \(sheet 39,767 \+ logbook 3,793\) · SOS’s published total: 43,641, gap of 81/)).toBeTruthy();
     expect(screen.getByText("101 people rescued after Oct 2, 2026 are not in this total yet.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Verify 59 operations" }).getAttribute("href")).toBe("/workspace/review?snapshot=00000000-0000-0000-0000-0000000000c0");
@@ -157,7 +157,7 @@ describe("operations rebuilt from the public logbook", () => {
       }),
     });
     render(<LogbookCard />);
-    expect(await screen.findByText("Same figures as SOS published")).toBeTruthy();
+    expect(await screen.findByText("Same yearly totals of people as SOS MEDITERRANEE’s reports")).toBeTruthy();
     expect(screen.queryByText(/still to reconcile/)).toBeNull();
   });
 });

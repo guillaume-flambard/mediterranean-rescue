@@ -293,6 +293,19 @@ def role_label(group):
     return ROLE_LABELS.get(group.name, group.name)
 
 
+class RoleFilter(admin.SimpleListFilter):
+    """The user list filtered by role, with role names in the reader's language."""
+
+    title = _("roles")
+    parameter_name = "role"
+
+    def lookups(self, request, model_admin):
+        return [(group.pk, role_label(group)) for group in Group.objects.order_by("name")]
+
+    def queryset(self, request, queryset):
+        return queryset.filter(groups__pk=self.value()) if self.value() else queryset
+
+
 User = get_user_model()
 admin.site.unregister(User)
 
@@ -300,7 +313,7 @@ admin.site.unregister(User)
 @admin.register(User)
 class VolunteerUserAdmin(UserAdmin):
     list_display = ["username", "first_name", "last_name", "is_active", "roles"]
-    list_filter = ["is_active", "groups"]
+    list_filter = ["is_active", RoleFilter]
 
     @admin.display(description=_("roles"))
     def roles(self, obj):

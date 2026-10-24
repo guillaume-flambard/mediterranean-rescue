@@ -268,7 +268,14 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
             <p>{t("app.lead")}</p>
           </div>
 
-          {!preview && <Welcome />}
+          {/* Fictitious data is said before anything else, on a phone too (product audit, P0). */}
+          {trainingData && (
+            <div className="notice-preview" role="status">
+              <Icon name="alert" size={18} />
+              <div>{t("app.training")}</div>
+            </div>
+          )}
+          {!preview && <Welcome training={trainingData} />}
 
           <div className="composer">
             <div className="views" role="group" aria-label={t("explore.view")} onFocus={revealFocused}>
@@ -379,13 +386,6 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
               )}
             </div>
           )}
-          {trainingData && (
-            <div className="notice-preview" role="status">
-              <Icon name="alert" size={18} />
-              <div>{t("app.training")}</div>
-            </div>
-          )}
-
           <div className="explore-meta">
             <p role="status">
               {feed.isFetching && !feed.isFetchingNextPage
