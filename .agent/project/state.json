@@ -1,5 +1,5 @@
 {
-  "phase": "VERIFYING",
+  "phase": "READY_FOR_MANUAL_ACCEPTANCE",
   "milestone": "platform-foundation",
   "product_status": "IN_PROGRESS",
   "requirements": {
@@ -8,22 +8,22 @@
   },
   "todos": {
     "p0_open": 0,
-    "p1_open": 1,
-    "done": 10,
+    "p1_open": 0,
+    "done": 11,
     "p2_open": 3
   },
   "acceptance": {
     "total": 7,
-    "verified": 6,
+    "verified": 7,
     "failed": 0,
-    "pending": 1
+    "pending": 0
   },
   "risks": {
     "critical_open": 0,
     "high_open": 0
   },
   "verification": {
-    "status": "running",
+    "status": "PASS",
     "backend_postgis_tests": 18,
     "frontend_tests": 2,
     "schema_codegen": "PASS",
@@ -33,10 +33,16 @@
     "production_settings_check": "PASS",
     "independent_review": "PASS with stated scope",
     "browser": "loading/empty/map/BaseUI filter/invalid dates/reset in narrow viewport",
-    "github_actions": "Second run export passed; locked install failed because pnpm manager metadata was absent. Lock regenerated and exact pnpm12 frozen install/codegen/tests/build pass locally; new CI pending.",
+    "github_actions": {
+      "status": "PASS",
+      "run_id": 40089645162,
+      "url": "https://github.com/guillaume-flambard/mediterranean-rescue/actions/runs/40089645162",
+      "checked_code_revision": "cd69cc4",
+      "scope": "full platform workflow including schema drift and negative contract test"
+    },
     "evidence": "07-evidence.md"
   },
-  "ready_for_manual_acceptance": false,
+  "ready_for_manual_acceptance": true,
   "human_acceptance": false,
   "next_product_milestones": [
     "rights and source contracts approved",

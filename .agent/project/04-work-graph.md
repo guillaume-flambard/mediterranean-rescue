@@ -14,4 +14,6 @@ P2 : plafonnement des preuves imbriquées GraphQL, amélioration du poids cartog
 
 F10 P1 DONE défaut CI Linux : export SDL par stdout et écriture par l’hôte ; utilisateur conteneur non-root conservé. Readiness DB vérifie désormais le compte applicatif en TCP pour éviter le serveur temporaire d’initialisation.
 
-F11 P1 VERIFYING alignement lockfile et pnpm12.10.1 réel (défaut CI d’installation gelée), dépend F10.
+F11 P1 DONE alignement lockfile et pnpm12.10.1 réel (défaut CI d’installation gelée), dépend F10.
+
+Clôture F10/F11 : EV-F11, CI complète verte sur cd69cc4 ; la dernière mise à jour est documentaire.
