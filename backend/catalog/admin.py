@@ -276,6 +276,9 @@ class EvidenceAdmin(admin.ModelAdmin):
 # superusers, coordinators or individual permissions. Django warns that editing users is close to
 # superuser power, so everything else is out of the coordinator's reach.
 COORDINATOR_ROLE = "Coordinator"
+# Roles only a superuser may give or take: otherwise a coordinator could create an account with a
+# password they know, make it a publisher and publish under another name.
+RESTRICTED_ROLES = (COORDINATOR_ROLE, "Publish events")
 User = get_user_model()
 admin.site.unregister(User)
 
@@ -306,8 +309,9 @@ class VolunteerUserAdmin(UserAdmin):
                 {
                     "fields": ["is_active", "groups"],
                     "description": _(
-                        "Roles: Verify events, Prepare events, Publish events, Manual import. "
-                        "Untick Active to close an account without deleting its history."
+                        "Roles you can give: Verify events, Prepare events, Manual import. "
+                        "Publish events is given by a superuser. Untick Active to close an "
+                        "account without deleting its history."
                     ),
                 },
             ),
@@ -315,13 +319,33 @@ class VolunteerUserAdmin(UserAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "groups" and not request.user.is_superuser:
-            kwargs["queryset"] = Group.objects.exclude(name=COORDINATOR_ROLE)
+            kwargs["queryset"] = Group.objects.exclude(name__in=RESTRICTED_ROLES)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def has_change_permission(self, request, obj=None):
         if obj is not None and not request.user.is_superuser and (obj.is_staff or obj.is_superuser):
             return False
         return super().has_change_permission(request, obj)
+
+    def user_change_password(self, request, id, form_url=""):
+        # A publisher's password is set by a superuser only, so nobody can act in their name.
+        user = self.get_object(request, id)
+        if (
+            user is not None
+            and not request.user.is_superuser
+            and user.groups.filter(name__in=RESTRICTED_ROLES).exists()
+        ):
+            raise PermissionDenied(_("Only a superuser can change this person's password."))
+        return super().user_change_password(request, id, form_url)
+
+    def save_related(self, request, form, formsets, change):
+        # The coordinator's form does not offer the restricted roles: keep the ones already held.
+        kept = []
+        if change and not request.user.is_superuser:
+            kept = list(form.instance.groups.filter(name__in=RESTRICTED_ROLES))
+        super().save_related(request, form, formsets, change)
+        if kept:
+            form.instance.groups.add(*kept)
 
     def has_delete_permission(self, request, obj=None):
         # Accounts are deactivated, never deleted: their decisions stay attributed.

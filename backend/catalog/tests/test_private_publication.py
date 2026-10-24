@@ -150,3 +150,9 @@ class PublicationApiTests(PrivateApiTestCase):
             )
             self.assertEqual(response.status_code, 403, path)
         self.assertFalse(Event.objects.exists())
+
+    def test_the_overview_costs_a_bounded_number_of_queries(self):
+        # Three rows, two verified: planning validates the two ready rows only (was 54 before the
+        # overview stopped running one query per check constraint and per snapshot ever stored).
+        with self.assertNumQueries(18):
+            self.get("publication/")

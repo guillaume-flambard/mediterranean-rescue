@@ -16,8 +16,17 @@ def set_publication(*, event_id, actor, publish: bool, reason: str) -> Event:
         .select_related("source", "voyage")
         .get(pk=event_id)
     )
+    # Publishing takes a draft or a withdrawn event; withdrawing takes a published one.
+    if (publish and event.status == "published") or (not publish and event.status != "published"):
+        raise ValidationError(
+            "This event is already in that state; reload and decide again",
+            code="invalid_transition",
+        )
     if publish and (not event.source.rights_approved or not event.source.license_note.strip()):
-        raise ValidationError("Source publication rights and license note must be approved")
+        raise ValidationError(
+            "Source publication rights and license note must be approved",
+            code="rights_not_approved",
+        )
     event.status = "published" if publish else "withdrawn"
     event.published_at = timezone.now() if publish else event.published_at
     event.reviewed_by = actor

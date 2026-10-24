@@ -25,6 +25,19 @@ TITLES = {
 }
 
 
+# Fields covered by Event's check constraints, already guaranteed when a draft is planned.
+CHECKED_FIELDS = {
+    "kind",
+    "status",
+    "location",
+    "location_precision",
+    "people",
+    "women",
+    "minors",
+    "published_at",
+    "reviewed_by",
+}
+
 # Event fields filled from a source row; their values at drafting time are kept on the identity.
 DRAFT_FIELDS = (
     "kind",
@@ -152,7 +165,12 @@ def _plan_row(row):
     if not _counts_consistent(event):
         return DraftPlan(row.pk, row.line, "inconsistent_counts", identity.pk), None
     try:
-        event.full_clean()
+        # Check constraints cost one query each; every one they cover is already guaranteed here
+        # (known kind by its choices, draft status, precision set with the position, counts checked
+        # above) and the database still enforces them on insert. Only the identity's uniqueness
+        # (source, external id) needs the database, so it is the one constraint validated.
+        event.full_clean(validate_constraints=False)
+        event.validate_constraints(exclude=CHECKED_FIELDS)
     except ValidationError as exc:
         fields = ",".join(sorted(getattr(exc, "message_dict", {"__all__": None})))
         return DraftPlan(row.pk, row.line, "invalid_draft", identity.pk, fields), None

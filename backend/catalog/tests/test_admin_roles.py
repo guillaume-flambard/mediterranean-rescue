@@ -87,6 +87,31 @@ class CoordinatorTests(TestCase):
         self.assertEqual(list(volunteer.groups.all()), [verify])
         self.assertFalse(volunteer.is_staff)
 
+    def test_cannot_make_a_publisher_or_take_over_one(self):
+        url = f"/admin/auth/user/{self.volunteer.pk}/change/"
+        publish = Group.objects.get(name="Publish events")
+        base = {
+            "username": "volunteer",
+            "first_name": "",
+            "last_name": "",
+            "email": "",
+            "is_active": "on",
+        }
+        self.client.post(url, {**base, "groups": [publish.pk]})
+        self.assertFalse(User.objects.get(pk=self.volunteer.pk).groups.exists())
+
+        # A publisher given by a superuser keeps the role when the coordinator edits the account,
+        # and their password is out of the coordinator's reach.
+        self.volunteer.groups.add(publish)
+        verify = Group.objects.get(name="Verify events")
+        self.assertEqual(self.client.post(url, {**base, "groups": [verify.pk]}).status_code, 302)
+        self.assertEqual(
+            set(User.objects.get(pk=self.volunteer.pk).groups.values_list("name", flat=True)),
+            {"Publish events", "Verify events"},
+        )
+        password = f"/admin/auth/user/{self.volunteer.pk}/password/"
+        self.assertEqual(self.client.get(password).status_code, 403)
+
 
 class AdminPublicationReasonTests(TestCase):
     def setUp(self):
@@ -162,3 +187,34 @@ class PlatformSettingsTests(TestCase):
         english.force_login(lead)
         self.assertContains(english.get("/admin/"), "Mediterranean Rescue administration")
         self.assertEqual(Permission.objects.filter(codename="publish_event").count(), 1)
+
+
+class TransitionTests(TestCase):
+    def test_the_service_refuses_a_decision_that_changes_nothing(self):
+        from django.core.exceptions import ValidationError
+
+        from catalog.services import set_publication
+
+        source = Source.objects.create(
+            key="t",
+            name="T",
+            url="https://example.org",
+            rights_approved=True,
+            license_note="Fictitious",
+        )
+        event = Event.objects.create(
+            source=source,
+            external_id="t1",
+            kind="rescue",
+            occurred_on="2024-02-03",
+            title="Fictitious",
+            source_url="https://example.org",
+        )
+        lead = User.objects.create_superuser(username="lead", password=None)
+        with self.assertRaises(ValidationError) as withdrawn_draft:
+            set_publication(event_id=event.pk, actor=lead, publish=False, reason="x")
+        self.assertEqual(withdrawn_draft.exception.error_list[0].code, "invalid_transition")
+        set_publication(event_id=event.pk, actor=lead, publish=True, reason="x")
+        with self.assertRaises(ValidationError):
+            set_publication(event_id=event.pk, actor=lead, publish=True, reason="again")
+        self.assertEqual(PublicationAudit.objects.count(), 1)

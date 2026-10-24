@@ -7,6 +7,7 @@ records the audit). Nothing here bypasses those services."""
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from django.db.models import Count
 from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, serializers
 from rest_framework.permissions import BasePermission
@@ -50,15 +51,13 @@ class CanFollowPublication(BasePermission):
 
 
 def latest_event_snapshots():
-    """The latest export of each event sheet, per source."""
-    latest = {}
-    for snapshot in (
+    """The latest export of each event sheet, per source, in one query (DISTINCT ON)."""
+    return list(
         SheetSnapshot.objects.filter(sheet__in=EVENT_SHEETS)
         .select_related("source")
-        .order_by("-created_at", "-pk")
-    ):
-        latest.setdefault((snapshot.source_id, snapshot.sheet), snapshot)
-    return list(latest.values())
+        .order_by("source_id", "sheet", "-created_at", "-pk")
+        .distinct("source_id", "sheet")
+    )
 
 
 # Overview
@@ -98,8 +97,10 @@ class PublicationOverviewSerializer(serializers.Serializer):
 
 
 def overview_payload(user):
+    # Planning validates each verified row that is not prepared yet; the other rows are cheap.
+    snapshots = latest_event_snapshots()
     preparation = []
-    for snapshot in latest_event_snapshots():
+    for snapshot in snapshots:
         counts = dict.fromkeys(GROUPS, 0)
         for plan in plan_drafts(snapshot):
             group = OUTCOME_GROUPS.get(plan.outcome)
@@ -108,9 +109,9 @@ def overview_payload(user):
         preparation.append({"sheet": snapshot.sheet, "exported_at": snapshot.created_at, **counts})
     preparation.sort(key=lambda item: item["sheet"])
     events = dict.fromkeys(EVENT_STATUSES, 0)
-    for status in Event.objects.values_list("status", flat=True):
-        events[status] += 1
-    source_ids = {snapshot.source_id for snapshot in latest_event_snapshots()} | set(
+    for row in Event.objects.values("status").annotate(total=Count("id")).order_by():
+        events[row["status"]] = row["total"]
+    source_ids = {snapshot.source_id for snapshot in snapshots} | set(
         Event.objects.values_list("source_id", flat=True).distinct()
     )
     sources = [
@@ -280,8 +281,17 @@ class PublicationDecisionView(PrivateView):
         try:
             # All or nothing: one refusal leaves every event as it was.
             with transaction.atomic():
+                # Sources first, then events, both in primary-key order, as set_publication does:
+                # two concurrent decisions cannot lock in opposite orders.
+                source_ids = sorted(
+                    set(Event.objects.filter(pk__in=ids).values_list("source_id", flat=True))
+                )
+                list(Source.objects.select_for_update().filter(pk__in=source_ids).order_by("pk"))
                 events = list(
-                    Event.objects.select_for_update().filter(pk__in=ids).select_related("source")
+                    Event.objects.select_for_update(of=("self",))
+                    .filter(pk__in=ids)
+                    .select_related("source")
+                    .order_by("pk")
                 )
                 if len(events) != len(ids):
                     raise exceptions.NotFound()
@@ -299,8 +309,7 @@ class PublicationDecisionView(PrivateView):
         except DjangoPermissionDenied as exc:
             raise exceptions.PermissionDenied() from exc
         except DjangoValidationError as exc:
-            message = " ".join(exc.messages)
-            if "rights" in message:
+            if any(error.code == "rights_not_approved" for error in exc.error_list):
                 raise RightsNotApproved() from exc
-            raise Conflict(detail=message) from exc
+            raise Conflict(detail=" ".join(exc.messages)) from exc
         return Response(DecidedSerializer({"action": values["action"], "count": len(events)}).data)

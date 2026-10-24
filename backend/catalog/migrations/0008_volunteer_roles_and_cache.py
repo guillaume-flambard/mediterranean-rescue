@@ -1,7 +1,9 @@
 """Volunteer roles as groups, and the shared cache table used by the sign-in limit (ADR 0013).
 
 A coordinator gives a volunteer one or more roles; nobody needs individual permissions. Groups
-that already exist keep their members, and their permissions are completed, never removed."""
+that already exist keep their members, and their permissions are completed, never removed.
+Reversing this migration leaves the groups and the cache table in place on purpose: they hold
+memberships and nothing else depends on their absence."""
 
 from django.contrib.auth.management import create_permissions
 from django.core.management import call_command

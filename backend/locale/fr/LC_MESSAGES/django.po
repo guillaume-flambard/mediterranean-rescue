@@ -160,8 +160,11 @@ msgstr "Personne"
 msgid "Access"
 msgstr "Accès"
 
-msgid "Roles: Verify events, Prepare events, Publish events, Manual import. Untick Active to close an account without deleting its history."
-msgstr "Rôles : Verify events (vérifier), Prepare events (préparer), Publish events (publier), Manual import (import manuel). Décocher « Actif » ferme un compte sans effacer son historique."
+msgid "Roles you can give: Verify events, Prepare events, Manual import. Publish events is given by a superuser. Untick Active to close an account without deleting its history."
+msgstr "Rôles que vous pouvez donner : Verify events (vérifier), Prepare events (préparer), Manual import (import manuel). Publish events (publier) est donné par un superutilisateur. Décocher « Actif » ferme un compte sans effacer son historique."
+
+msgid "Only a superuser can change this person's password."
+msgstr "Seul un superutilisateur peut changer le mot de passe de cette personne."
 
 msgid "Your name and reason are kept with each decision."
 msgstr "Votre nom et votre motif sont gardés avec chaque décision."

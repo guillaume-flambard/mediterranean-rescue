@@ -16,6 +16,13 @@ Le parcours qui fait réussir le projet (PRODUCT.md) va d'une source autorisée 
 - **Accueil du public** : une page « À propos des données » (`/about`) sur le modèle de l'OIM Missing Migrants et d'Our World in Data (ce qu'il faut savoir, comment lire la carte, définitions de travail, de la mer à la page, dignité, citer et réutiliser, autres sources) ; une carte « Première visite » qu'on peut fermer ; un état vide qui dit pourquoi rien n'est publié.
 - **Identité propre** : une marque dessinée pour le projet (un point documenté au-dessus de la mer), favicon, icônes d'application et image de partage. Pas de logo ni de photo de SOS MEDITERRANEE : la recherche du 24 octobre 2026 n'a trouvé aucune licence (mentions légales sans clause, médias presse « usage éditorial » seulement, marque déposée). Le nom de l'association n'apparaît qu'en texte, pour dire d'où viennent les données et que le site n'est pas officiel.
 
+## Revue indépendante du 24 octobre 2026
+- **Rôles restreints.** Une personne coordinatrice gère les comptes bénévoles mais ne peut ni donner le rôle « Publish events » ni changer le mot de passe d'un compte qui l'a : sinon elle pourrait publier sous un autre nom. Ces deux gestes reviennent à un superutilisateur. Les rôles qu'elle ne peut pas donner sont conservés quand elle modifie un compte.
+- **Transitions dans le service.** `set_publication` refuse de publier un événement déjà publié ou de retirer un événement qui ne l'est pas (`invalid_transition`), dans l'administration comme dans l'API ; le refus pour droits porte le code `rights_not_approved`, sans dépendre du texte du message.
+- **Verrous.** Une décision verrouille les sources puis les événements, dans l'ordre des clés, comme le service : deux décisions simultanées ne peuvent pas se bloquer mutuellement.
+- **Coût de la vue d'ensemble.** La dernière copie de chaque onglet est lue en une requête, les états sont comptés par la base, et la préparation ne valide plus que l'unicité de l'identité (les contraintes de contrôle sont déjà garanties et la base les applique à l'insertion). Mesuré : 18 requêtes au lieu de 54 pour deux événements prêts.
+- **Langue de l'API.** Avec `LocaleMiddleware`, le texte `detail` des erreurs suit la langue du navigateur ; les codes restent stables et l'interface ne lit que les codes.
+
 ## Sources
 GOV.UK Design System, « Complete multiple tasks » et « Check answers » ; NN/g sur les états vides et les dialogues de confirmation ; OIM Missing Migrants Project (méthodologie) ; FAQ et glossaire de SOS MEDITERRANEE (« rescapés ») ; mentions légales de sosmediterranee.fr.
 
