@@ -34,11 +34,14 @@ export function EventMap({
   points,
   onSelect,
   activeId = null,
+  focusId = null,
 }: {
   points: Points;
   onSelect: (id: string) => void;
   /** The event open in the list: ringed on the map and brought into view. */
   activeId?: string | null;
+  /** The event to bring into view when it is off screen (an opened one, not a hovered one). */
+  focusId?: string | null;
 }) {
   const { t } = useI18n();
   const element = useRef<HTMLDivElement>(null);
@@ -72,7 +75,7 @@ export function EventMap({
           layers: [
             { id: "water", type: "background", paint: { "background-color": "#dfe3ee" } },
             { id: "land", type: "fill", source: "land", paint: { "fill-color": "#fbfbfd" } },
-            { id: "coast", type: "line", source: "land", paint: { "line-color": "#a9afc4", "line-width": 0.8 } },
+            { id: "coast", type: "line", source: "land", paint: { "line-color": "#c3c7d6", "line-width": 0.7 } },
           ],
         },
         attributionControl: { customAttribution: attribution() },
@@ -154,9 +157,22 @@ export function EventMap({
     };
   }, [failed]);
 
-  // Points are pushed to the loaded map whenever they change.
+  // Points are pushed to the loaded map whenever they change; the first non-empty set frames the view.
+  const framed = useRef(false);
   useEffect(() => {
-    map?.getSource<GeoJSONSource>("events")?.setData(asFeatures(points));
+    if (!map) return;
+    map.getSource<GeoJSONSource>("events")?.setData(asFeatures(points));
+    if (framed.current || points.length === 0) return;
+    framed.current = true;
+    const lons = points.map((point) => point.longitude);
+    const lats = points.map((point) => point.latitude);
+    map.fitBounds(
+      [
+        [Math.min(...lons), Math.min(...lats)],
+        [Math.max(...lons), Math.max(...lats)],
+      ],
+      { padding: 48, maxZoom: 6, duration: 0 },
+    );
   }, [map, points]);
 
   // The open event is ringed and brought into view; nothing moves when it is already visible.
@@ -164,12 +180,12 @@ export function EventMap({
     if (!map) return;
     const active = points.filter((point) => point.id === activeId);
     map.getSource<GeoJSONSource>("active")?.setData(asFeatures(active));
-    const point = active[0];
+    const point = points.find((item) => item.id === focusId);
     if (point && !map.getBounds().contains([point.longitude, point.latitude])) {
       const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 700 });
     }
-  }, [map, points, activeId]);
+  }, [map, points, activeId, focusId]);
 
   return (
     <div className="map-wrap">

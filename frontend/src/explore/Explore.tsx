@@ -74,6 +74,8 @@ export function Explore() {
   const [mapOpen, setMapOpen] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
+  // The card under the pointer lights its point; the open card wins over it.
+  const [hoverId, setHoverId] = useState<string | null>(null);
   const invalid = Boolean(start && end && start > end);
   const filters = {
     ...(start ? { start } : {}),
@@ -136,7 +138,7 @@ export function Explore() {
     latitude: point.latitude,
     kind: point.kind as Kind,
   }));
-  const activeId = openId ?? pinnedId;
+  const activeId = openId ?? pinnedId ?? hoverId;
   const filtered = Boolean(kind || start || end || q);
 
   useEffect(() => {
@@ -338,7 +340,7 @@ export function Explore() {
           </div>
 
           <div className="explore-map explore-map--inline" data-open={mapOpen || undefined}>
-            <MapPanel points={invalid ? [] : points} activeId={activeId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
+            <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
           </div>
 
           {pinnedId && !items.some((item) => item.id === pinnedId) && (
@@ -380,6 +382,7 @@ export function Explore() {
                   item={item}
                   preview={preview}
                   open={openId === item.id}
+                  onHover={(hovered) => setHoverId(hovered ? item.id : null)}
                   onToggle={() => {
                     setPinnedId(null);
                     setOpenId(openId === item.id ? null : item.id);
@@ -404,7 +407,7 @@ export function Explore() {
         </section>
 
         <aside className="explore-map explore-map--side" aria-label={t("map.label")}>
-          <MapPanel points={invalid ? [] : points} activeId={activeId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
+          <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
         </aside>
       </div>
     </div>
@@ -414,11 +417,13 @@ export function Explore() {
 function MapPanel({
   points,
   activeId,
+  focusId,
   onSelect,
   truncated,
 }: {
   points: { id: string; longitude: number; latitude: number; kind: Kind }[];
   activeId: string | null;
+  focusId: string | null;
   onSelect: (id: string) => void;
   truncated: boolean;
 }) {
@@ -426,7 +431,7 @@ function MapPanel({
   return (
     <div className="map-card">
       <Suspense fallback={<div className="map-card__loading">{t("map.loading")}</div>}>
-        <EventMap points={points} onSelect={onSelect} activeId={activeId} />
+        <EventMap points={points} onSelect={onSelect} activeId={activeId} focusId={focusId} />
       </Suspense>
       {truncated && <p className="map-card__note">{t("map.truncated")}</p>}
     </div>
@@ -437,13 +442,32 @@ function statusKey(status: Status): Key {
   return `preview.status.${status}` as Key;
 }
 
-function EventCard({ item, preview, open, onToggle }: { item: FeedItem; preview: boolean; open: boolean; onToggle: () => void }) {
+function EventCard({
+  item,
+  preview,
+  open,
+  onToggle,
+  onHover,
+}: {
+  item: FeedItem;
+  preview: boolean;
+  open: boolean;
+  onToggle: () => void;
+  onHover: (hovered: boolean) => void;
+}) {
   const i18n = useI18n();
   const { t } = i18n;
   const ref = useRef<HTMLLIElement>(null);
   const bodyId = `event-${item.id}-body`;
   return (
-    <li id={`event-${item.id}`} ref={ref} className={`card${open ? " card--open" : ""}`} data-kind={item.kind ?? undefined}>
+    <li
+      id={`event-${item.id}`}
+      ref={ref}
+      className={`card${open ? " card--open" : ""}`}
+      data-kind={item.kind ?? undefined}
+      onPointerEnter={(event) => event.pointerType === "mouse" && onHover(true)}
+      onPointerLeave={(event) => event.pointerType === "mouse" && onHover(false)}
+    >
       <BaseButton className="card__summary" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
         <span className="card__text">
           <span className="card__top">
