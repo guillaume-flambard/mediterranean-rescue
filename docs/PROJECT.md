@@ -2,6 +2,8 @@
 
 **Decision de priorisation du 24 octobre 2026 :** [terminer le chantier en cours sans gel, puis recadrer le prochain backend sur des besoins prouves](EXECUTION-PRIORITIES-2026-10-24.md). Ce document precise l'ordre de travail et ne remplace aucune ADR ni aucune recette du lot en cours.
 
+**Offre et besoin réel (recherche du 24 octobre 2026) :** [ce que demande l'annonce, ce qui existe déjà chez CartONG, ce qui manque vraiment et les questions à poser](need-2026-10-24.md).
+
 Version 1, 24 octobre 2026. Responsable du fork : Guillaume Flambard. Statut : projet indépendant en construction, à cadrer avec Data for Good et SOS MEDITERRANEE. Ce document est la référence de lancement ; les contrats détaillés, preuves et tâches exécutables sont liés en fin de document.
 
 ## 1. Ce que nous voulons construire
