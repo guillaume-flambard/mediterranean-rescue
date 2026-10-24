@@ -461,10 +461,10 @@ export const en = {
   "preview.workspace": "Private workspace",
   "preview.signIn": "Team sign-in",
   "preview.modeLabel": "Data shown",
-  "preview.mode.preview": "Private preview (latest export)",
-  "preview.mode.public": "Published events",
-  "preview.banner.title": "Private preview.",
-  "preview.banner.body": "Rows of the latest Google Sheets export, read as they are: not checked, not published. Only signed-in reviewers see this.",
+  "preview.mode.preview": "Private preview",
+  "preview.mode.public": "Published",
+  "preview.banner.title": "Private preview:",
+  "preview.banner.body": "latest export as received, not checked, not published.",
   "preview.banner.counts": "{toReview} to check, {blocked} blocked, {linked} checked.",
   "preview.heading": "Rows of the export",
   "preview.empty.title": "No row matches",
@@ -483,6 +483,10 @@ export const en = {
   "preview.detail.provenance": "{source}, tab {sheet}, line {line}, export of {date}.",
   "preview.detail.check": "Check this row",
   "preview.legend": "Export row (private) • points grouped at low zoom",
+  "filters.show": "Filters",
+  "filters.hide": "Hide filters",
+  "filters.active": "on",
+  "preview.count": { one: "{count} row", other: "{count} rows" },
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly one: string; readonly other: string; readonly zero?: string };

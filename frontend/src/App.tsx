@@ -135,6 +135,8 @@ export default function App() {
   const [kind, setKind] = useState<Kind | "">("");
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
+  // Folded by default on narrow screens so the map comes first; always shown on wide ones (CSS).
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const invalid = Boolean(start && end && start > end);
   const filters = makeFilter(start, end, kind);
   // Signed-in reviewers see the latest private export on this screen; everyone else sees only
@@ -220,12 +222,11 @@ export default function App() {
         </section>
         <p className="context">{t("app.context")}</p>
         {canPreview && (
-          <div className="preview-bar" role="group" aria-label={t("preview.modeLabel")}>
+          <div className="preview-switch" role="group" aria-label={t("preview.modeLabel")}>
             {(["preview", "public"] as const).map((value) => (
-              <Button
+              <BaseButton
                 key={value}
-                size="sm"
-                variant={mode === value ? "primary" : "secondary"}
+                className="preview-switch__option"
                 aria-pressed={mode === value}
                 onClick={() => {
                   setModeChoice(value);
@@ -234,17 +235,15 @@ export default function App() {
                 }}
               >
                 {t(`preview.mode.${value}`)}
-              </Button>
+              </BaseButton>
             ))}
           </div>
         )}
         {preview && (
           <div className="preview-banner" role="status">
-            <strong>{t("preview.banner.title")}</strong>{" "}
-            {t("preview.banner.body")}
+            <strong>{t("preview.banner.title")}</strong> {t("preview.banner.body")}
             {previewEvents.data && (
               <span className="preview-banner__counts">
-                {" "}
                 {t("preview.banner.counts", {
                   toReview: previewEvents.data.counts.to_review,
                   blocked: previewEvents.data.counts.blocked,
@@ -259,7 +258,22 @@ export default function App() {
             {t("app.training")}
           </div>
         )}
-        <form className="filters" onSubmit={(e) => e.preventDefault()}>
+        <div className="filters-bar">
+          <Button
+            size="sm"
+            className="filters-toggle"
+            aria-expanded={filtersOpen}
+            aria-controls="filters"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            {t(filtersOpen ? "filters.hide" : "filters.show")}
+            {filters.start || filters.end || filters.kind ? ` · ${t("filters.active")}` : ""}
+          </Button>
+          <span className="result-count result-count--compact" role="status">
+            {fetching ? t("filters.refreshing") : total !== undefined ? t(preview ? "preview.count" : "events.count", { count: total }) : ""}
+          </span>
+        </div>
+        <form id="filters" className="filters" data-open={filtersOpen || undefined} onSubmit={(e) => e.preventDefault()}>
           <label>
             {t("filters.from")}
             <input
@@ -293,8 +307,8 @@ export default function App() {
             }}
           />
           <Button onClick={reset}>{t("filters.reset")}</Button>
-          <span className="result-count" role="status">
-            {fetching ? t("filters.refreshing") : total !== undefined ? t("events.count", { count: total }) : ""}
+          <span className="result-count result-count--wide" role="status">
+            {fetching ? t("filters.refreshing") : total !== undefined ? t(preview ? "preview.count" : "events.count", { count: total }) : ""}
           </span>
         </form>
         {invalid && (

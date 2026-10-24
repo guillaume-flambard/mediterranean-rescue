@@ -78,7 +78,7 @@ describe("main screen preview", () => {
       "GET /api/private/v1/preview/events/:id/": () => ({ body: ITEM }),
     });
     renderApp();
-    expect(await screen.findByText(/Rows of the latest Google Sheets export/)).toBeTruthy();
+    expect(await screen.findByText(/latest export as received/)).toBeTruthy();
     expect(await screen.findByText("1 map points")).toBeTruthy();
     const list = await screen.findByRole("heading", { name: "Rows of the export" });
     expect(list).toBeTruthy();
@@ -90,7 +90,7 @@ describe("main screen preview", () => {
     );
     // Published events stay one click away, and the public endpoints are used for them.
     await userEvent.keyboard("{Escape}");
-    await userEvent.click(screen.getByRole("button", { name: "Published events" }));
+    await userEvent.click(screen.getByRole("button", { name: "Published" }));
     expect(await screen.findByText("0 map points")).toBeTruthy();
     expect(calls.some((call) => call.path === "/api/v1/events/")).toBe(true);
   });
