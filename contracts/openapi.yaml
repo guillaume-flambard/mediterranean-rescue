@@ -691,6 +691,12 @@ paths:
           minimum: 0
           default: 0
       - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+      - in: query
         name: start
         schema:
           type: string
@@ -839,6 +845,12 @@ paths:
           type: string
           minLength: 1
           maxLength: 40
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
       - in: query
         name: start
         schema:
@@ -1586,6 +1598,13 @@ paths:
           minimum: 0
           default: 0
       - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description: Words found in the title, summary or port name
+      - in: query
         name: start
         schema:
           type: string
@@ -1763,6 +1782,13 @@ paths:
           * `incident` - Incident
           * `shipwreck` - Naufrage
           * `dead_missing` - Décès / disparitions
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description: Words found in the title, summary or port name
       - in: query
         name: start
         schema:

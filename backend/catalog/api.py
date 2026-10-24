@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_field
 from rest_framework import serializers
@@ -61,6 +62,9 @@ class Filters(serializers.Serializer):
     end = serializers.DateField(required=False)
     kind = serializers.ChoiceField(choices=EventKind.choices, required=False)
     bbox = serializers.CharField(required=False, help_text="west,south,east,north in WGS84")
+    q = serializers.CharField(
+        required=False, max_length=80, help_text="Words found in the title, summary or port name"
+    )
 
     def validate(self, attrs):
         if attrs.get("start") and attrs.get("end") and attrs["start"] > attrs["end"]:
@@ -108,6 +112,10 @@ def filtered_events(values):
         queryset = queryset.filter(kind=values["kind"])
     if "bbox" in values:
         queryset = queryset.filter(location__intersects=Polygon.from_bbox(values["bbox"]))
+    for word in values.get("q", "").split():
+        queryset = queryset.filter(
+            Q(title__icontains=word) | Q(summary__icontains=word) | Q(port__name__icontains=word)
+        )
     return queryset
 
 

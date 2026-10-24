@@ -1750,6 +1750,7 @@ export interface operations {
                 kind?: string;
                 limit?: number;
                 offset?: number;
+                q?: string;
                 start?: string;
                 /**
                  * @description * `to_review` - to_review
@@ -1912,6 +1913,7 @@ export interface operations {
             query?: {
                 end?: string;
                 kind?: string;
+                q?: string;
                 start?: string;
                 /**
                  * @description * `to_review` - to_review
@@ -2724,6 +2726,8 @@ export interface operations {
                 kind?: "rescue" | "transfer" | "medevac" | "incident" | "shipwreck" | "dead_missing";
                 limit?: number;
                 offset?: number;
+                /** @description Words found in the title, summary or port name */
+                q?: string;
                 start?: string;
             };
             header?: never;
@@ -2898,6 +2902,8 @@ export interface operations {
                  *     * `dead_missing` - Décès / disparitions
                  */
                 kind?: "rescue" | "transfer" | "medevac" | "incident" | "shipwreck" | "dead_missing";
+                /** @description Words found in the title, summary or port name */
+                q?: string;
                 start?: string;
             };
             header?: never;

@@ -24,6 +24,7 @@ class PreviewFilters(serializers.Serializer):
     end = serializers.DateField(required=False)
     kind = serializers.CharField(required=False, max_length=40)
     status = serializers.ChoiceField(choices=STATUSES, required=False)
+    q = serializers.CharField(required=False, max_length=80)
 
     def validate(self, attrs):
         if "start" in attrs and "end" in attrs and attrs["start"] > attrs["end"]:
@@ -106,6 +107,10 @@ def preview_items(values):
             if "kind" in values and entry["kind"] != values["kind"]:
                 continue
             if "status" in values and entry["status"] != values["status"]:
+                continue
+            # Every word must appear in the port or boat as written in the export.
+            text = f"{entry['port_label'] or ''} {entry['boat_type'] or ''}".casefold()
+            if any(word.casefold() not in text for word in values.get("q", "").split()):
                 continue
             items.append(entry)
     # Unknown dates last, then by line so the order is stable.

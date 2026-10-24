@@ -30,7 +30,16 @@ function asFeatures(points: Points) {
   };
 }
 
-export function EventMap({ points, onSelect }: { points: Points; onSelect: (id: string) => void }) {
+export function EventMap({
+  points,
+  onSelect,
+  activeId = null,
+}: {
+  points: Points;
+  onSelect: (id: string) => void;
+  /** The event open in the list: ringed on the map and brought into view. */
+  activeId?: string | null;
+}) {
   const { t } = useI18n();
   const element = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<LibreMap | null>(null);
@@ -61,9 +70,9 @@ export function EventMap({ points, onSelect }: { points: Points; onSelect: (id: 
           version: 8,
           sources: { land: { type: "geojson", data: "/land.geojson" } },
           layers: [
-            { id: "water", type: "background", paint: { "background-color": "#dceaf0" } },
-            { id: "land", type: "fill", source: "land", paint: { "fill-color": "#f8faf9" } },
-            { id: "coast", type: "line", source: "land", paint: { "line-color": "#94b1bf", "line-width": 1 } },
+            { id: "water", type: "background", paint: { "background-color": "#dfe3ee" } },
+            { id: "land", type: "fill", source: "land", paint: { "fill-color": "#fbfbfd" } },
+            { id: "coast", type: "line", source: "land", paint: { "line-color": "#a9afc4", "line-width": 0.8 } },
           ],
         },
         attributionControl: { customAttribution: attribution() },
@@ -90,14 +99,33 @@ export function EventMap({ points, onSelect }: { points: Points; onSelect: (id: 
         type: "circle",
         source: "events",
         filter: ["has", "point_count"],
-        paint: { "circle-color": "#194b65", "circle-radius": 18, "circle-stroke-color": "white", "circle-stroke-width": 2 },
+        // Larger groups read larger, in three steps.
+        paint: {
+          "circle-color": "#1b2747",
+          "circle-opacity": 0.92,
+          "circle-radius": ["step", ["get", "point_count"], 13, 10, 17, 50, 22],
+          "circle-stroke-color": "white",
+          "circle-stroke-width": 2,
+        },
       });
       instance.addLayer({
         id: "events",
         type: "circle",
         source: "events",
         filter: ["!", ["has", "point_count"]],
-        paint: { "circle-color": "#bc471c", "circle-radius": 7, "circle-stroke-color": "white", "circle-stroke-width": 2 },
+        paint: { "circle-color": "#e83e1b", "circle-radius": 6, "circle-stroke-color": "white", "circle-stroke-width": 2 },
+      });
+      instance.addSource("active", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      instance.addLayer({
+        id: "active",
+        type: "circle",
+        source: "active",
+        paint: {
+          "circle-color": "rgba(232, 62, 27, 0.18)",
+          "circle-radius": 16,
+          "circle-stroke-color": "#e83e1b",
+          "circle-stroke-width": 2.5,
+        },
       });
       instance.on("click", "events", (e) => {
         const id = e.features?.[0]?.properties?.id;
@@ -130,6 +158,18 @@ export function EventMap({ points, onSelect }: { points: Points; onSelect: (id: 
   useEffect(() => {
     map?.getSource<GeoJSONSource>("events")?.setData(asFeatures(points));
   }, [map, points]);
+
+  // The open event is ringed and brought into view; nothing moves when it is already visible.
+  useEffect(() => {
+    if (!map) return;
+    const active = points.filter((point) => point.id === activeId);
+    map.getSource<GeoJSONSource>("active")?.setData(asFeatures(active));
+    const point = active[0];
+    if (point && !map.getBounds().contains([point.longitude, point.latitude])) {
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      map.easeTo({ center: [point.longitude, point.latitude], duration: reduce ? 0 : 700 });
+    }
+  }, [map, points, activeId]);
 
   return (
     <div className="map-wrap">

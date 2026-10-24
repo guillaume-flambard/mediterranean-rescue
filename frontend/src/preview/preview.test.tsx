@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
@@ -65,7 +65,7 @@ describe("main screen preview", () => {
     expect(calls.some((call) => call.path.startsWith("/api/private/v1/preview/"))).toBe(false);
   });
 
-  it("a signed-in reviewer sees the latest export, clearly marked private, and can open a row", async () => {
+  it("a signed-in reviewer sees the latest export, clearly marked private, and opens a row in place", async () => {
     const { calls } = fakeServer({
       ...EMPTY_PUBLIC,
       "GET /api/private/v1/me/": () => ({ body: { username: "r", permissions: { review_identity: true, stage_snapshot: true } } }),
@@ -79,19 +79,43 @@ describe("main screen preview", () => {
     });
     renderApp();
     expect(await screen.findByText(/latest export as received/)).toBeTruthy();
-    expect(await screen.findByText("1 map points")).toBeTruthy();
-    const list = await screen.findByRole("heading", { name: "Rows of the export" });
-    expect(list).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: /Port fictif/ }));
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Private preview: not checked, not published")).toBeTruthy();
-    expect(within(dialog).getByRole("link", { name: "Check this row" }).getAttribute("href")).toBe(
+    expect((await screen.findAllByText("1 map points")).length).toBeGreaterThan(0);
+    const card = await screen.findByRole("button", { name: /Port fictif/ });
+    expect(card.getAttribute("aria-expanded")).toBe("false");
+    await userEvent.click(card);
+    expect(card.getAttribute("aria-expanded")).toBe("true");
+    const region = await screen.findByRole("region", { name: "Event record" });
+    expect((await within(region).findByRole("link", { name: /Check this row/ })).getAttribute("href")).toBe(
       `/workspace/review/${SNAPSHOT}/rows/${ROW}`,
     );
-    // Published events stay one click away, and the public endpoints are used for them.
-    await userEvent.keyboard("{Escape}");
+    // Published events stay one click away, through the public endpoints.
     await userEvent.click(screen.getByRole("button", { name: "Published" }));
-    expect(await screen.findByText("0 map points")).toBeTruthy();
+    expect((await screen.findAllByText("0 map points")).length).toBeGreaterThan(0);
     expect(calls.some((call) => call.path === "/api/v1/events/")).toBe(true);
+  });
+
+  it("search words and kind chips reach the server", async () => {
+    const { calls } = fakeServer({
+      ...EMPTY_PUBLIC,
+      "GET /api/private/v1/me/": () => ({ status: 401, body: { code: "not_authenticated", detail: "x" } }),
+    });
+    renderApp();
+    await screen.findByText("No published event");
+    await userEvent.click(screen.getByRole("button", { name: "Shipwrecks" }));
+    await userEvent.type(screen.getByRole("searchbox"), "lampedusa");
+    await waitFor(() =>
+      expect(
+        calls.some((call) => call.path === "/api/v1/events/" && call.query.get("q") === "lampedusa" && call.query.get("kind") === "shipwreck"),
+      ).toBe(true),
+    );
+    expect(await screen.findByText("Nothing matches")).toBeTruthy();
+  });
+
+  it("views not built yet are shown as coming, not as empty screens", async () => {
+    fakeServer({ ...EMPTY_PUBLIC, "GET /api/private/v1/me/": () => ({ status: 401, body: { code: "not_authenticated", detail: "x" } }) });
+    renderApp();
+    const views = await screen.findByRole("group", { name: "View" });
+    expect(within(views).getByRole("button", { name: /Feed/ }).getAttribute("aria-pressed")).toBe("true");
+    expect((within(views).getByRole("button", { name: /Logbook/ }) as HTMLButtonElement).disabled).toBe(true);
   });
 });

@@ -43,6 +43,11 @@ class PreviewTests(PrivateApiTestCase):
             self.get("preview/events/?start=2024-03-01&end=2024-01-01").status_code, 400
         )
 
+    def test_words_search_the_port_as_written(self):
+        body = self.get("preview/events/?q=fictif").json()
+        self.assertEqual([item["port_label"] for item in body["items"]], ["Port fictif"])
+        self.assertEqual(self.get("preview/events/?q=nowhere").json()["total_count"], 0)
+
     def test_only_the_latest_export_is_previewed(self):
         old_row = self.get("preview/events/").json()["items"][0]["id"]
         self.stage(ops_csv(ops_row(date="06/02/2024")))

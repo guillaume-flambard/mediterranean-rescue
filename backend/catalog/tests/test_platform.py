@@ -8,7 +8,7 @@ from django.db import IntegrityError, transaction
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 
 from catalog.imports import apply_batch, stage_payload
-from catalog.models import Event, ImportBatch, PublicationAudit, Source, StagedRecord
+from catalog.models import Event, ImportBatch, Port, PublicationAudit, Source, StagedRecord
 from catalog.services import set_publication
 
 
@@ -170,6 +170,22 @@ class PlatformTests(TestCase):
                 self.assertEqual(self.client.get(path, invalid).status_code, 400)
         filters["bbox"] = "0,0,1,1"
         self.assertEqual(self.client.get("/api/v1/events/", filters).json()["total_count"], 0)
+
+    def test_words_search_title_summary_and_port(self):
+        port = Port.objects.create(name="Port fictif")
+        self.publish(self.event(external_id="a", title="Rescue near the coast", port=port))
+        self.publish(self.event(external_id="b", title="Other", summary="Fictional transfer"))
+
+        def titles(q):
+            items = self.client.get("/api/v1/events/", {"q": q}).json()["items"]
+            return sorted(item["title"] for item in items)
+
+        self.assertEqual(titles("fictif"), ["Rescue near the coast"])
+        self.assertEqual(titles("FICTIONAL"), ["Other"])
+        self.assertEqual(titles("rescue coast"), ["Rescue near the coast"])
+        self.assertEqual(
+            self.client.get("/api/v1/map-points/", {"q": "nowhere"}).json()["located_count"], 0
+        )
 
     def test_rest_contract_rejects_writes_and_invalid_pagination(self):
         for values in [{"limit": 101}, {"limit": 0}, {"offset": -1}, {"offset": 100001}]:

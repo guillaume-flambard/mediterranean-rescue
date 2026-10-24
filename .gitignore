@@ -167,3 +167,8 @@ frontend/dist/
 backend/staticfiles/
 data/local/
 .env
+
+# Impeccable review captures can show private preview data.
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/build/
