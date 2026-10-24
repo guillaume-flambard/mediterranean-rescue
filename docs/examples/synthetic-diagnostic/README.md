@@ -12,4 +12,4 @@ for sheet in Data_operations Other_data Data_ports; do
 done
 ```
 
-Chaque commande sort avec le code 3 : le paquet est écrit et la normalisation est bloquée par les anomalies volontaires. Seul `rapport.md` est recopié ici ; `diagnostic.json` et `snapshot.csv` restent dans `data/local`, ignoré par Git. Le diagnostic est déterministe : mêmes octets, même empreinte et même rapport.
+Chaque commande sort avec le code 3 : le paquet est écrit et la normalisation est bloquée par les anomalies volontaires. Seul `report.md` est recopié ici, dans un dossier par onglet (anglais par défaut ; `Data_operations/report.fr.md` montre la traduction française obtenue avec `--language fr`) ; `diagnostic.json` et `snapshot.csv` restent dans `data/local`, ignoré par Git. Le diagnostic est déterministe : mêmes octets, même empreinte et même rapport.

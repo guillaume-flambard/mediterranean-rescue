@@ -24,7 +24,7 @@
   },
   "verification": {
     "status": "PASS",
-    "diagnostic_host_tests": 44,
+    "diagnostic_host_tests": 46,
     "backend_postgis_tests": 60,
     "frontend_tests": 2,
     "openapi_codegen": "PASS (unchanged)",
@@ -55,6 +55,7 @@
   "owner_decisions": [
     "2026-10-24: no pull request, neither on the fork nor upstream; keep advancing on branches and show Data for Good / SOS later, when Guillaume decides.",
     "2026-10-24: one private local download of the public export allowed for diagnostic; never committed or redistributed.",
-    "2026-10-24: once the backend is solid, the product is a React app with Base UI, its own design system, reusable components and animations."
+    "2026-10-24: once the backend is solid, the product is a React app with Base UI, its own design system, reusable components and animations.",
+    "2026-10-24: code and comments in English (specs may be French); product in English by default with English URLs, French as first translation."
   ]
 }

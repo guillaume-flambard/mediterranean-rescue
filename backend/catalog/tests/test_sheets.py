@@ -8,6 +8,7 @@ import contextlib
 import io
 import json
 import os
+import re
 import stat
 import subprocess
 import sys
@@ -320,7 +321,7 @@ class ReviewRegressionTests(unittest.TestCase):
             result = diagnose(full[:-cut], "Data_ports")
             self.assertEqual(result["status"]["source_read"], "end_unverified", cut)
             self.assertIn("last_record_unterminated", codes(result))
-            self.assertNotIn("se termine par une fin de ligne", render_report(result))
+            self.assertNotIn("ends with a line ending", render_report(result))
 
     def test_very_long_numeric_cells_are_anomalies_not_crashes(self):
         long_number = "1." + "1" * 5000
@@ -412,6 +413,25 @@ class RealExportFormatTests(unittest.TestCase):
         content = (OTHER_HEADER + "\n21/06/2022,Incident,33° 55,13° 55,,,,,,,,,,,\n").encode()
         candidate = diagnose(content, "Other_data")["rows"][0]["candidate"]
         self.assertEqual(candidate["occurred_on"], "2022-06-21")
+
+
+class ReportLanguageTests(unittest.TestCase):
+    def test_every_language_explains_the_same_codes(self):
+        self.assertEqual(sheets.DEFAULT_LANGUAGE, "en")
+        self.assertEqual(set(sheets.EXPLANATIONS["en"]), set(sheets.EXPLANATIONS["fr"]))
+        self.assertEqual(set(sheets.TEXT["en"]), set(sheets.TEXT["fr"]))
+        self.assertEqual(set(sheets.STATUS_TEXT["en"]), set(sheets.STATUS_TEXT["fr"]))
+
+    def test_every_emitted_code_is_explained(self):
+        source = Path(sheets.__file__).read_text(encoding="utf-8")
+        emitted = set(
+            re.findall(
+                r'(?:CellError|issue|flag)\(\s*"(?:error|warning)?"?,?\s*"([a-z_0-9]+)"', source
+            )
+        )
+        emitted |= set(re.findall(r'CellError\("([a-z_0-9]+)"\)', source))
+        self.assertTrue(emitted)
+        self.assertLessEqual(emitted, set(sheets.EXPLANATIONS["en"]))
 
 
 class ProvenanceTests(unittest.TestCase):
@@ -536,7 +556,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, sheets.EXIT_BLOCKED)
         self.assertEqual(
             sorted(p.name for p in output.iterdir()),
-            [".gitignore", "MANIFEST.json", "diagnostic.json", "rapport.md", "snapshot.csv"],
+            [".gitignore", "MANIFEST.json", "diagnostic.json", "report.md", "snapshot.csv"],
         )
         self.assertEqual((output / "snapshot.csv").read_bytes(), self.input.read_bytes())
         self.assertEqual((output / ".gitignore").read_text(), "*\n")
@@ -544,11 +564,11 @@ class CliTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o700)
             for path in output.iterdir():
                 self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600, path.name)
-        report = (output / "rapport.md").read_text()
+        report = (output / "report.md").read_text()
         for sentinel in SENTINELS:
             self.assertNotIn(sentinel, out + err + report)
         self.assertIn(SENTINELS[0], (output / "diagnostic.json").read_text())
-        self.assertIn("Source non qualifiée", report)
+        self.assertIn("Unqualified source", report)
         manifest = json.loads((output / "MANIFEST.json").read_text())
         self.assertEqual(
             (manifest["package_complete"], manifest["source_read"]), (True, "complete")
@@ -578,7 +598,7 @@ class CliTests(unittest.TestCase):
         real = sheets._private_write
 
         def failing(path, data):
-            if path.name == "rapport.md":
+            if path.name == "report.md":
                 raise OSError("disk full")
             real(path, data)
 
@@ -646,7 +666,7 @@ class CliTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(completed.returncode, sheets.EXIT_BLOCKED, completed.stderr)
-        self.assertIn("Données synthétiques", (output / "rapport.md").read_text())
+        self.assertIn("Synthetic data", (output / "report.md").read_text())
 
 
 class SyntheticDemonstrationTests(unittest.TestCase):
@@ -682,7 +702,8 @@ class SyntheticDemonstrationTests(unittest.TestCase):
         candidate = result["rows"][1]["candidate"]
         self.assertEqual(candidate["position"]["latitude"], "35.5083333333")
         self.assertIsNone(candidate["nb_survivor"])
-        self.assertIn("Données synthétiques", render_report(result))
+        self.assertIn("Synthetic data", render_report(result))
+        self.assertIn("Données synthétiques", render_report(result, language="fr"))
 
     def test_other_and_ports_fixtures(self):
         other = diagnose((FIXTURES / "synthetic-Other_data.csv").read_bytes(), "Other_data")
