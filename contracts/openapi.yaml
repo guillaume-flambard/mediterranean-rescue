@@ -3,6 +3,108 @@ info:
   title: Mediterranean Rescue public API
   version: 1.0.0
 paths:
+  /api/private/v1/history/:
+    get:
+      operationId: private_history
+      parameters:
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - verify
+          - prepare
+          - publish
+          - withdraw
+          - port
+          - correction
+          type: string
+          minLength: 1
+        description: |-
+          * `verify` - verify
+          * `prepare` - prepare
+          * `publish` - publish
+          * `withdraw` - withdraw
+          * `port` - port
+          * `correction` - correction
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: scope
+        schema:
+          enum:
+          - mine
+          - team
+          type: string
+          default: mine
+          minLength: 1
+        description: |-
+          * `mine` - mine
+          * `team` - team
+      tags:
+      - history
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
   /api/private/v1/imports/:
     get:
       operationId: private_list_imports
@@ -3194,6 +3296,87 @@ components:
           type: integer
       required:
       - carried
+    HistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          $ref: '#/components/schemas/HistoryItemKindEnum'
+        at:
+          type: string
+          format: date-time
+        actor:
+          type: string
+        reason:
+          type: string
+        detail:
+          type: string
+          description: new, reviewed_match, applied, ports, vessel…
+        subject:
+          $ref: '#/components/schemas/HistorySubject'
+        path:
+          type: string
+          nullable: true
+          description: Where the decided item can be seen.
+      required:
+      - actor
+      - at
+      - detail
+      - id
+      - kind
+      - path
+      - reason
+      - subject
+    HistoryItemKindEnum:
+      enum:
+      - verify
+      - prepare
+      - publish
+      - withdraw
+      - port
+      - correction
+      type: string
+      description: |-
+        * `verify` - verify
+        * `prepare` - prepare
+        * `publish` - publish
+        * `withdraw` - withdraw
+        * `port` - port
+        * `correction` - correction
+    HistoryPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryItem'
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+    HistorySubject:
+      type: object
+      properties:
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        label:
+          type: string
+          nullable: true
+          description: Port name, for a port reading.
+      required:
+      - kind
+      - label
+      - occurred_on
+      - people
     IdentityPage:
       type: object
       properties:

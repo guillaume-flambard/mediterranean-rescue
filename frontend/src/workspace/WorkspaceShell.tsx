@@ -11,7 +11,7 @@ import { InlineMessage, PendingState } from "../ui/Feedback";
 
 export const ME_QUERY = ["get", "/api/private/v1/me/"] as const;
 
-type Section = "home" | "data" | "imports" | "review" | "publish" | "ports" | "team" | "help" | "practice";
+type Section = "home" | "data" | "imports" | "review" | "publish" | "ports" | "team" | "help" | "practice" | "history";
 
 const anyRole = (me: Me) => Object.values(me.permissions).some(Boolean);
 
@@ -34,6 +34,7 @@ const SECTIONS: readonly { key: Section; path: string; icon: IconName; allowed: 
     allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity,
     secondary: true,
   },
+  { key: "history", path: "/workspace/history", icon: "history", allowed: anyRole },
   { key: "team", path: "/workspace/team", icon: "people", allowed: (me) => me.permissions.invite },
   { key: "practice", path: "/workspace/practice", icon: "school", allowed: anyRole },
   { key: "help", path: "/workspace/help", icon: "help", allowed: anyRole },

@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/private/v1/history/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["private_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/private/v1/imports/": {
         parameters: {
             query?: never;
@@ -766,6 +782,40 @@ export interface components {
         ExactCarriesResult: {
             carried: number;
         };
+        HistoryItem: {
+            id: string;
+            kind: components["schemas"]["HistoryItemKindEnum"];
+            /** Format: date-time */
+            at: string;
+            actor: string;
+            reason: string;
+            /** @description new, reviewed_match, applied, ports, vessel… */
+            detail: string;
+            subject: components["schemas"]["HistorySubject"];
+            /** @description Where the decided item can be seen. */
+            path: string | null;
+        };
+        /**
+         * @description * `verify` - verify
+         *     * `prepare` - prepare
+         *     * `publish` - publish
+         *     * `withdraw` - withdraw
+         *     * `port` - port
+         *     * `correction` - correction
+         * @enum {string}
+         */
+        HistoryItemKindEnum: "verify" | "prepare" | "publish" | "withdraw" | "port" | "correction";
+        HistoryPage: {
+            items: components["schemas"]["HistoryItem"][];
+            has_next: boolean;
+        };
+        HistorySubject: {
+            occurred_on: string | null;
+            kind: string | null;
+            people: number | null;
+            /** @description Port name, for a port reading. */
+            label: string | null;
+        };
         IdentityPage: {
             items: components["schemas"]["Candidate"][];
         };
@@ -1456,6 +1506,98 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    private_history: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `verify` - verify
+                 *     * `prepare` - prepare
+                 *     * `publish` - publish
+                 *     * `withdraw` - withdraw
+                 *     * `port` - port
+                 *     * `correction` - correction
+                 */
+                kind?: "verify" | "prepare" | "publish" | "withdraw" | "port" | "correction";
+                limit?: number;
+                offset?: number;
+                /**
+                 * @description * `mine` - mine
+                 *     * `team` - team
+                 */
+                scope?: "mine" | "team";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryPage"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     private_list_imports: {
         parameters: {
             query?: {
