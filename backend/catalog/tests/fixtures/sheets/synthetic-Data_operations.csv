@@ -1,0 +1,9 @@
+date,type_ops,nb_ops,nb_survivor,male,female,under_18,under_18_unacc,under_5,pregnant_women,latitude,longitude,wind_force,wave_height,boat_type,nb_nationalities,type_nationalities,transfer_type,Port_disembarkation,image_src,video_srv,testimony_name,testimony_src
+03/02/2024,Rescue,1,42,30,12,8,5,2,1,34.5,12.25,3,"1,5",Rubber,2,Pays A;Pays B,,Port fictif,https://example.org/a.jpg,,Témoin fictif A,https://example.org/temoin-a
+29/02/2024,Transfer,1,,,,,,,,"35°30.5'N","12°15'E",,,,,,Navire fictif,Port fictif,,,,
+29/02/2023,Medevac,1,0,0,0,0,0,0,0,unknown,unknown,2,"0,5",Wood,1,Pays C,,,,,,
+05/03/2024,Rescue,-2,1.5,40,50,3,4,9,0,90.00000000000000000001,12,n/a,2,Rubber,3,Pays A,,,javascript:alert(1),,Témoin fictif B;Témoin fictif C,https://example.org/temoin-b
+05-03-2024,Recue,1,10,,,,,,,35°60'N,12°00'W,,,,,,,,https://user:secret@example.org/x.jpg,,,
+03/02/2024,Rescue,1,42,30,12,8,5,2,1,34.5,12.25,3,"1,5",Rubber,2,Pays A;Pays B,,Port fictif,https://example.org/a.jpg,,Témoin fictif A,https://example.org/temoin-a
+,,,,,,,,,,,,,,,,,,,,,,
+06/03/2024,Rescue,1,7,,,,,,,34.1,,,,,,,,,,,,

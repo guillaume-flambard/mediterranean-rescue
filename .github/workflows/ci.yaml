@@ -1,0 +1,144 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  lint:
+    name: Python lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv run --frozen ruff check backend scripts
+      - run: uv run --frozen ruff format --check backend scripts
+
+  verify:
+    name: Tests, contract and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install package manager
+        run: npm install --global pnpm@12.10.1
+      - name: Prepare isolated environment
+        run: python3 scripts/init_local.py
+      - name: Build backend and database
+        run: docker compose build
+      - name: Backend integration tests on PostGIS
+        run: docker compose run --rm api uv run --no-sync python backend/manage.py test catalog.tests --noinput
+      - name: Migration contract
+        run: docker compose run --rm api uv run --no-sync python backend/manage.py makemigrations --check --dry-run
+      - name: Production configuration checks (without deployment)
+        run: docker compose run --rm -e DJANGO_ENV=production -e DJANGO_ALLOWED_HOSTS=rescue.invalid api uv run --no-sync python backend/manage.py check --deploy --fail-level WARNING
+      - name: Export and validate OpenAPI contract
+        run: docker compose run --rm -T api uv run --no-sync python backend/manage.py spectacular --lang en --validate --fail-on-warn > contracts/openapi.yaml
+      - name: Install locked frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Generate frontend REST types
+        working-directory: frontend
+        run: pnpm codegen
+      - name: Refuse generated contract drift
+        run: git diff --exit-code -- contracts/openapi.yaml frontend/src/api/schema.d.ts
+      - name: Prove invalid REST use fails type checking
+        run: python3 scripts/check_contract_negative.py
+      - name: Frontend checks
+        working-directory: frontend
+        run: pnpm lint && pnpm test && pnpm build
+      - name: Stop test services, preserve volume until runner cleanup
+        if: always()
+        run: docker compose down
+
+  e2e:
+    name: End-to-end on the production image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build the production image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: rescue:ci
+          cache-from: type=gha
+      - name: Start the reference stack
+        run: |
+          python3 - <<'PY'
+          import secrets
+          open("deploy/.env", "w").write(
+              "DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost\n"
+              f"DJANGO_SECRET_KEY={secrets.token_urlsafe(48)}\n"
+              f"POSTGRES_ADMIN_PASSWORD={secrets.token_urlsafe(24)}\n"
+              f"DB_PASSWORD={secrets.token_urlsafe(24)}\n"
+              "DATA_MODE=production\nDJANGO_BEHIND_TLS_PROXY=1\nDJANGO_NUM_PROXIES=1\n"
+          )
+          PY
+          echo '{}' > deploy/sheets-sync.json
+          RESCUE_IMAGE=rescue:ci RESCUE_PORT=8000 docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --wait web
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install package manager
+        run: npm install --global pnpm@12.10.1
+      - name: Install locked frontend dependencies and browsers
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
+      - name: Run the end-to-end tests
+        working-directory: frontend
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8000
+          E2E_FORWARDED_PROTO: https
+        run: pnpm e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7
+      - name: Server logs
+        if: failure()
+        run: docker compose -f deploy/compose.yaml --env-file deploy/.env logs web
+
+  image:
+    name: Production image
+    needs: [lint, verify, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Built on every run so a pull request proves the image still builds; pushed only from a
+      # green commit of main. rescue.memolabs.dev pulls :latest within minutes (lab autodeploy,
+      # which also refuses a commit whose checks are red).
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=MIT
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

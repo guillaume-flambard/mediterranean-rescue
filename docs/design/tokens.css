@@ -1,0 +1,129 @@
+/* Design-system specification, v2. Reference only; not imported by the app. */
+/* Brand observations and application proposals are identified in tokens.json. */
+:root {
+  --sos-navy: #1B2747;
+  --sos-orange: #E83E1B;
+  --sos-white: #FFFFFF;
+  --sos-light-gray: #E3E2E9;
+  --sos-slate: #404D6D;
+  --sos-orange-dark-proposed: #C53215;
+  --sos-canvas: #F7F8FA;
+  --sos-border: #D5DAE3;
+  --sos-muted: #596579;
+  --sos-selection: #FFF0EB;
+  --sos-orange-hover: #AB2A11;
+  --sos-error: #9F2534;
+  --sos-error-surface: #FDEFF1;
+  --sos-success: #17634A;
+  --sos-success-surface: #EAF5EF;
+  --sos-warning: #7A4A00;
+  --sos-warning-surface: #FFF4D6;
+  --sos-info: #234D7A;
+  --sos-info-surface: #EEF4FA;
+
+  /* Proposed semantic colors. */
+  --color-surface: var(--sos-white);
+  --color-surface-secondary: var(--sos-light-gray);
+  --color-text: var(--sos-navy);
+  --color-text-secondary: var(--sos-slate);
+  --color-brand: var(--sos-navy);
+  --color-accent: var(--sos-orange);
+  --color-on-brand: var(--sos-white);
+  --color-action-background: var(--sos-orange-dark-proposed);
+  --color-on-action: var(--sos-white);
+  --color-link: var(--sos-orange-dark-proposed);
+  --color-focus-on-light: var(--sos-navy);
+  --color-focus-on-dark: var(--sos-white);
+  --color-canvas: var(--sos-canvas);
+  --color-border: var(--sos-border);
+  --color-border-control: var(--sos-muted);
+  --color-text-muted: var(--sos-muted);
+  --color-surface-hover: var(--sos-canvas);
+  --color-selection-background: var(--sos-selection);
+  --color-selection-text: var(--sos-navy);
+  --color-selection-indicator: var(--sos-orange);
+  --color-action-hover: var(--sos-orange-hover);
+  --color-disabled-background: var(--sos-light-gray);
+  --color-disabled-text: var(--sos-muted);
+  --color-error: var(--sos-error);
+  --color-error-background: var(--sos-error-surface);
+  --color-success: var(--sos-success);
+  --color-success-background: var(--sos-success-surface);
+  --color-warning: var(--sos-warning);
+  --color-warning-background: var(--sos-warning-surface);
+  --color-info: var(--sos-info);
+  --color-info-background: var(--sos-info-surface);
+
+  /* Font files are not loaded by this reference. */
+  --font-family-sans: "Raleway", system-ui, sans-serif;
+  --font-weight-body: 500;
+  --font-weight-heading: 800;
+  --type-caption-size: 12px;
+  --type-caption-line: 18px;
+  --type-caption-weight: 500;
+  --type-label-size: 14px;
+  --type-label-line: 20px;
+  --type-label-weight: 600;
+  --type-body-size: 16px;
+  --type-body-line: 24px;
+  --type-body-weight: 500;
+  --type-section-size: 20px;
+  --type-section-line: 28px;
+  --type-section-weight: 700;
+  --type-page-size: 28px;
+  --type-page-line: 36px;
+  --type-page-weight: 800;
+  --type-display-size: 36px;
+  --type-display-line: 44px;
+  --type-display-weight: 800;
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-small: 4px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+  --radius-pill: 999px;
+  --layer-content: 0;
+  --layer-sticky: 10;
+  --layer-popover: 20;
+  --layer-backdrop: 30;
+  --layer-dialog: 40;
+  --layer-toast: 50;
+  --control-small-height: 36px;
+  --control-default-height: 44px;
+  --control-large-height: 48px;
+  --control-icon-target: 44px;
+  --control-row-default-height: 56px;
+  --control-row-compact-height: 44px;
+  /* Breakpoints remain JSON-only; use static CSS media-query conditions. */
+  --layout-page-gutter-mobile: 16px;
+  --layout-page-gutter-desktop: 32px;
+  --layout-navigation-width: 224px;
+  --layout-inspector-width: 400px;
+  --layout-max-content-width: 1440px;
+  --motion-fast: 120ms;
+  --motion-normal: 180ms;
+  --motion-maximum: 240ms;
+  --motion-easing: cubic-bezier(0.2, 0, 0, 1);
+  --motion-reduced-motion: 0ms;
+  --shadow-none: none;
+  --shadow-popup: 0 8px 24px rgba(27, 39, 71, 0.12);
+  --shadow-dialog: 0 16px 48px rgba(27, 39, 71, 0.18);
+}
+
+/* Apply the same preference to component animation when implemented. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+    --motion-maximum: 0ms;
+  }
+}

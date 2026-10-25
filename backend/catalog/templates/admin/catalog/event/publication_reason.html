@@ -1,0 +1,37 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a>
+  &rsaquo; <a href="{% url 'admin:catalog_event_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<p>
+  {% if publish %}
+    {% blocktranslate count counter=events|length %}This event will be visible to everyone on the public site.{% plural %}These {{ counter }} events will be visible to everyone on the public site.{% endblocktranslate %}
+  {% else %}
+    {% blocktranslate count counter=events|length %}This event will disappear from the public site and stay in the history.{% plural %}These {{ counter }} events will disappear from the public site and stay in the history.{% endblocktranslate %}
+  {% endif %}
+  {% translate "Your name and reason are kept with each decision." %}
+</p>
+<ul>
+  {% for event in events %}<li>{{ event }}</li>{% endfor %}
+</ul>
+<form method="post">
+  {% csrf_token %}
+  {% for event in events %}<input type="hidden" name="{{ checkbox_name }}" value="{{ event.pk }}">{% endfor %}
+  <input type="hidden" name="action" value="{{ action }}">
+  <input type="hidden" name="apply" value="1">
+  <p>
+    <label for="reason">{% translate "Reason" %}</label><br>
+    <textarea id="reason" name="reason" rows="3" cols="60" maxlength="500" required></textarea>
+  </p>
+  {% if missing %}<p class="errornote">{% translate "A reason is required." %}</p>{% endif %}
+  <input type="submit" value="{% if publish %}{% translate 'Publish' %}{% else %}{% translate 'Withdraw' %}{% endif %}">
+  <a href="{% url 'admin:catalog_event_changelist' %}" class="button cancel-link">{% translate "Cancel" %}</a>
+</form>
+{% endblock %}

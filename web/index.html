@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mediterranée Rescue | Démonstrateur</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="land.js"></script>
+    <script defer src="demo.js"></script>
+    <script defer src="model.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./">Mediterranée Rescue</a
+      ><span>Prototype indépendant pour discussion</span
+      ><a
+        href="https://github.com/dataforgoodfr/mediterranean-rescue"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Dépôt Data for Good ↗</a
+      >
+    </header>
+    <main>
+      <div class="intro">
+        <div>
+          <h1>Lire les actions en mer.</h1>
+          <p>
+            Explorer une période, retrouver un événement, comprendre sa
+            provenance.
+          </p>
+        </div>
+        <span class="status">Données fictives</span>
+      </div>
+      <div class="notice">
+        Démonstration : tous les événements, dates, positions et effectifs sont
+        inventés. Ce prototype n’est pas un outil officiel de SOS MEDITERRANEE
+        et ne sert pas à la navigation ou aux secours.
+      </div>
+      <form id="filters" class="filters">
+        <label>Du<input id="from" type="date" /></label
+        ><label>Au<input id="to" type="date" /></label
+        ><label
+          >Navire<select id="ship">
+            <option value="">Tous les navires</option>
+          </select></label
+        ><button type="button" id="clear">Effacer les filtres</button>
+        <p id="summary" role="status" aria-live="polite"></p>
+      </form>
+      <div id="filter-error" class="error" role="alert" hidden></div>
+      <div class="workspace">
+        <section class="map-panel" aria-labelledby="map-title">
+          <div class="panel-title">
+            <h2 id="map-title">Méditerranée centrale</h2>
+            <div class="map-controls">
+              <button id="zoom-in" aria-label="Agrandir la carte">+</button
+              ><button id="zoom-out" aria-label="Réduire la carte">−</button
+              ><button id="extent">Vue complète</button>
+            </div>
+          </div>
+          <svg
+            id="map"
+            viewBox="0 0 1000 600"
+            role="img"
+            aria-label="Carte des événements fictifs. Utiliser la liste pour consulter chaque événement."
+          >
+            <defs>
+              <clipPath id="frame"><rect width="1000" height="600" /></clipPath>
+            </defs>
+            <g clip-path="url(#frame)">
+              <g id="viewport">
+                <g id="land"></g>
+                <g id="labels"></g>
+                <g id="markers"></g>
+              </g>
+            </g>
+          </svg>
+          <div class="map-foot">
+            <span><i></i> Un point = un événement fictif</span
+            ><a
+              href="https://www.naturalearthdata.com/about/terms-of-use/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Fond Natural Earth, domaine public ↗</a
+            >
+          </div>
+        </section>
+        <aside>
+          <div class="panel-title">
+            <h2>Journal des événements</h2>
+            <span id="count"></span>
+          </div>
+          <div id="events"></div>
+          <div id="detail" aria-live="polite">
+            <p>Sélectionnez un événement dans la liste ou sur la carte.</p>
+          </div>
+        </aside>
+      </div>
+      <section class="data-tools" aria-labelledby="data-title">
+        <div>
+          <h2 id="data-title">Tester vos propres exemples</h2>
+          <p>
+            Import local JSON, données fictives uniquement. Rien n’est envoyé en
+            ligne. Les imports disparaissent au rechargement.
+          </p>
+        </div>
+        <div class="actions">
+          <label class="button" for="import">Importer un JSON</label
+          ><input
+            id="import"
+            type="file"
+            accept=".json,application/json"
+          /><button id="export">Exporter la sélection</button
+          ><button id="restore">Restaurer la démo</button
+          ><a href="exemple-import.json" download>Exemple JSON</a>
+        </div>
+        <p id="import-status" role="status" aria-live="polite"></p>
+        <p id="import-error" class="error" role="alert" hidden></p>
+      </section>
+      <footer>
+        POC historique, sans données opérationnelles.
+        <a
+          href="https://sosmediterranee.fr/la-zone-dintervention/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Consulter la cartographie officielle existante ↗</a
+        >
+      </footer>
+    </main>
+  </body>
+</html>

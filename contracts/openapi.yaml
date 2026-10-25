@@ -1,0 +1,5116 @@
+openapi: 3.0.3
+info:
+  title: Mediterranean Rescue public API
+  version: 1.0.0
+paths:
+  /api/private/v1/history/:
+    get:
+      operationId: private_history
+      parameters:
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - verify
+          - prepare
+          - publish
+          - withdraw
+          - port
+          - correction
+          type: string
+          minLength: 1
+        description: |-
+          * `verify` - verify
+          * `prepare` - prepare
+          * `publish` - publish
+          * `withdraw` - withdraw
+          * `port` - port
+          * `correction` - correction
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: scope
+        schema:
+          enum:
+          - mine
+          - team
+          type: string
+          default: mine
+          minLength: 1
+        description: |-
+          * `mine` - mine
+          * `team` - team
+      tags:
+      - history
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/imports/:
+    get:
+      operationId: private_list_imports
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      tags:
+      - imports
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+    post:
+      operationId: private_stage_import
+      tags:
+      - imports
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staged'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staged'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/imports/{id}/:
+    get:
+      operationId: private_retrieve_import
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/imports/diagnose/:
+    post:
+      operationId: private_diagnose_import
+      tags:
+      - imports
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Diagnostic'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/imports/options/:
+    get:
+      operationId: private_import_options
+      tags:
+      - imports
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportOptions'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/:
+    get:
+      operationId: private_list_invitations
+      tags:
+      - invitations
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+    post:
+      operationId: private_create_invitation
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationCreateRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationCreated'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/{id}/:
+    delete:
+      operationId: private_revoke_invitation
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - invitations
+      security:
+      - privateSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/accept/:
+    post:
+      operationId: private_accept_invitation
+      description: Open to visitors, CSRF-checked and rate limited like sign-in.
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+        required: true
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/check/:
+    post:
+      operationId: private_check_invitation
+      description: Open to visitors, CSRF-checked and rate limited like sign-in.
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+        required: true
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationOffer'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/logbook/:
+    get:
+      operationId: private_logbook
+      tags:
+      - logbook
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogbookOverview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/logbook/export/:
+    get:
+      operationId: private_logbook_export
+      tags:
+      - logbook
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: Verified rows in the sheet's column order.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/me/:
+    get:
+      operationId: private_me
+      tags:
+      - me
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/ports/:
+    get:
+      operationId: private_search_ports
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 20
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 100
+      tags:
+      - ports
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortSearch'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/ports/labels/:
+    get:
+      operationId: private_list_port_labels
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: status
+        schema:
+          enum:
+          - to_read
+          - read
+          type: string
+          default: to_read
+          minLength: 1
+        description: |-
+          * `to_read` - to_read
+          * `read` - read
+      tags:
+      - ports
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabelPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/ports/labels/{id}/:
+    get:
+      operationId: private_retrieve_port_label
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - ports
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabelDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/ports/labels/{id}/decision/:
+    post:
+      operationId: private_decide_port_label
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - ports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelDecisionRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabelDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/preview/events/:
+    get:
+      operationId: private_preview_events
+      parameters:
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 40
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+      - in: query
+        name: source
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: status
+        schema:
+          enum:
+          - to_review
+          - blocked
+          - linked
+          type: string
+          minLength: 1
+        description: |-
+          * `to_review` - to_review
+          * `blocked` - blocked
+          * `linked` - linked
+      tags:
+      - preview
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/preview/events/{id}/:
+    get:
+      operationId: private_preview_event
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - preview
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/preview/map-points/:
+    get:
+      operationId: private_preview_map_points
+      parameters:
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 40
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+      - in: query
+        name: source
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: status
+        schema:
+          enum:
+          - to_review
+          - blocked
+          - linked
+          type: string
+          minLength: 1
+        description: |-
+          * `to_review` - to_review
+          * `blocked` - blocked
+          * `linked` - linked
+      tags:
+      - preview
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewMap'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/preview/timeline/:
+    get:
+      operationId: private_preview_timeline
+      parameters:
+      - in: query
+        name: kind
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 40
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+      - in: query
+        name: source
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+      - in: query
+        name: status
+        schema:
+          enum:
+          - to_review
+          - blocked
+          - linked
+          type: string
+          minLength: 1
+        description: |-
+          * `to_review` - to_review
+          * `blocked` - blocked
+          * `linked` - linked
+      tags:
+      - preview
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewTimeline'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/publication/:
+    get:
+      operationId: private_publication_overview
+      tags:
+      - publication
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationOverview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/publication/decisions/:
+    post:
+      operationId: private_decide_publication
+      tags:
+      - publication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Decided'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/publication/events/:
+    get:
+      operationId: private_publication_events
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: status
+        schema:
+          enum:
+          - draft
+          - published
+          - withdrawn
+          type: string
+          default: draft
+          minLength: 1
+        description: |-
+          * `draft` - draft
+          * `published` - published
+          * `withdrawn` - withdrawn
+      tags:
+      - publication
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationEvents'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/publication/prepare/:
+    post:
+      operationId: private_prepare_drafts
+      tags:
+      - publication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prepared'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/identities/:
+    get:
+      operationId: private_search_identities
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 20
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 36
+      - in: query
+        name: snapshot
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/rows/:
+    get:
+      operationId: private_list_review_rows
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: snapshot
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: status
+        schema:
+          enum:
+          - to_review
+          - blocked
+          - linked
+          type: string
+          default: to_review
+          minLength: 1
+        description: |-
+          * `to_review` - to_review
+          * `blocked` - blocked
+          * `linked` - linked
+      tags:
+      - review
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueuePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/rows/{id}/:
+    get:
+      operationId: private_retrieve_review_row
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RowDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/rows/{id}/decision/:
+    post:
+      operationId: private_decide_review_row
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequestRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RowDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/review/snapshots/{id}/exact-carries/:
+    post:
+      operationId: private_approve_exact_carries
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExactCarriesRequestRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExactCarriesResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/session/:
+    get:
+      operationId: private_session_state
+      description: |-
+        Sign in and out with the Django session, from the application's own screen.
+
+        On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+        this browser (a cookie), and PUT brings it back.
+      tags:
+      - session
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
+    post:
+      operationId: private_sign_in
+      description: |-
+        Sign in and out with the Django session, from the application's own screen.
+
+        On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+        this browser (a cookie), and PUT brings it back.
+      tags:
+      - session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+        required: true
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+    put:
+      operationId: private_resume_local
+      description: 'Local machine only: sign in again as the automatic account after
+        a sign-out.'
+      tags:
+      - session
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+    delete:
+      operationId: private_sign_out
+      description: |-
+        Sign in and out with the Django session, from the application's own screen.
+
+        On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+        this browser (a cookie), and PUT brings it back.
+      tags:
+      - session
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/snapshots/:
+    get:
+      operationId: private_list_snapshots
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: sheet
+        schema:
+          enum:
+          - Data_operations
+          - Other_data
+          - Data_ports
+          type: string
+          minLength: 1
+        description: |-
+          * `Data_operations` - Data_operations
+          * `Other_data` - Other_data
+          * `Data_ports` - Data_ports
+      tags:
+      - snapshots
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/sync/:
+    get:
+      operationId: private_sync_status
+      tags:
+      - sync
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatus'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/vessels/:
+    get:
+      operationId: private_list_vessels
+      tags:
+      - vessels
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VesselList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/events/:
+    get:
+      operationId: list_events
+      parameters:
+      - in: query
+        name: bbox
+        schema:
+          type: string
+          minLength: 1
+        description: west,south,east,north in WGS84
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - rescue
+          - transfer
+          - medevac
+          - incident
+          - shipwreck
+          - dead_missing
+          type: string
+          minLength: 1
+        description: |-
+          * `rescue` - Sauvetage
+          * `transfer` - Transfert
+          * `medevac` - Évacuation médicale
+          * `incident` - Incident
+          * `shipwreck` - Naufrage
+          * `dead_missing` - Décès / disparitions
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description: Words found in the title, summary or port name
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date
+      tags:
+      - events
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/events/{id}/:
+    get:
+      operationId: retrieve_event
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - events
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/events/{id}/evidence/:
+    get:
+      operationId: list_event_evidence
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 25
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+      tags:
+      - events
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidencePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/map-points/:
+    get:
+      operationId: list_map_points
+      parameters:
+      - in: query
+        name: bbox
+        schema:
+          type: string
+          minLength: 1
+        description: west,south,east,north in WGS84
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - rescue
+          - transfer
+          - medevac
+          - incident
+          - shipwreck
+          - dead_missing
+          type: string
+          minLength: 1
+        description: |-
+          * `rescue` - Sauvetage
+          * `transfer` - Transfert
+          * `medevac` - Évacuation médicale
+          * `incident` - Incident
+          * `shipwreck` - Naufrage
+          * `dead_missing` - Décès / disparitions
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description: Words found in the title, summary or port name
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date
+      tags:
+      - map-points
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/v1/timeline/:
+    get:
+      operationId: list_timeline
+      parameters:
+      - in: query
+        name: kind
+        schema:
+          enum:
+          - rescue
+          - transfer
+          - medevac
+          - incident
+          - shipwreck
+          - dead_missing
+          type: string
+          minLength: 1
+        description: |-
+          * `rescue` - Sauvetage
+          * `transfer` - Transfert
+          * `medevac` - Évacuation médicale
+          * `incident` - Incident
+          * `shipwreck` - Naufrage
+          * `dead_missing` - Décès / disparitions
+      - in: query
+        name: q
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 80
+      tags:
+      - timeline
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+components:
+  schemas:
+    BlockingReasonEnum:
+      enum:
+      - read_rejected
+      - read_partial
+      - file_errors
+      type: string
+      description: |-
+        * `read_rejected` - read_rejected
+        * `read_partial` - read_partial
+        * `file_errors` - file_errors
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+        summary:
+          $ref: '#/components/schemas/Summary'
+      required:
+      - external_id
+      - id
+      - summary
+    Counts:
+      type: object
+      properties:
+        records_read:
+          type: integer
+        rows_diagnosed:
+          type: integer
+        blank_rows_skipped:
+          type: integer
+        file_errors:
+          type: integer
+        rows_with_errors:
+          type: integer
+        rows_with_warnings:
+          type: integer
+        errors:
+          type: integer
+        warnings:
+          type: integer
+      required:
+      - blank_rows_skipped
+      - errors
+      - file_errors
+      - records_read
+      - rows_diagnosed
+      - rows_with_errors
+      - rows_with_warnings
+      - warnings
+    DataModeEnum:
+      enum:
+      - production
+      - training
+      type: string
+      description: |-
+        * `production` - production
+        * `training` - training
+    Decided:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/PublicationActionEnum'
+        count:
+          type: integer
+      required:
+      - action
+      - count
+    Decision:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+        match:
+          type: string
+        approved_by:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+      required:
+      - approved_at
+      - approved_by
+      - external_id
+      - identity
+      - match
+      - reason
+    DecisionRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/PublicationActionEnum'
+        events:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+          minItems: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - action
+      - events
+      - reason
+    DecisionRequestActionEnum:
+      enum:
+      - create_identity
+      - link
+      type: string
+      description: |-
+        * `create_identity` - create_identity
+        * `link` - link
+    DecisionRequestRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/DecisionRequestActionEnum'
+        identity:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - action
+      - reason
+    Diagnostic:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        sheet:
+          $ref: '#/components/schemas/SheetEnum'
+        sha256:
+          type: string
+        bytes:
+          type: integer
+        contract_version:
+          type: string
+        source_read:
+          type: string
+        normalization:
+          type: string
+        counts:
+          $ref: '#/components/schemas/Counts'
+        issues_by_code:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueCount'
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        issues_truncated:
+          type: boolean
+        stageable:
+          type: boolean
+        blocking_reason:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/BlockingReasonEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        existing_snapshot:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - blocking_reason
+      - bytes
+      - contract_version
+      - counts
+      - existing_snapshot
+      - issues
+      - issues_by_code
+      - issues_truncated
+      - normalization
+      - sha256
+      - sheet
+      - source
+      - source_read
+      - stageable
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+        errors: {}
+      required:
+      - code
+      - detail
+    ErrorCount:
+      type: object
+      properties:
+        code:
+          type: string
+        rows:
+          type: integer
+      required:
+      - code
+      - rows
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        summary:
+          type: string
+          readOnly: true
+        occurred_on:
+          type: string
+          format: date
+          readOnly: true
+          title: Date
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/KindEnum'
+          readOnly: true
+        people:
+          type: integer
+          readOnly: true
+          nullable: true
+          description: Leave empty when not known; never 0.
+        women:
+          type: integer
+          readOnly: true
+          nullable: true
+        minors:
+          type: integer
+          readOnly: true
+          nullable: true
+        source_url:
+          type: string
+          format: uri
+          readOnly: true
+          title: Source address
+        source:
+          $ref: '#/components/schemas/Source'
+        vessel:
+          allOf:
+          - $ref: '#/components/schemas/Vessel'
+          nullable: true
+        voyage:
+          allOf:
+          - $ref: '#/components/schemas/Voyage'
+          nullable: true
+        port:
+          allOf:
+          - $ref: '#/components/schemas/Port'
+          nullable: true
+        position:
+          allOf:
+          - $ref: '#/components/schemas/Position'
+          nullable: true
+          readOnly: true
+      required:
+      - id
+      - kind
+      - minors
+      - occurred_on
+      - people
+      - port
+      - position
+      - source
+      - source_url
+      - summary
+      - title
+      - vessel
+      - voyage
+      - women
+    EventCounts:
+      type: object
+      properties:
+        draft:
+          type: integer
+        published:
+          type: integer
+        withdrawn:
+          type: integer
+      required:
+      - draft
+      - published
+      - withdrawn
+    EventPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+        data_mode:
+          $ref: '#/components/schemas/DataModeEnum'
+      required:
+      - data_mode
+      - has_next
+      - items
+      - total_count
+    Evidence:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        label:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          readOnly: true
+          title: Address
+      required:
+      - id
+      - label
+      - url
+    EvidencePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+      - total_count
+    ExactCarriesRequestRequest:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+          minItems: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - reason
+      - rows
+    ExactCarriesResult:
+      type: object
+      properties:
+        carried:
+          type: integer
+      required:
+      - carried
+    HistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          $ref: '#/components/schemas/HistoryItemKindEnum'
+        at:
+          type: string
+          format: date-time
+        actor:
+          type: string
+        reason:
+          type: string
+        detail:
+          type: string
+          description: new, reviewed_match, applied, ports, vessel…
+        subject:
+          $ref: '#/components/schemas/HistorySubject'
+        path:
+          type: string
+          nullable: true
+          description: Where the decided item can be seen.
+      required:
+      - actor
+      - at
+      - detail
+      - id
+      - kind
+      - path
+      - reason
+      - subject
+    HistoryItemKindEnum:
+      enum:
+      - verify
+      - prepare
+      - publish
+      - withdraw
+      - port
+      - correction
+      type: string
+      description: |-
+        * `verify` - verify
+        * `prepare` - prepare
+        * `publish` - publish
+        * `withdraw` - withdraw
+        * `port` - port
+        * `correction` - correction
+    HistoryPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryItem'
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+    HistorySubject:
+      type: object
+      properties:
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        label:
+          type: string
+          nullable: true
+          description: Port name, for a port reading.
+      required:
+      - kind
+      - label
+      - occurred_on
+      - people
+    IdentityPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+      required:
+      - items
+    ImportDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        sheet:
+          $ref: '#/components/schemas/SheetEnum'
+        created_at:
+          type: string
+          format: date-time
+        staged_by:
+          type: string
+        sha256:
+          type: string
+        byte_count:
+          type: integer
+        row_count:
+          type: integer
+        source_read:
+          type: string
+        contract_version:
+          type: string
+        rows_with_errors:
+          type: integer
+        errors_by_code:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorCount'
+        review:
+          allOf:
+          - $ref: '#/components/schemas/QueueCounts'
+          nullable: true
+      required:
+      - byte_count
+      - contract_version
+      - created_at
+      - errors_by_code
+      - id
+      - review
+      - row_count
+      - rows_with_errors
+      - sha256
+      - sheet
+      - source
+      - source_read
+      - staged_by
+    ImportOptions:
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceOption'
+        sheets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SheetEnum'
+        max_bytes:
+          type: integer
+      required:
+      - max_bytes
+      - sheets
+      - sources
+    ImportPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportSummary'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+      - total_count
+    ImportSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        sheet:
+          $ref: '#/components/schemas/SheetEnum'
+        created_at:
+          type: string
+          format: date-time
+        staged_by:
+          type: string
+        row_count:
+          type: integer
+        source_read:
+          type: string
+      required:
+      - created_at
+      - id
+      - row_count
+      - sheet
+      - source
+      - source_read
+      - staged_by
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        roles:
+          type: array
+          items:
+            type: string
+        invited_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/InvitationStatusEnum'
+        used_by:
+          type: string
+          nullable: true
+      required:
+      - created_at
+      - email
+      - expires_at
+      - id
+      - invited_by
+      - roles
+      - status
+      - used_by
+    InvitationCreateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        roles:
+          type: array
+          items:
+            type: integer
+          maxItems: 10
+      required:
+      - email
+      - roles
+    InvitationCreated:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        token:
+          type: string
+          description: Shown once; the link is /invite#<token>.
+        expires_at:
+          type: string
+          format: date-time
+      required:
+      - expires_at
+      - id
+      - token
+    InvitationList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invitation'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          description: Roles this coordinator may give.
+      required:
+      - items
+      - roles
+    InvitationOffer:
+      type: object
+      properties:
+        invited_by:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+      required:
+      - expires_at
+      - invited_by
+      - roles
+    InvitationStatusEnum:
+      enum:
+      - waiting
+      - used
+      - revoked
+      - expired
+      type: string
+      description: |-
+        * `waiting` - waiting
+        * `used` - used
+        * `revoked` - revoked
+        * `expired` - expired
+    Issue:
+      type: object
+      properties:
+        severity:
+          $ref: '#/components/schemas/IssueSeverityEnum'
+        code:
+          type: string
+        line:
+          type: integer
+          nullable: true
+        column:
+          type: integer
+          nullable: true
+        field:
+          type: string
+          nullable: true
+      required:
+      - code
+      - column
+      - field
+      - line
+      - severity
+    IssueCount:
+      type: object
+      properties:
+        code:
+          type: string
+        severity:
+          $ref: '#/components/schemas/IssueSeverityEnum'
+        count:
+          type: integer
+      required:
+      - code
+      - count
+      - severity
+    IssueSeverityEnum:
+      enum:
+      - error
+      - warning
+      type: string
+      description: |-
+        * `error` - error
+        * `warning` - warning
+    KeyEnum:
+      enum:
+      - coordinator
+      - import
+      - prepare
+      - publish
+      - verify
+      type: string
+      description: |-
+        * `coordinator` - coordinator
+        * `import` - import
+        * `prepare` - prepare
+        * `publish` - publish
+        * `verify` - verify
+    KindEnum:
+      enum:
+      - rescue
+      - transfer
+      - medevac
+      - incident
+      - shipwreck
+      - dead_missing
+      type: string
+      description: |-
+        * `rescue` - Sauvetage
+        * `transfer` - Transfert
+        * `medevac` - Évacuation médicale
+        * `incident` - Incident
+        * `shipwreck` - Naufrage
+        * `dead_missing` - Décès / disparitions
+    Label:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        source:
+          $ref: '#/components/schemas/LabelSource'
+        status:
+          $ref: '#/components/schemas/PortLabelStatusEnum'
+        operations:
+          type: integer
+        port_list_row:
+          allOf:
+          - $ref: '#/components/schemas/PortListRow'
+          nullable: true
+        suggested_port:
+          allOf:
+          - $ref: '#/components/schemas/PortRef'
+          nullable: true
+        reading:
+          allOf:
+          - $ref: '#/components/schemas/Reading'
+          nullable: true
+      required:
+      - id
+      - label
+      - operations
+      - port_list_row
+      - reading
+      - source
+      - status
+      - suggested_port
+    LabelCounts:
+      type: object
+      properties:
+        to_read:
+          type: integer
+        read:
+          type: integer
+      required:
+      - read
+      - to_read
+    LabelDecisionRequest:
+      type: object
+      properties:
+        interpretation:
+          $ref: '#/components/schemas/PortInterpretationEnum'
+        ports:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 6
+        new_port:
+          $ref: '#/components/schemas/NewPortRequest'
+        vessel:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - interpretation
+      - reason
+    LabelDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        source:
+          $ref: '#/components/schemas/LabelSource'
+        status:
+          $ref: '#/components/schemas/PortLabelStatusEnum'
+        operations:
+          type: integer
+        port_list_row:
+          allOf:
+          - $ref: '#/components/schemas/PortListRow'
+          nullable: true
+        suggested_port:
+          allOf:
+          - $ref: '#/components/schemas/PortRef'
+          nullable: true
+        reading:
+          allOf:
+          - $ref: '#/components/schemas/Reading'
+          nullable: true
+        port_list_cells:
+          allOf:
+          - $ref: '#/components/schemas/Received'
+          nullable: true
+        operation_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationLine'
+      required:
+      - id
+      - label
+      - operation_lines
+      - operations
+      - port_list_cells
+      - port_list_row
+      - reading
+      - source
+      - status
+      - suggested_port
+    LabelPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+        counts:
+          $ref: '#/components/schemas/LabelCounts'
+      required:
+      - counts
+      - has_next
+      - items
+      - total_count
+    LabelSource:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+      required:
+      - key
+      - name
+    LastStatusEnum:
+      enum:
+      - new_data
+      - unchanged
+      - refused
+      - failed
+      type: string
+      description: |-
+        * `new_data` - new_data
+        * `unchanged` - unchanged
+        * `refused` - refused
+        * `failed` - failed
+    LogbookCumulative:
+      type: object
+      properties:
+        as_of:
+          type: string
+          format: date
+        reported:
+          type: integer
+        in_sheet:
+          type: integer
+        from_logbook:
+          type: integer
+          description: Rebuilt rescues up to as_of.
+        after:
+          type: integer
+          description: People in rebuilt rescues after as_of, not compared.
+      required:
+      - after
+      - as_of
+      - from_logbook
+      - in_sheet
+      - reported
+    LogbookEvidence:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        rotation:
+          type: string
+        logged_at:
+          type: string
+        quote:
+          type: string
+        to_check:
+          type: array
+          items:
+            type: string
+        sheet_line:
+          type: integer
+          nullable: true
+          description: Line of the association's sheet that already holds this row.
+      required:
+      - logged_at
+      - quote
+      - rotation
+      - sheet_line
+      - to_check
+      - url
+    LogbookOverview:
+      type: object
+      properties:
+        sheet_last_date:
+          type: string
+          format: date
+        last_read_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_read_status:
+          type: string
+        first_date:
+          type: string
+          nullable: true
+        last_date:
+          type: string
+          nullable: true
+        rows:
+          type: integer
+        people:
+          type: integer
+        verified:
+          type: integer
+        to_verify:
+          type: integer
+        to_fix:
+          type: integer
+        to_check:
+          type: integer
+          description: Rows whose evidence asks for a human check.
+        in_sheet:
+          type: integer
+          description: Rebuilt rows the association's sheet now holds; left out of
+            the export.
+        ready:
+          type: integer
+          description: 'Verified rows not in the sheet yet: the export.'
+        not_for_sheet:
+          type: integer
+          description: Rows the sheet does not hold (medical evacuations, no number
+            of people).
+        snapshot:
+          type: string
+          format: uuid
+          nullable: true
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogbookYear'
+        cumulative:
+          allOf:
+          - $ref: '#/components/schemas/LogbookCumulative'
+          nullable: true
+        reports_url:
+          type: string
+          format: uri
+      required:
+      - cumulative
+      - first_date
+      - in_sheet
+      - last_date
+      - last_read_at
+      - last_read_status
+      - not_for_sheet
+      - people
+      - ready
+      - reports_url
+      - rows
+      - sheet_last_date
+      - snapshot
+      - to_check
+      - to_fix
+      - to_verify
+      - verified
+      - years
+    LogbookYear:
+      type: object
+      properties:
+        year:
+          type: integer
+        in_sheet:
+          type: integer
+        from_logbook:
+          type: integer
+        reported:
+          type: integer
+          nullable: true
+      required:
+      - from_logbook
+      - in_sheet
+      - reported
+      - year
+    MapPoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+      required:
+      - id
+      - kind
+      - latitude
+      - longitude
+    MapResult:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapPoint'
+        located_count:
+          type: integer
+        truncated:
+          type: boolean
+      required:
+      - located_count
+      - points
+      - truncated
+    Me:
+      type: object
+      properties:
+        username:
+          type: string
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+        decisions:
+          type: integer
+          description: 'Verification decisions this person has recorded: their progress,
+            never a score.'
+      required:
+      - decisions
+      - permissions
+      - username
+    MonthCount:
+      type: object
+      properties:
+        month:
+          type: string
+          description: YYYY-MM
+        count:
+          type: integer
+      required:
+      - count
+      - month
+    NewPortRequest:
+      type: object
+      properties:
+        from_port_list:
+          type: boolean
+          default: false
+        longitude:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+        latitude:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+        country_code:
+          oneOf:
+          - type: string
+            default: ''
+            pattern: ^[A-Z]{2}$
+          - type: string
+            maxLength: 0
+    NullEnum:
+      enum:
+      - null
+    OperationLine:
+      type: object
+      properties:
+        line:
+          type: integer
+        occurred_on:
+          type: string
+          nullable: true
+      required:
+      - line
+      - occurred_on
+    Permissions:
+      type: object
+      properties:
+        review_identity:
+          type: boolean
+        stage_snapshot:
+          type: boolean
+        prepare_drafts:
+          type: boolean
+        publish:
+          type: boolean
+        invite:
+          type: boolean
+      required:
+      - invite
+      - prepare_drafts
+      - publish
+      - review_identity
+      - stage_snapshot
+    Port:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        country_code:
+          type: string
+          readOnly: true
+      required:
+      - country_code
+      - id
+      - name
+    PortInterpretationEnum:
+      enum:
+      - port
+      - ports
+      - vessel
+      - not_a_port
+      type: string
+      description: |-
+        * `port` - port
+        * `ports` - ports
+        * `vessel` - vessel
+        * `not_a_port` - not_a_port
+    PortLabelStatusEnum:
+      enum:
+      - to_read
+      - read
+      type: string
+      description: |-
+        * `to_read` - to_read
+        * `read` - read
+    PortListRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        line:
+          type: integer
+        position:
+          allOf:
+          - $ref: '#/components/schemas/PortPosition'
+          nullable: true
+        error_codes:
+          type: array
+          items:
+            type: string
+      required:
+      - error_codes
+      - id
+      - line
+      - position
+    PortPosition:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+      required:
+      - latitude
+      - longitude
+    PortRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        country_code:
+          type: string
+        position:
+          allOf:
+          - $ref: '#/components/schemas/PortPosition'
+          nullable: true
+        location_source:
+          type: string
+      required:
+      - country_code
+      - id
+      - location_source
+      - name
+      - position
+    PortSearch:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRef'
+      required:
+      - items
+    Position:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        precision:
+          type: string
+      required:
+      - latitude
+      - longitude
+      - precision
+    Preparation:
+      type: object
+      properties:
+        sheet:
+          type: string
+        exported_at:
+          type: string
+          format: date-time
+        ready:
+          type: integer
+        prepared:
+          type: integer
+        changed:
+          type: integer
+        not_verified:
+          type: integer
+        to_fix:
+          type: integer
+      required:
+      - changed
+      - exported_at
+      - not_verified
+      - prepared
+      - ready
+      - sheet
+      - to_fix
+    Prepared:
+      type: object
+      properties:
+        created:
+          type: integer
+        overview:
+          $ref: '#/components/schemas/PublicationOverview'
+      required:
+      - created
+      - overview
+    PreviewCounts:
+      type: object
+      properties:
+        to_review:
+          type: integer
+        blocked:
+          type: integer
+        linked:
+          type: integer
+      required:
+      - blocked
+      - linked
+      - to_review
+    PreviewItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        snapshot:
+          type: string
+          format: uuid
+        sheet:
+          type: string
+        line:
+          type: integer
+        exported_at:
+          type: string
+          format: date-time
+        source:
+          $ref: '#/components/schemas/PreviewSource'
+        synthetic:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ReviewStatusEnum'
+        error_codes:
+          type: array
+          items:
+            type: string
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        men:
+          type: integer
+          nullable: true
+        women:
+          type: integer
+          nullable: true
+        minors:
+          type: integer
+          nullable: true
+        deaths:
+          type: integer
+          nullable: true
+        port_label:
+          type: string
+          nullable: true
+        boat_type:
+          type: string
+          nullable: true
+        position:
+          allOf:
+          - $ref: '#/components/schemas/PreviewPosition'
+          nullable: true
+        image_count:
+          type: integer
+        evidence:
+          allOf:
+          - $ref: '#/components/schemas/LogbookEvidence'
+          nullable: true
+      required:
+      - boat_type
+      - deaths
+      - error_codes
+      - evidence
+      - exported_at
+      - id
+      - image_count
+      - kind
+      - line
+      - men
+      - minors
+      - occurred_on
+      - people
+      - port_label
+      - position
+      - sheet
+      - snapshot
+      - source
+      - status
+      - synthetic
+      - women
+    PreviewMap:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviewPoint'
+        located_count:
+          type: integer
+        truncated:
+          type: boolean
+      required:
+      - located_count
+      - points
+      - truncated
+    PreviewMonth:
+      type: object
+      properties:
+        month:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - month
+    PreviewPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviewItem'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+        counts:
+          $ref: '#/components/schemas/PreviewCounts'
+      required:
+      - counts
+      - has_next
+      - items
+      - total_count
+    PreviewPoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        kind:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/ReviewStatusEnum'
+      required:
+      - id
+      - kind
+      - latitude
+      - longitude
+      - status
+    PreviewPosition:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        inferred_hemisphere:
+          type: boolean
+      required:
+      - inferred_hemisphere
+      - latitude
+      - longitude
+    PreviewSource:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+      required:
+      - key
+      - name
+    PreviewTimeline:
+      type: object
+      properties:
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviewMonth'
+        undated:
+          type: integer
+          description: Rows without a usable date, left off the months.
+      required:
+      - months
+      - undated
+    Proposal:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/ReviewProposalEnum'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        repeats_line:
+          type: integer
+          nullable: true
+      required:
+      - candidates
+      - kind
+      - repeats_line
+    PublicationAbilities:
+      type: object
+      properties:
+        prepare:
+          type: boolean
+        publish:
+          type: boolean
+      required:
+      - prepare
+      - publish
+    PublicationActionEnum:
+      enum:
+      - publish
+      - withdraw
+      type: string
+      description: |-
+        * `publish` - publish
+        * `withdraw` - withdraw
+    PublicationEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        occurred_on:
+          type: string
+          format: date
+        people:
+          type: integer
+          nullable: true
+        port:
+          type: string
+          nullable: true
+        located:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/PublicationStatusEnum'
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        source:
+          type: string
+        rights_approved:
+          type: boolean
+      required:
+      - id
+      - kind
+      - located
+      - occurred_on
+      - people
+      - port
+      - published_at
+      - rights_approved
+      - source
+      - status
+    PublicationEvents:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicationEvent'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+      - total_count
+    PublicationOverview:
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRights'
+        preparation:
+          type: array
+          items:
+            $ref: '#/components/schemas/Preparation'
+        events:
+          $ref: '#/components/schemas/EventCounts'
+        can:
+          $ref: '#/components/schemas/PublicationAbilities'
+      required:
+      - can
+      - events
+      - preparation
+      - sources
+    PublicationStatusEnum:
+      enum:
+      - draft
+      - published
+      - withdrawn
+      type: string
+      description: |-
+        * `draft` - draft
+        * `published` - published
+        * `withdrawn` - withdrawn
+    QueueCounts:
+      type: object
+      properties:
+        to_review:
+          type: integer
+        blocked:
+          type: integer
+        linked:
+          type: integer
+      required:
+      - blocked
+      - linked
+      - to_review
+    QueueItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        line:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ReviewStatusEnum'
+        proposal:
+          $ref: '#/components/schemas/ReviewProposalEnum'
+        candidate_count:
+          type: integer
+        repeats_line:
+          type: integer
+          nullable: true
+          description: 'For a row entered twice: the earlier line it copies.'
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        deaths:
+          type: integer
+          nullable: true
+        error_codes:
+          type: array
+          items:
+            type: string
+      required:
+      - candidate_count
+      - deaths
+      - error_codes
+      - id
+      - kind
+      - line
+      - occurred_on
+      - people
+      - proposal
+      - repeats_line
+      - status
+    QueuePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueueItem'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+        counts:
+          $ref: '#/components/schemas/QueueCounts'
+      required:
+      - counts
+      - has_next
+      - items
+      - total_count
+    Reading:
+      type: object
+      properties:
+        interpretation:
+          $ref: '#/components/schemas/PortInterpretationEnum'
+        ports:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRef'
+        vessel:
+          allOf:
+          - $ref: '#/components/schemas/VesselRef'
+          nullable: true
+        approved_by:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+      required:
+      - approved_at
+      - approved_by
+      - interpretation
+      - ports
+      - reason
+      - vessel
+    ReasonRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - reason
+    Received:
+      type: object
+      properties:
+        headers:
+          type: array
+          items:
+            type: string
+        cells:
+          type: array
+          items:
+            type: string
+      required:
+      - cells
+      - headers
+    ReviewProposalEnum:
+      enum:
+      - new
+      - exact_carry
+      - candidates
+      - blocked
+      - repeat
+      - linked
+      type: string
+      description: |-
+        * `new` - new
+        * `exact_carry` - exact_carry
+        * `candidates` - candidates
+        * `blocked` - blocked
+        * `repeat` - repeat
+        * `linked` - linked
+    ReviewStatusEnum:
+      enum:
+      - to_review
+      - blocked
+      - linked
+      type: string
+      description: |-
+        * `to_review` - to_review
+        * `blocked` - blocked
+        * `linked` - linked
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          $ref: '#/components/schemas/KeyEnum'
+      required:
+      - id
+      - key
+    RowDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        line:
+          type: integer
+        row_ref:
+          type: string
+        snapshot:
+          $ref: '#/components/schemas/SnapshotRef'
+        status:
+          $ref: '#/components/schemas/ReviewStatusEnum'
+        received:
+          $ref: '#/components/schemas/Received'
+        interpreted:
+          nullable: true
+        error_codes:
+          type: array
+          items:
+            type: string
+        proposal:
+          $ref: '#/components/schemas/Proposal'
+        decision:
+          allOf:
+          - $ref: '#/components/schemas/Decision'
+          nullable: true
+        evidence:
+          allOf:
+          - $ref: '#/components/schemas/LogbookEvidence'
+          nullable: true
+      required:
+      - decision
+      - error_codes
+      - evidence
+      - id
+      - interpreted
+      - line
+      - proposal
+      - received
+      - row_ref
+      - snapshot
+      - status
+    SessionState:
+      type: object
+      properties:
+        signed_in:
+          type: boolean
+          description: Someone is signed in in this browser. Public pages ask this,
+            never /me/.
+        local_auto_login:
+          type: boolean
+          description: This local development machine can sign the team in without
+            a password.
+      required:
+      - local_auto_login
+      - signed_in
+    SheetEnum:
+      enum:
+      - Data_operations
+      - Other_data
+      - Data_ports
+      type: string
+      description: |-
+        * `Data_operations` - Data_operations
+        * `Other_data` - Other_data
+        * `Data_ports` - Data_ports
+    SignInRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          minLength: 1
+          maxLength: 4096
+      required:
+      - password
+      - username
+    Snapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        sheet:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        row_count:
+          type: integer
+        source_read:
+          type: string
+        contract_version:
+          type: string
+      required:
+      - contract_version
+      - created_at
+      - id
+      - row_count
+      - sheet
+      - source
+      - source_read
+    SnapshotPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Snapshot'
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+      required:
+      - has_next
+      - items
+      - total_count
+    SnapshotRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sheet:
+          type: string
+        sha256:
+          type: string
+        contract_version:
+          type: string
+      required:
+      - contract_version
+      - id
+      - sha256
+      - sheet
+    Source:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          description: As shown to the public.
+        url:
+          type: string
+          format: uri
+          readOnly: true
+          title: Address
+        license_note:
+          type: string
+          readOnly: true
+          title: Licence and agreement
+          description: Who agreed to the publication, when, and under which terms.
+        synthetic:
+          type: boolean
+          readOnly: true
+          title: Fictitious data
+          description: 'Training data: shown publicly only in training mode.'
+      required:
+      - id
+      - license_note
+      - name
+      - synthetic
+      - url
+    SourceOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        name:
+          type: string
+        synthetic:
+          type: boolean
+      required:
+      - id
+      - key
+      - name
+      - synthetic
+    SourceRef:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+      required:
+      - key
+      - name
+    SourceRights:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        rights_approved:
+          type: boolean
+      required:
+      - key
+      - name
+      - rights_approved
+    Staged:
+      type: object
+      properties:
+        created:
+          type: boolean
+        snapshot:
+          $ref: '#/components/schemas/ImportDetail'
+      required:
+      - created
+      - snapshot
+    Summary:
+      type: object
+      properties:
+        occurred_on:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+        people:
+          type: integer
+          nullable: true
+        deaths:
+          type: integer
+          nullable: true
+      required:
+      - deaths
+      - kind
+      - occurred_on
+      - people
+    SyncSheet:
+      type: object
+      properties:
+        sheet:
+          $ref: '#/components/schemas/SheetEnum'
+        source:
+          type: string
+        source_key:
+          type: string
+        last_checked_at:
+          type: string
+          format: date-time
+        last_status:
+          $ref: '#/components/schemas/LastStatusEnum'
+        last_message:
+          type: string
+        last_change_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_change:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+      - last_change
+      - last_change_at
+      - last_checked_at
+      - last_message
+      - last_status
+      - sheet
+      - source
+      - source_key
+    SyncStatus:
+      type: object
+      properties:
+        sheets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncSheet'
+      required:
+      - sheets
+    Timeline:
+      type: object
+      properties:
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthCount'
+      required:
+      - months
+    TokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - token
+    UploadRequest:
+      type: object
+      properties:
+        source:
+          type: string
+          format: uuid
+        sheet:
+          $ref: '#/components/schemas/SheetEnum'
+        file:
+          type: string
+          format: binary
+      required:
+      - file
+      - sheet
+      - source
+    Vessel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        imo:
+          type: string
+          readOnly: true
+          title: IMO number
+      required:
+      - id
+      - imo
+      - name
+    VesselList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VesselRef'
+      required:
+      - items
+    VesselRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        imo:
+          type: string
+      required:
+      - id
+      - imo
+      - name
+    Voyage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        started_on:
+          type: string
+          format: date
+          readOnly: true
+        ended_on:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        logbook_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - ended_on
+      - id
+      - logbook_url
+      - started_on
+      - title
+  securitySchemes:
+    privateSession:
+      type: apiKey
+      in: cookie
+      name: sessionid

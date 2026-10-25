@@ -1,0 +1,18 @@
+name: Data error
+description: An operation looks wrong (date, position, number of people, type)
+labels: [data]
+body:
+  - type: input
+    id: link
+    attributes:
+      label: Link to the operation
+      description: Use "Copy link" on the operation.
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What looks wrong, and what the source says
+      description: Quote the sentence of the logbook or the cell of the spreadsheet, with its link.
+    validations:
+      required: true

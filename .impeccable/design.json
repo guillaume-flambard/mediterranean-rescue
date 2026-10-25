@@ -1,0 +1,714 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-24T17:44:29+00:00",
+  "title": "Design System: Mediterranean Rescue",
+  "extensions": {
+    "colorMeta": {
+      "sos-navy": {
+        "role": "primary",
+        "displayName": "SOS Navy",
+        "canonical": "oklch(28.0% 0.061 266.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.061 266.9)",
+          "oklch(26.4% 0.061 266.9)",
+          "oklch(37.9% 0.061 266.9)",
+          "oklch(49.3% 0.061 266.9)",
+          "oklch(60.7% 0.061 266.9)",
+          "oklch(72.1% 0.061 266.9)",
+          "oklch(83.6% 0.061 266.9)",
+          "oklch(95.0% 0.061 266.9)"
+        ]
+      },
+      "sos-orange": {
+        "role": "primary",
+        "displayName": "SOS Orange-Red",
+        "canonical": "oklch(61.6% 0.211 33.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.2 33.0)",
+          "oklch(26.4% 0.2 33.0)",
+          "oklch(37.9% 0.2 33.0)",
+          "oklch(49.3% 0.2 33.0)",
+          "oklch(60.7% 0.2 33.0)",
+          "oklch(72.1% 0.2 33.0)",
+          "oklch(83.6% 0.2 33.0)",
+          "oklch(95.0% 0.2 33.0)"
+        ]
+      },
+      "orange-text": {
+        "role": "primary",
+        "displayName": "Action Orange",
+        "canonical": "oklch(54.3% 0.188 32.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.188 32.8)",
+          "oklch(26.4% 0.188 32.8)",
+          "oklch(37.9% 0.188 32.8)",
+          "oklch(49.3% 0.188 32.8)",
+          "oklch(60.7% 0.188 32.8)",
+          "oklch(72.1% 0.188 32.8)",
+          "oklch(83.6% 0.188 32.8)",
+          "oklch(95.0% 0.188 32.8)"
+        ]
+      },
+      "orange-hover": {
+        "role": "primary",
+        "displayName": "Action Orange Hover",
+        "canonical": "oklch(48.9% 0.169 32.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.169 32.7)",
+          "oklch(26.4% 0.169 32.7)",
+          "oklch(37.9% 0.169 32.7)",
+          "oklch(49.3% 0.169 32.7)",
+          "oklch(60.7% 0.169 32.7)",
+          "oklch(72.1% 0.169 32.7)",
+          "oklch(83.6% 0.169 32.7)",
+          "oklch(95.0% 0.169 32.7)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(100.0% 0.0 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0 89.9)",
+          "oklch(26.4% 0.0 89.9)",
+          "oklch(37.9% 0.0 89.9)",
+          "oklch(49.3% 0.0 89.9)",
+          "oklch(60.7% 0.0 89.9)",
+          "oklch(72.1% 0.0 89.9)",
+          "oklch(83.6% 0.0 89.9)",
+          "oklch(95.0% 0.0 89.9)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Lavender-Grey Ground",
+        "canonical": "oklch(94.8% 0.007 295.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.007 295.4)",
+          "oklch(26.4% 0.007 295.4)",
+          "oklch(37.9% 0.007 295.4)",
+          "oklch(49.3% 0.007 295.4)",
+          "oklch(60.7% 0.007 295.4)",
+          "oklch(72.1% 0.007 295.4)",
+          "oklch(83.6% 0.007 295.4)",
+          "oklch(95.0% 0.007 295.4)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Field Canvas",
+        "canonical": "oklch(97.9% 0.003 264.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 264.5)",
+          "oklch(26.4% 0.003 264.5)",
+          "oklch(37.9% 0.003 264.5)",
+          "oklch(49.3% 0.003 264.5)",
+          "oklch(60.7% 0.003 264.5)",
+          "oklch(72.1% 0.003 264.5)",
+          "oklch(83.6% 0.003 264.5)",
+          "oklch(95.0% 0.003 264.5)"
+        ]
+      },
+      "water": {
+        "role": "neutral",
+        "displayName": "Water",
+        "canonical": "oklch(91.6% 0.016 270.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 270.0)",
+          "oklch(26.4% 0.016 270.0)",
+          "oklch(37.9% 0.016 270.0)",
+          "oklch(49.3% 0.016 270.0)",
+          "oklch(60.7% 0.016 270.0)",
+          "oklch(72.1% 0.016 270.0)",
+          "oklch(83.6% 0.016 270.0)",
+          "oklch(95.0% 0.016 270.0)"
+        ]
+      },
+      "land": {
+        "role": "neutral",
+        "displayName": "Land",
+        "canonical": "oklch(98.9% 0.003 286.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 286.4)",
+          "oklch(26.4% 0.003 286.4)",
+          "oklch(37.9% 0.003 286.4)",
+          "oklch(49.3% 0.003 286.4)",
+          "oklch(60.7% 0.003 286.4)",
+          "oklch(72.1% 0.003 286.4)",
+          "oklch(83.6% 0.003 286.4)",
+          "oklch(95.0% 0.003 286.4)"
+        ]
+      },
+      "coast": {
+        "role": "neutral",
+        "displayName": "Coast",
+        "canonical": "oklch(83.1% 0.021 274.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.021 274.0)",
+          "oklch(26.4% 0.021 274.0)",
+          "oklch(37.9% 0.021 274.0)",
+          "oklch(49.3% 0.021 274.0)",
+          "oklch(60.7% 0.021 274.0)",
+          "oklch(72.1% 0.021 274.0)",
+          "oklch(83.6% 0.021 274.0)",
+          "oklch(95.0% 0.021 274.0)"
+        ]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "oklch(42.3% 0.056 267.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.056 267.0)",
+          "oklch(26.4% 0.056 267.0)",
+          "oklch(37.9% 0.056 267.0)",
+          "oklch(49.3% 0.056 267.0)",
+          "oklch(60.7% 0.056 267.0)",
+          "oklch(72.1% 0.056 267.0)",
+          "oklch(83.6% 0.056 267.0)",
+          "oklch(95.0% 0.056 267.0)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "oklch(50.4% 0.035 260.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.035 260.6)",
+          "oklch(26.4% 0.035 260.6)",
+          "oklch(37.9% 0.035 260.6)",
+          "oklch(49.3% 0.035 260.6)",
+          "oklch(60.7% 0.035 260.6)",
+          "oklch(72.1% 0.035 260.6)",
+          "oklch(83.6% 0.035 260.6)",
+          "oklch(95.0% 0.035 260.6)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(88.7% 0.013 262.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.013 262.4)",
+          "oklch(26.4% 0.013 262.4)",
+          "oklch(37.9% 0.013 262.4)",
+          "oklch(49.3% 0.013 262.4)",
+          "oklch(60.7% 0.013 262.4)",
+          "oklch(72.1% 0.013 262.4)",
+          "oklch(83.6% 0.013 262.4)",
+          "oklch(95.0% 0.013 262.4)"
+        ]
+      },
+      "text-selection": {
+        "role": "neutral",
+        "displayName": "Selection Wash",
+        "canonical": "oklch(91.5% 0.045 35.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.045 35.1)",
+          "oklch(26.4% 0.045 35.1)",
+          "oklch(37.9% 0.045 35.1)",
+          "oklch(49.3% 0.045 35.1)",
+          "oklch(60.7% 0.045 35.1)",
+          "oklch(72.1% 0.045 35.1)",
+          "oklch(83.6% 0.045 35.1)",
+          "oklch(95.0% 0.045 35.1)"
+        ]
+      },
+      "preview-tint": {
+        "role": "neutral",
+        "displayName": "Preview Tint",
+        "canonical": "oklch(95.8% 0.016 42.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 42.4)",
+          "oklch(26.4% 0.016 42.4)",
+          "oklch(37.9% 0.016 42.4)",
+          "oklch(49.3% 0.016 42.4)",
+          "oklch(60.7% 0.016 42.4)",
+          "oklch(72.1% 0.016 42.4)",
+          "oklch(83.6% 0.016 42.4)",
+          "oklch(95.0% 0.016 42.4)"
+        ]
+      },
+      "kind-rescue": {
+        "role": "kind",
+        "displayName": "Rescue",
+        "canonical": "oklch(49.6% 0.127 253.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.127 253.7)",
+          "oklch(26.4% 0.127 253.7)",
+          "oklch(37.9% 0.127 253.7)",
+          "oklch(49.3% 0.127 253.7)",
+          "oklch(60.7% 0.127 253.7)",
+          "oklch(72.1% 0.127 253.7)",
+          "oklch(83.6% 0.127 253.7)",
+          "oklch(95.0% 0.127 253.7)"
+        ]
+      },
+      "kind-transfer": {
+        "role": "kind",
+        "displayName": "Transfer",
+        "canonical": "oklch(42.3% 0.056 267.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.056 267.0)",
+          "oklch(26.4% 0.056 267.0)",
+          "oklch(37.9% 0.056 267.0)",
+          "oklch(49.3% 0.056 267.0)",
+          "oklch(60.7% 0.056 267.0)",
+          "oklch(72.1% 0.056 267.0)",
+          "oklch(83.6% 0.056 267.0)",
+          "oklch(95.0% 0.056 267.0)"
+        ]
+      },
+      "kind-medevac": {
+        "role": "kind",
+        "displayName": "Medical evacuation",
+        "canonical": "oklch(44.8% 0.083 166.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.083 166.2)",
+          "oklch(26.4% 0.083 166.2)",
+          "oklch(37.9% 0.083 166.2)",
+          "oklch(49.3% 0.083 166.2)",
+          "oklch(60.7% 0.083 166.2)",
+          "oklch(72.1% 0.083 166.2)",
+          "oklch(83.6% 0.083 166.2)",
+          "oklch(95.0% 0.083 166.2)"
+        ]
+      },
+      "kind-incident": {
+        "role": "kind",
+        "displayName": "Incident",
+        "canonical": "oklch(62.6% 0.125 70.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.125 70.4)",
+          "oklch(26.4% 0.125 70.4)",
+          "oklch(37.9% 0.125 70.4)",
+          "oklch(49.3% 0.125 70.4)",
+          "oklch(60.7% 0.125 70.4)",
+          "oklch(72.1% 0.125 70.4)",
+          "oklch(83.6% 0.125 70.4)",
+          "oklch(95.0% 0.125 70.4)"
+        ]
+      },
+      "kind-shipwreck": {
+        "role": "kind",
+        "displayName": "Shipwreck",
+        "canonical": "oklch(46.7% 0.157 19.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.157 19.4)",
+          "oklch(26.4% 0.157 19.4)",
+          "oklch(37.9% 0.157 19.4)",
+          "oklch(49.3% 0.157 19.4)",
+          "oklch(60.7% 0.157 19.4)",
+          "oklch(72.1% 0.157 19.4)",
+          "oklch(83.6% 0.157 19.4)",
+          "oklch(95.0% 0.157 19.4)"
+        ]
+      },
+      "kind-dead-missing": {
+        "role": "kind",
+        "displayName": "Dead and missing",
+        "canonical": "oklch(28.0% 0.061 266.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.061 266.9)",
+          "oklch(26.4% 0.061 266.9)",
+          "oklch(37.9% 0.061 266.9)",
+          "oklch(49.3% 0.061 266.9)",
+          "oklch(60.7% 0.061 266.9)",
+          "oklch(72.1% 0.061 266.9)",
+          "oklch(83.6% 0.061 266.9)",
+          "oklch(95.0% 0.061 266.9)"
+        ]
+      },
+      "warning-text": {
+        "role": "state",
+        "displayName": "Warning text",
+        "canonical": "oklch(45.4% 0.1 68.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.1 68.1)",
+          "oklch(26.4% 0.1 68.1)",
+          "oklch(37.9% 0.1 68.1)",
+          "oklch(49.3% 0.1 68.1)",
+          "oklch(60.7% 0.1 68.1)",
+          "oklch(72.1% 0.1 68.1)",
+          "oklch(83.6% 0.1 68.1)",
+          "oklch(95.0% 0.1 68.1)"
+        ]
+      },
+      "warning-surface": {
+        "role": "state",
+        "displayName": "Warning surface",
+        "canonical": "oklch(96.8% 0.041 90.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.041 90.2)",
+          "oklch(26.4% 0.041 90.2)",
+          "oklch(37.9% 0.041 90.2)",
+          "oklch(49.3% 0.041 90.2)",
+          "oklch(60.7% 0.041 90.2)",
+          "oklch(72.1% 0.041 90.2)",
+          "oklch(83.6% 0.041 90.2)",
+          "oklch(95.0% 0.041 90.2)"
+        ]
+      },
+      "warning-dot": {
+        "role": "state",
+        "displayName": "To-review dot",
+        "canonical": "oklch(68.0% 0.139 75.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.139 75.5)",
+          "oklch(26.4% 0.139 75.5)",
+          "oklch(37.9% 0.139 75.5)",
+          "oklch(49.3% 0.139 75.5)",
+          "oklch(60.7% 0.139 75.5)",
+          "oklch(72.1% 0.139 75.5)",
+          "oklch(83.6% 0.139 75.5)",
+          "oklch(95.0% 0.139 75.5)"
+        ]
+      },
+      "error": {
+        "role": "state",
+        "displayName": "Error",
+        "canonical": "oklch(46.7% 0.157 19.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.157 19.4)",
+          "oklch(26.4% 0.157 19.4)",
+          "oklch(37.9% 0.157 19.4)",
+          "oklch(49.3% 0.157 19.4)",
+          "oklch(60.7% 0.157 19.4)",
+          "oklch(72.1% 0.157 19.4)",
+          "oklch(83.6% 0.157 19.4)",
+          "oklch(95.0% 0.157 19.4)"
+        ]
+      },
+      "error-surface": {
+        "role": "state",
+        "displayName": "Error surface",
+        "canonical": "oklch(96.4% 0.015 7.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.015 7.5)",
+          "oklch(26.4% 0.015 7.5)",
+          "oklch(37.9% 0.015 7.5)",
+          "oklch(49.3% 0.015 7.5)",
+          "oklch(60.7% 0.015 7.5)",
+          "oklch(72.1% 0.015 7.5)",
+          "oklch(83.6% 0.015 7.5)",
+          "oklch(95.0% 0.015 7.5)"
+        ]
+      },
+      "success": {
+        "role": "state",
+        "displayName": "Success",
+        "canonical": "oklch(44.8% 0.083 166.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.083 166.2)",
+          "oklch(26.4% 0.083 166.2)",
+          "oklch(37.9% 0.083 166.2)",
+          "oklch(49.3% 0.083 166.2)",
+          "oklch(60.7% 0.083 166.2)",
+          "oklch(72.1% 0.083 166.2)",
+          "oklch(83.6% 0.083 166.2)",
+          "oklch(95.0% 0.083 166.2)"
+        ]
+      },
+      "success-surface": {
+        "role": "state",
+        "displayName": "Success surface",
+        "canonical": "oklch(96.0% 0.014 162.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.014 162.5)",
+          "oklch(26.4% 0.014 162.5)",
+          "oklch(37.9% 0.014 162.5)",
+          "oklch(49.3% 0.014 162.5)",
+          "oklch(60.7% 0.014 162.5)",
+          "oklch(72.1% 0.014 162.5)",
+          "oklch(83.6% 0.014 162.5)",
+          "oklch(95.0% 0.014 162.5)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The main screen's single heading; visually hidden on phones."
+      },
+      "brand": {
+        "displayName": "Brand",
+        "purpose": "Product name in the navy bar (15px on phones)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Event kind on each card beside its colour dot (17px on phones)."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Card dates in slate; lining and tabular."
+      },
+      "fact": {
+        "displayName": "Fact",
+        "purpose": "People reported and values in the opened record."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Event summary and intro prose, max 65ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, switches, quiet buttons, bar actions."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Origin line, field labels, fact terms (12px on phones for the origin)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22)",
+        "purpose": "Cards at rest, composer, map card, empty states."
+      },
+      {
+        "name": "card-raised",
+        "value": "0 2px 4px rgb(27 39 71 / 0.08), 0 18px 40px -18px rgb(27 39 71 / 0.32)",
+        "purpose": "Card hover and the open card."
+      },
+      {
+        "name": "open-ring",
+        "value": "inset 0 0 0 2px rgb(232 62 27 / 0.55)",
+        "purpose": "Added to card-raised on the selected card."
+      },
+      {
+        "name": "pressed-lift",
+        "value": "0 1px 3px rgb(27 39 71 / 0.16)",
+        "purpose": "Pressed option of a segmented or view switch on ground."
+      },
+      {
+        "name": "composer-ground-ring",
+        "value": "0 0 0 12px #EEEDF2, <card>",
+        "purpose": "Sticky composer below 960px, so cards never show through around it."
+      },
+      {
+        "name": "popup",
+        "value": "0 8px 24px rgba(27, 39, 71, 0.12)",
+        "purpose": "Floating menus (tokens.css)."
+      },
+      {
+        "name": "dialog",
+        "value": "0 16px 48px rgba(27, 39, 71, 0.18)",
+        "purpose": "Sign-in card and dialogs (tokens.css)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Every main-screen transition: chips, switches, card shadow, chevron, height reveals."
+      },
+      {
+        "name": "control",
+        "value": "0.2s",
+        "purpose": "Colour and shadow changes on chips, switches, pills, search field."
+      },
+      {
+        "name": "card",
+        "value": "0.25s",
+        "purpose": "Card shadow on hover and open."
+      },
+      {
+        "name": "reveal",
+        "value": "0.3s to 0.35s",
+        "purpose": "Period panel and map strip height (grid rows 0fr to 1fr), chevron rotation, card body rise of 6px with fade."
+      },
+      {
+        "name": "map-ease",
+        "value": "700ms",
+        "purpose": "Map eases to an opened event; 0 under reduced motion."
+      },
+      {
+        "name": "shimmer",
+        "value": "1.4s linear infinite",
+        "purpose": "Skeleton cards while loading."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "All animation and transition durations under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "below 640px",
+        "purpose": "Fixed phone order, 170px foldable map strip, compact cards, icon-only workspace link, hidden heading."
+      },
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "24px bar padding, 240px map strip, 128 by 96px locator; composer still sticky."
+      },
+      {
+        "name": "lg",
+        "value": "960px",
+        "purpose": "64px bar with tagline; feed column minmax(420px, 620px) beside a sticky full-height map; chips wrap; composer no longer sticky."
+      }
+    ],
+    "phoneOrder": [
+      "map strip",
+      "composer",
+      "results line and map toggle",
+      "private preview strip",
+      "pinned card",
+      "feed or empty state",
+      "load more",
+      "footer"
+    ],
+    "icons": {
+      "grid": "24px",
+      "stroke": 1.75,
+      "caps": "round",
+      "source": "frontend/src/ui/Icon.tsx"
+    },
+    "map": {
+      "water": "#DFE3EE",
+      "land": "#FBFBFD",
+      "coast": "#C3C7D6 at 0.7px",
+      "cluster": "#1B2747 at 0.92, radius 13/17/22px by count steps 10 and 50, white 2px stroke",
+      "point": "6px kind colour, white 2px stroke",
+      "active": "22px halo rgba(232, 62, 27, 0.22) under a 9px #E83E1B point with white 3px stroke"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one primary action of an open card: go to the source.",
+      "html": "<a class=\"ds-pill ds-pill--primary\" href=\"#\">Open the source <svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14 4h6v6M20 4l-9 9\"/><path d=\"M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10\"/></svg></a>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 1px solid var(--color-border, #D5DAE3); border-radius: 999px; background: #fff; color: #1B2747; font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; font-weight: 700; font-size: 15px; text-decoration: none; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-pill:hover { background: #F7F8FA; } .ds-pill:active { transform: scale(0.98); } .ds-pill:focus-visible { outline: 3px solid #1B2747; outline-offset: 2px; } .ds-pill--primary { border-color: transparent; background: #C53215; color: #fff; } .ds-pill--primary:hover { background: #AB2A11; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Further sources, retry, clear filters, load more.",
+      "html": "<button class=\"ds-pill2\">Load more</button>",
+      "css": ".ds-pill2 { min-height: 44px; padding: 0 20px; border: 1px solid #D5DAE3; border-radius: 999px; background: #fff; color: #1B2747; font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-pill2:hover { background: #F7F8FA; } .ds-pill2:active { transform: scale(0.98); } .ds-pill2:focus-visible { outline: 3px solid #1B2747; outline-offset: 2px; }"
+    },
+    {
+      "name": "Kind Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filter chips with the shared kind dot; pressed is navy.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">All events</button><button class=\"ds-chip\" aria-pressed=\"false\"><i style=\"background:#2563A8\"></i>Rescues</button><button class=\"ds-chip\" aria-pressed=\"false\"><i style=\"background:#17634A\"></i>Medical evacuations</button><button class=\"ds-chip\" aria-pressed=\"false\"><i style=\"background:#9F2534\"></i>Shipwrecks</button></div>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 8px; font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; } .ds-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 14px; border: 1px solid #D5DAE3; border-radius: 999px; background: #fff; color: #1B2747; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-chip:hover { border-color: #596579; } .ds-chip:focus-visible { outline: 3px solid #1B2747; outline-offset: 2px; } .ds-chip[aria-pressed=\"true\"] { background: #1B2747; border-color: #1B2747; color: #fff; } .ds-chip i { width: 8px; height: 8px; border-radius: 50%; }"
+    },
+    {
+      "name": "Segmented Switch",
+      "kind": "nav",
+      "refersTo": "segmented-option-pressed",
+      "description": "Two-option switch on a navy-tinted pill track; pressed lifts to white.",
+      "html": "<div class=\"ds-seg\" role=\"group\"><button aria-pressed=\"true\">Private preview</button><button aria-pressed=\"false\">Published</button></div>",
+      "css": ".ds-seg { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; padding: 3px; border-radius: 999px; background: rgb(27 39 71 / 0.08); font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; } .ds-seg button { min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: #1B2747; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-seg button:focus-visible { outline: 3px solid #1B2747; outline-offset: 2px; } .ds-seg button[aria-pressed=\"true\"] { background: #fff; box-shadow: 0 1px 3px rgb(27 39 71 / 0.16); }"
+    },
+    {
+      "name": "Composer",
+      "kind": "input",
+      "refersTo": "composer",
+      "description": "Floating panel with the view switcher, the search field and the chip row.",
+      "html": "<div class=\"ds-composer\"><div class=\"ds-views\"><button aria-pressed=\"true\">Feed</button><button disabled>Logbook <span>soon</span></button></div><label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4.5 4.5\"/></svg><input type=\"search\" placeholder=\"Search a port or a boat\"></label></div>",
+      "css": ".ds-composer { display: grid; gap: 12px; max-width: 560px; padding: 8px 8px 12px; border-radius: 24px; background: #fff; box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22); font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; color: #1B2747; } .ds-views { display: flex; gap: 4px; } .ds-views button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 12px; background: transparent; color: #404D6D; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-views button:hover:not(:disabled) { background: rgb(27 39 71 / 0.06); color: #1B2747; } .ds-views button[aria-pressed=\"true\"] { background: #EEEDF2; color: #1B2747; } .ds-views button:disabled { color: #596579; cursor: default; } .ds-views span { padding: 1px 7px; border-radius: 999px; background: rgb(27 39 71 / 0.07); font-size: 11px; } .ds-search { position: relative; display: flex; align-items: center; } .ds-search svg { position: absolute; left: 14px; color: #596579; } .ds-search input { width: 100%; height: 48px; padding: 0 44px; border: 0; border-radius: 18px; background: #F7F8FA; color: #1B2747; font: inherit; font-size: 16px; transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-search input:focus { outline: none; background: #fff; box-shadow: inset 0 0 0 2px #1B2747; }"
+    },
+    {
+      "name": "Event Card",
+      "kind": "card",
+      "refersTo": "event-card",
+      "description": "Self-proving event summary with locator; opens in place, orange ring when open. Synthetic content.",
+      "html": "<article class=\"ds-card\"><button class=\"ds-card__summary\" aria-expanded=\"false\"><span class=\"ds-card__text\"><span class=\"ds-card__date\">Jan 1, 2000</span><span class=\"ds-card__kind\"><i></i>Rescue</span><span class=\"ds-card__facts\"><b>00 people reported</b><span>Example port</span></span><span class=\"ds-card__origin\">Row 0 · Fictitious source</span></span><span class=\"ds-card__loc\"><i></i></span></button></article>",
+      "css": ".ds-card { max-width: 560px; overflow: hidden; border-radius: 20px; background: #fff; box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22); font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; color: #1B2747; font-variant-numeric: lining-nums; transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1); } .ds-card:hover { box-shadow: 0 2px 4px rgb(27 39 71 / 0.08), 0 18px 40px -18px rgb(27 39 71 / 0.32); } .ds-card:focus-within { box-shadow: 0 2px 4px rgb(27 39 71 / 0.08), 0 18px 40px -18px rgb(27 39 71 / 0.32), inset 0 0 0 2px rgb(232 62 27 / 0.55); } .ds-card__summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; width: 100%; padding: 16px 16px 12px 20px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; } .ds-card__summary:focus-visible { outline: 3px solid #1B2747; outline-offset: -3px; border-radius: 20px; } .ds-card__text { display: grid; gap: 6px; } .ds-card__date { font-weight: 800; font-size: 14px; color: #404D6D; font-variant-numeric: lining-nums tabular-nums; } .ds-card__kind { display: flex; align-items: center; gap: 8px; font-size: 19px; line-height: 1.25; font-weight: 800; letter-spacing: -0.01em; } .ds-card__kind i { width: 10px; height: 10px; border-radius: 50%; background: #2563A8; } .ds-card__facts { display: flex; flex-wrap: wrap; gap: 4px 16px; color: #404D6D; font-size: 15px; } .ds-card__facts b { color: #1B2747; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; } .ds-card__origin { color: #596579; font-size: 13px; font-weight: 600; } .ds-card__loc { position: relative; width: 96px; height: 76px; border-radius: 14px; background: #DFE3EE; } .ds-card__loc i { position: absolute; left: 50%; top: 55%; width: 6px; height: 6px; border-radius: 50%; background: #1B2747; box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgb(27 39 71 / 0.16); } .ds-card:focus-within .ds-card__loc i { background: #E83E1B; box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgb(232 62 27 / 0.22); }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-to-review",
+      "description": "Review status with a dot in the state colours.",
+      "html": "<span class=\"ds-status ds-status--review\"><i></i>To check</span> <span class=\"ds-status ds-status--blocked\"><i></i>Blocked</span> <span class=\"ds-status ds-status--linked\"><i></i>Checked</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; font-size: 12px; font-weight: 700; } .ds-status i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; } .ds-status--review { background: #FFF4D6; color: #7A4A00; } .ds-status--review i { background: #C98A13; } .ds-status--blocked { background: #FDEFF1; color: #9F2534; } .ds-status--linked { background: #EAF5EF; color: #17634A; }"
+    },
+    {
+      "name": "Top Bar",
+      "kind": "nav",
+      "refersTo": "top-bar",
+      "description": "Sticky navy band with brand, tagline (desk), language and workspace pills.",
+      "html": "<header class=\"ds-bar\"><a href=\"#\">Mediterranean Rescue</a><span>Actions at sea, documented.</span><nav><button>English</button><a href=\"#\" class=\"ds-bar__ws\">Private workspace</a></nav></header>",
+      "css": ".ds-bar { display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 24px; background: #1B2747; color: #fff; font-family: 'Raleway Variable', Raleway, system-ui, sans-serif; font-size: 14px; } .ds-bar > a { color: #fff; font-weight: 800; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; } .ds-bar > span { color: rgb(255 255 255 / 0.72); } .ds-bar nav { display: flex; gap: 8px; margin-left: auto; } .ds-bar button { height: 36px; padding: 0 12px; border: 1px solid rgb(255 255 255 / 0.32); border-radius: 999px; background: transparent; color: #fff; font: inherit; } .ds-bar__ws { display: inline-flex; align-items: center; height: 36px; padding: 0 12px; border-radius: 999px; background: rgb(255 255 255 / 0.1); color: #fff; font-weight: 600; text-decoration: none; } .ds-bar__ws:hover { background: rgb(255 255 255 / 0.18); } .ds-bar :focus-visible { outline: 3px solid #fff; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Logbook Feed",
+    "overview": "Events read like a conversation you scroll. Each one is a soft white card on a cool lavender-grey ground that proves itself at a glance: a heavy date, the kind of action with its colour dot, the people reported, the port, a small locator map of where it happened and the line of the source it came from. The card opens in place into the full record. Beside the feed on a desk, and above it on a phone, a quiet map in pale water and near-white land holds the same events as navy points and clusters.\n\nThe identity is SOS MEDITERRANEE kept intact: deep navy for the shell and every pressed state, orange-red held back for the one thing that is selected and the one action that matters, Raleway for everything. The component language comes from current conversational apps: a floating rounded composer for search and filters, pill chips, segmented switches, generous radii, soft navy-tinted shadows and short eased transitions. Density stays moderate; two cards fit in the first phone screen under the map strip and composer.\n\nProvenance is visual, not decorative: the origin line on every card, lining and tabular numerals on every figure, and an unknown value shown as unknown. Nothing in the surface is ornamental; there is no photography, no illustration and no gradient beyond the loading shimmer.",
+    "keyCharacteristics": [
+      "Navy shell, lavender-grey ground, white cards with 20px corners and a soft navy-tinted shadow.",
+      "Orange-red reserved for selection and the single primary action.",
+      "Kind colours appear only as small dots, shared by chips, cards and map points.",
+      "Raleway 800 for dates, kinds and figures; 500 for running text; lining numerals everywhere, tabular where figures align.",
+      "A floating composer (view switcher, search, chips) that stays reachable under the bar below 960px.",
+      "The list is a complete path without the map."
+    ],
+    "rules": [
+      {
+        "name": "The Orange Reservation Rule",
+        "body": "Orange-red marks exactly two things: what is selected (open card, active map point, its locator dot) and the one primary action of an open card. Never a kind colour, a chip, a heading, a badge or decoration. Small text in orange always uses Action Orange.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dot-Only Kind Rule",
+        "body": "Kind colours are identification dots, never text, fills or borders. The same kind keeps the same colour on chips, cards and the map.",
+        "section": "colors"
+      },
+      {
+        "name": "The Navy Is On Rule",
+        "body": "A pressed chip is filled navy with white text; a pressed switch option lifts to white (or ground inside the composer). Pressed never means orange.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Weights Rule",
+        "body": "Scan at 800, read at 500. Middle weights (600, 700) are for controls and figures only, never for running text.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lining Figures Rule",
+        "body": "Every number on the surface is lining (`font-variant-numeric: lining-nums` is set on the whole screen); counts, dates and facts add `tabular-nums` so they align.",
+        "section": "typography"
+      },
+      {
+        "name": "The Composer Stays Rule",
+        "body": "Below 960px the composer is sticky 8px under the bar and carries a 12px ring of ground colour in its shadow so cards never show through around it. A card scrolled into view keeps a top margin clearing the bar plus the composer (210px, 270px on desk).",
+        "section": "layout"
+      },
+      {
+        "name": "The Map Is Optional Rule",
+        "body": "The map can fold away on phones and may fail entirely; the feed, filters and open records must remain a complete path without it.",
+        "section": "layout"
+      },
+      {
+        "name": "The Navy Tint Rule",
+        "body": "Every shadow is navy (27 39 71) at low alpha with a negative spread, so it reads as lift rather than outline. Hard offset shadows have no place here.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep orange-red for the selected event and the single primary action; use Action Orange for any orange text or filled button.",
+      "Do mark event kinds with a dot in the shared kind colour, on chips, cards and map alike.",
+      "Do set every figure in lining numerals and add tabular figures where numbers align.",
+      "Do float white surfaces on the lavender-grey ground with the navy-tinted card shadow, and nest radii from 24px down to 12px.",
+      "Do show a pressed state as navy fill (chips) or a white lift (switches).",
+      "Do give every card its origin line and keep unknown values written as unknown.",
+      "Do keep the phone order: map strip, composer, results, preview strip, pinned card, feed, load more, footer."
+    ],
+    "donts": [
+      "Don't use orange-red for a kind, a chip, a heading or decoration.",
+      "Don't put kind colours on text or large fills.",
+      "Don't mark a notice or a selected row with a coloured side rule; use a tinted block or the inset ring instead.",
+      "Don't use grey or black shadows, borders around cards, or hard offset shadows.",
+      "Don't make the map the only way to reach an event."
+    ]
+  }
+}
