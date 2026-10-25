@@ -103,7 +103,7 @@ export function WorkspaceShell({
     </Button>
   );
   return (
-    <div className="workspace">
+    <div className="workstation">
       {/* Desk: one navy column with every section this person may open, in the order of the work. */}
       <aside className="workspace-side">
         <p className="workspace-side__brand">
