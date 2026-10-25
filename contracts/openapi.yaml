@@ -3584,6 +3584,9 @@ components:
         people:
           type: integer
           nullable: true
+        men:
+          type: integer
+          nullable: true
         women:
           type: integer
           nullable: true
@@ -3619,6 +3622,7 @@ components:
       - image_count
       - kind
       - line
+      - men
       - minors
       - occurred_on
       - people

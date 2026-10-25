@@ -22,7 +22,6 @@ export function AboutPage() {
       <PublicBar />
       <main className="about__body">
         <header className="about__hero">
-          <p className="about__eyebrow">{t("about.eyebrow")}</p>
           <h1>{t("about.title")}</h1>
           <p className="about__lead">{t("about.lead")}</p>
           <p className="about__independent">

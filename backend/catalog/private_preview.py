@@ -100,6 +100,7 @@ def item(row, snapshot, status, in_sheet=None):
         "occurred_on": candidate.get("occurred_on"),
         "kind": candidate.get("kind"),
         "people": candidate.get("nb_survivor"),
+        "men": candidate.get("male"),
         "women": candidate.get("female"),
         "minors": candidate.get("under_18"),
         "deaths": candidate.get("death_nb_people"),
@@ -169,6 +170,7 @@ class PreviewItemSerializer(serializers.Serializer):
     occurred_on = serializers.CharField(allow_null=True)
     kind = serializers.CharField(allow_null=True)
     people = serializers.IntegerField(allow_null=True)
+    men = serializers.IntegerField(allow_null=True)
     women = serializers.IntegerField(allow_null=True)
     minors = serializers.IntegerField(allow_null=True)
     deaths = serializers.IntegerField(allow_null=True)

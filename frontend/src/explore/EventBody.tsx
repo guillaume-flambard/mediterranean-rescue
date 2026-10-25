@@ -27,6 +27,8 @@ export function PreviewBody({ id }: { id: string }) {
   return (
     <>
       <dl className="facts">
+        {/* Men too: the sheet has the column, and showing only women and minors read as a gap. */}
+        <Fact label={t("preview.detail.men")} value={count(row.men)} />
         <Fact label={t("preview.detail.women")} value={count(row.women)} />
         <Fact label={t("preview.detail.minors")} value={count(row.minors)} />
         {row.sheet === "Other_data" && <Fact label={t("preview.detail.deaths")} value={count(row.deaths)} />}

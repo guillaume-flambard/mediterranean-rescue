@@ -11,20 +11,30 @@ function place(longitude: number, latitude: number) {
 export function MiniMap({
   position,
   label,
+  unknownLabel,
 }: {
   position: { longitude: number; latitude: number } | null;
   label: string;
+  /** Written over the map when there is no point to show, so an empty map is never a puzzle. */
+  unknownLabel?: string;
 }) {
   const point = position ? place(position.longitude, position.latitude) : null;
   return (
-    <svg className="mini-map" viewBox={MED_VIEWBOX} role="img" aria-label={label} preserveAspectRatio="xMidYMid slice">
-      <path className="mini-map__land" d={MED_LAND} />
-      {point && (
-        <>
-          <circle className="mini-map__halo" cx={point.x} cy={point.y} r={1.4} />
-          <circle className="mini-map__dot" cx={point.x} cy={point.y} r={0.55} />
-        </>
+    <span className={`mini-map-wrap${point ? "" : " mini-map-wrap--unknown"}`}>
+      <svg className="mini-map" viewBox={MED_VIEWBOX} role="img" aria-label={label} preserveAspectRatio="xMidYMid slice">
+        <path className="mini-map__land" d={MED_LAND} />
+        {point && (
+          <>
+            <circle className="mini-map__halo" cx={point.x} cy={point.y} r={1.4} />
+            <circle className="mini-map__dot" cx={point.x} cy={point.y} r={0.55} />
+          </>
+        )}
+      </svg>
+      {!point && unknownLabel && (
+        <span className="mini-map__unknown" aria-hidden="true">
+          {unknownLabel}
+        </span>
       )}
-    </svg>
+    </span>
   );
 }

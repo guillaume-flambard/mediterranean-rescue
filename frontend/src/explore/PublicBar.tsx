@@ -1,10 +1,10 @@
+import { Button as BaseButton } from "@base-ui/react/button";
 import { api } from "../api/client";
 import { LOCALES, type Locale } from "../i18n/format";
 import { useI18n } from "../i18n/I18nProvider";
 import { Link, useLocation } from "../router";
 import { BrandMark } from "../ui/BrandMark";
 import { Icon } from "../ui/Icon";
-import { SelectField } from "../ui/SelectField";
 
 const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", fr: "Français" };
 
@@ -28,13 +28,21 @@ export function PublicBar() {
           <Icon name="info" size={16} />
           <span className="explore-bar__link-label">{t("about.nav")}</span>
         </Link>
-        <SelectField<Locale>
-          className="explore-bar__language"
-          label={t("app.language")}
-          value={i18n.locale}
-          options={LOCALES.map((value) => ({ value, label: LANGUAGE_NAMES[value], lang: value }))}
-          onValueChange={(value) => value && i18n.setLocale(value)}
-        />
+        {/* Two short choices instead of a menu: nothing to open, nothing to misalign. */}
+        <div className="lang-switch" role="group" aria-label={t("app.language")}>
+          {LOCALES.map((value) => (
+            <BaseButton
+              key={value}
+              className="lang-switch__option"
+              aria-pressed={i18n.locale === value}
+              aria-label={LANGUAGE_NAMES[value]}
+              lang={value}
+              onClick={() => i18n.setLocale(value)}
+            >
+              {value.toUpperCase()}
+            </BaseButton>
+          ))}
+        </div>
         <Link to="/workspace" className="explore-bar__workspace">
           <Icon name="lock" size={16} />
           <span className="explore-bar__workspace-label">{signedIn ? t("preview.workspace") : t("preview.signIn")}</span>

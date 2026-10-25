@@ -988,6 +988,7 @@ export interface components {
             occurred_on: string | null;
             kind: string | null;
             people: number | null;
+            men: number | null;
             women: number | null;
             minors: number | null;
             deaths: number | null;

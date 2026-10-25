@@ -11,6 +11,7 @@ import { PreviewBody, PublicBody } from "./EventBody";
 import { fromNewsSite, missionName } from "./Evidence";
 import { kindLabel, kindName, peopleText, type Key } from "./labels";
 import { Logbook } from "./Logbook";
+import { MapPeek } from "./MapPeek";
 import { MiniMap } from "./MiniMap";
 import { PublicBar } from "./PublicBar";
 import { Welcome } from "./Welcome";
@@ -86,6 +87,9 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
   const [openId, setOpenId] = useState<string | null>(linkedId);
   const [pinnedId, setPinnedId] = useState<string | null>(linkedId);
   const [pinnedFrom, setPinnedFrom] = useState<"link" | "map">("link");
+  // Phones and tablets: a tapped point is previewed over the map, which can fill the screen.
+  const [peekId, setPeekId] = useState<string | null>(null);
+  const [mapFull, setMapFull] = useState(false);
   const show = (id: string | null) => {
     setOpenId(id);
     changeQuery({ event: id }, { replace: true });
@@ -187,7 +191,7 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     kind: point.kind as Kind,
   }));
   const followId = view === "logbook" ? readId : null;
-  const activeId = openId ?? pinnedId ?? hoverId ?? followId;
+  const activeId = openId ?? peekId ?? pinnedId ?? hoverId ?? followId;
   const filtered = Boolean(kind || start || end || q || logbookOnly);
 
   // A linked record is brought into view once, when the feed first arrives.
@@ -218,8 +222,28 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
     if (logbookOnly) changeQuery({ source: null }, { replace: true });
     resetView();
   };
-  // A point picked on the map opens its card in the feed, or pins it on top when it is not loaded.
+  // Full screen map: Escape leaves it, and the page behind does not scroll meanwhile.
+  useEffect(() => {
+    if (!mapFull) return;
+    const leave = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMapFull(false);
+    };
+    document.documentElement.classList.add("map-full-open");
+    window.addEventListener("keydown", leave);
+    return () => {
+      document.documentElement.classList.remove("map-full-open");
+      window.removeEventListener("keydown", leave);
+    };
+  }, [mapFull]);
+
+  // On a phone or tablet the map sits above the feed: a tapped point is previewed over the map so
+  // the reader keeps it; on a desk the map stays beside the feed and the card opens at once.
   const selectFromMap = (id: string) => {
+    if (window.matchMedia?.("(max-width: 959px)").matches) setPeekId(id);
+    else openRecord(id);
+  };
+  // Opens a record in the feed, or pins it on top when the feed does not hold it.
+  const openRecord = (id: string) => {
     show(id);
     if (items.some((item) => item.id === id)) {
       setPinnedId(null);
@@ -408,8 +432,30 @@ export function Explore({ audience = "public" }: { audience?: "public" | "team" 
             </div>
           </div>
 
-          <div className="explore-map explore-map--inline" data-open={mapOpen || undefined}>
+          <div className="explore-map explore-map--inline" data-open={mapOpen || undefined} data-full={mapFull || undefined}>
             <MapPanel points={invalid ? [] : points} activeId={activeId} focusId={openId ?? pinnedId} followId={followId} onSelect={selectFromMap} truncated={Boolean(map?.truncated)} />
+            <BaseButton
+              className="icon-button map-full-toggle"
+              aria-label={t(mapFull ? "map.full.close" : "map.full.open")}
+              onClick={() => setMapFull(!mapFull)}
+            >
+              <Icon name={mapFull ? "close" : "expand"} size={18} />
+            </BaseButton>
+            {peekId && (
+              <MapPeek
+                key={peekId}
+                id={peekId}
+                preview={preview}
+                known={items.find((item) => item.id === peekId)}
+                onOpen={() => {
+                  const id = peekId;
+                  setPeekId(null);
+                  setMapFull(false);
+                  openRecord(id);
+                }}
+                onClose={() => setPeekId(null)}
+              />
+            )}
           </div>
 
           {pinnedId && !items.some((item) => item.id === pinnedId) && (
@@ -626,7 +672,8 @@ function EventCard({
         <span className="card__locator">
           <MiniMap
             position={item.position}
-            label={item.position ? formatPosition(i18n, item.position.latitude, item.position.longitude) : t("detail.unknownPosition")}
+            label={item.position ? formatPosition(i18n, item.position.latitude, item.position.longitude) : t("map.unknownPosition")}
+            unknownLabel={t("map.unknownPosition")}
           />
         </span>
         <Icon name="chevronDown" className="card__chevron" />

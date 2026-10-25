@@ -187,11 +187,11 @@
 .card__date { font-weight: 800; font-size: 14px; font-variant-numeric: lining-nums tabular-nums; color: var(--color-text-secondary); }
 .card__kind { display: flex; align-items: center; gap: var(--space-2); font-size: 19px; line-height: 1.25; font-weight: 800; letter-spacing: -0.01em; }
 .card__kind-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--kind-incident); }
-.card[data-kind="rescue"] .card__kind-dot { background: var(--kind-rescue); }
-.card[data-kind="transfer"] .card__kind-dot { background: var(--kind-transfer); }
-.card[data-kind="medevac"] .card__kind-dot { background: var(--kind-medevac); }
-.card[data-kind="shipwreck"] .card__kind-dot { background: var(--kind-shipwreck); }
-.card[data-kind="dead_missing"] .card__kind-dot { background: var(--kind-dead_missing); }
+.card[data-kind="rescue"] .card__kind-dot, .map-peek[data-kind="rescue"] .card__kind-dot { background: var(--kind-rescue); }
+.card[data-kind="transfer"] .card__kind-dot, .map-peek[data-kind="transfer"] .card__kind-dot { background: var(--kind-transfer); }
+.card[data-kind="medevac"] .card__kind-dot, .map-peek[data-kind="medevac"] .card__kind-dot { background: var(--kind-medevac); }
+.card[data-kind="shipwreck"] .card__kind-dot, .map-peek[data-kind="shipwreck"] .card__kind-dot { background: var(--kind-shipwreck); }
+.card[data-kind="dead_missing"] .card__kind-dot, .map-peek[data-kind="dead_missing"] .card__kind-dot { background: var(--kind-dead_missing); }
 .card__facts { display: flex; flex-wrap: wrap; gap: 4px var(--space-4); color: var(--color-text-secondary); font-size: 15px; }
 .card__people { font-weight: 700; color: var(--color-text); font-variant-numeric: lining-nums tabular-nums; }
 .card__people, .card__port { display: inline-flex; align-items: center; gap: 6px; }
@@ -199,7 +199,14 @@
 .card__locator { grid-area: locator; align-self: start; width: 96px; height: 76px; overflow: hidden; border-radius: 14px; background: var(--water); }
 .card__chevron { grid-area: chevron; align-self: end; justify-self: end; color: var(--color-text-muted); transition: transform 0.3s var(--ease-out); }
 .card--open .card__chevron { transform: rotate(180deg); }
+.mini-map-wrap { position: relative; display: block; width: 100%; height: 100%; }
 .mini-map { display: block; width: 100%; height: 100%; }
+/* No known position: the coast stays as a frame, faded, and the card says so in words. */
+.mini-map-wrap--unknown .mini-map { opacity: 0.45; }
+.mini-map__unknown {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 4px;
+  color: var(--sos-navy); font-size: 11px; font-weight: 700; line-height: 1.2; text-align: center; text-wrap: balance;
+}
 .mini-map__land { fill: #fbfbfd; stroke: #a9afc4; stroke-width: 0.06; }
 .mini-map__halo { fill: rgb(27 39 71 / 0.16); }
 .mini-map__dot { fill: var(--sos-navy); stroke: var(--sos-white); stroke-width: 0.18; }
@@ -223,7 +230,8 @@
 .card--pinned .card__body { border-top: 0; padding-top: 0; }
 .card__pinned-head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-3) var(--space-2) var(--space-5); font-size: 14px; font-weight: 700; color: var(--color-text-secondary); }
 .card__pinned-head span { display: inline-flex; align-items: center; gap: 6px; }
-.icon-button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.icon-button { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.icon-button > svg { display: block; }
 .icon-button:hover { background: rgb(27 39 71 / 0.06); }
 
 .status {
@@ -512,7 +520,8 @@ body:has(.explore--team) { background: #eeedf2; }
 
 /* About the data: one readable column of cards, in the order a newcomer asks their questions. */
 .about__body { display: grid; gap: var(--space-4); max-width: 760px; margin: 0 auto; padding: var(--space-6) var(--layout-page-gutter-mobile) var(--space-16); }
-.about__hero { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-4) 0 var(--space-2); }
+/* The page's own header: on the ground like the rest, never the legacy white header band. */
+.about__hero { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-4) 0 var(--space-2); background: transparent; border: 0; font-size: inherit; }
 .about__eyebrow { margin: 0; color: var(--sos-orange-dark-proposed); font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .about__hero h1 { margin: 0; font-size: clamp(30px, 6vw, 44px); line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; color: var(--sos-navy); }
 .about__lead { margin: 0; max-width: 60ch; font-size: 18px; line-height: 1.55; color: var(--color-text); }
@@ -608,3 +617,62 @@ body:has(.explore--team) { background: #eeedf2; }
   .explore-bar__language .ui-select__trigger { padding: 0 var(--space-2); gap: 4px; }
   .explore-bar__language .ui-select__trigger svg { flex: none; }
 }
+
+/* Phones and tablets, 25 October 2026: the map is a real place to look, not a strip. It takes
+   about half the screen, can fill it, and a tapped point is previewed over its foot. */
+@media (max-width: 959px) {
+  .explore-map--inline { position: relative; }
+  .explore-map--inline > .map-card { height: clamp(320px, 56svh, 560px); }
+  .map-full-toggle {
+    position: absolute; top: var(--space-3); right: var(--space-3); z-index: 3;
+    width: 44px; height: 44px; display: grid; place-items: center;
+    border-radius: 50%; background: var(--sos-white); color: var(--sos-navy);
+    box-shadow: 0 1px 2px rgb(27 39 71 / 0.12), 0 6px 18px -8px rgb(27 39 71 / 0.4);
+  }
+  .explore-map--inline:not([data-open]) .map-full-toggle,
+  .explore-map--inline:not([data-open]) .map-peek { display: none; }
+  .explore-map--inline[data-full] {
+    position: fixed; inset: 0; z-index: 1000; display: block; background: var(--water);
+  }
+  .explore-map--inline[data-full] > .map-card { height: 100dvh; border-radius: 0; box-shadow: none; }
+  .explore-map--inline[data-full] .map-full-toggle { top: max(var(--space-3), env(safe-area-inset-top)); }
+  .map-peek {
+    position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); z-index: 3;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+    border-radius: 18px; background: var(--sos-white);
+    box-shadow: 0 2px 4px rgb(27 39 71 / 0.08), 0 18px 40px -16px rgb(27 39 71 / 0.45);
+    animation: map-peek-in 0.32s var(--ease-out) both;
+  }
+  .explore-map--inline[data-full] .map-peek { bottom: max(var(--space-4), env(safe-area-inset-bottom)); }
+  .map-peek__facts { display: grid; gap: 2px; min-width: 0; margin: 0; }
+  .map-peek__facts p { margin: 0; }
+  .map-peek__date { color: var(--color-text-secondary); font-size: 13px; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; }
+  .map-peek__kind { display: flex; align-items: center; gap: 7px; color: var(--sos-navy); font-size: 17px; font-weight: 800; line-height: 1.25; }
+  .map-peek__line { display: flex; flex-wrap: wrap; gap: 4px var(--space-3); color: var(--sos-navy); font-size: 14px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
+  .map-peek__line span { display: inline-flex; align-items: center; gap: 5px; }
+  .map-peek__loading { color: var(--color-text-muted); font-size: 14px; }
+  .map-peek__actions { display: flex; align-items: center; gap: var(--space-1); }
+  /* Stronger than the team space's button colour, which would turn the label navy on orange. */
+  .map-peek .map-peek__open { min-height: 44px; white-space: nowrap; color: var(--sos-white); }
+  .map-peek__close { width: 44px; height: 44px; display: grid; place-items: center; }
+}
+@media (max-width: 400px) {
+  .map-peek { grid-template-columns: 1fr; align-items: stretch; }
+  .map-peek__actions { justify-content: space-between; }
+  .map-peek__open { flex: 1; justify-content: center; }
+}
+@keyframes map-peek-in { from { opacity: 0; transform: translateY(12px); } }
+@media (prefers-reduced-motion: reduce) { .map-peek { animation: none; } }
+html.map-full-open { overflow: hidden; }
+
+/* Language: two short choices in the bar (Guillaume, 25 October 2026). */
+.lang-switch { display: inline-flex; height: 36px; padding: 3px; gap: 2px; border: 1px solid rgb(255 255 255 / 0.32); border-radius: var(--radius-pill); }
+.lang-switch__option {
+  display: grid; place-items: center; min-width: 36px; padding: 0 var(--space-2); border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: var(--sos-white); font: inherit; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; cursor: pointer;
+  transition: background-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+.lang-switch__option:hover:not([aria-pressed="true"]) { background: rgb(255 255 255 / 0.12); }
+.lang-switch__option[aria-pressed="true"] { background: var(--sos-white); color: var(--sos-navy); }
+.lang-switch__option:focus-visible { outline: 3px solid var(--sos-white); outline-offset: 2px; }
