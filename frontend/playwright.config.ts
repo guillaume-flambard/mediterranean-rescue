@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: "e2e",
   testMatch: "**/*.e2e.ts",
   fullyParallel: true,
+  // Against the public demo, stay under its per-address rate limit (20 requests/s).
+  workers: process.env.E2E_BASE_URL?.startsWith("https://") ? 2 : undefined,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {

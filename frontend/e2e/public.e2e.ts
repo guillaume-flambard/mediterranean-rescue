@@ -48,5 +48,5 @@ test("an operation opened from the feed has a link that reopens it", async ({ pa
   const { items } = (await events.json()) as { items: { id: string }[] };
   test.skip(items.length === 0, "nothing is published on this instance");
   await page.goto(`/?event=${items[0]!.id}`);
-  await expect(page.getByRole("link", { name: /Copy link|Copier le lien/ }).or(page.getByRole("button", { name: /Copy link|Copier le lien/ })).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Copy the link to this record|Copier le lien/ }).or(page.getByRole("button", { name: /Copy the link to this record|Copier le lien/ })).first()).toBeVisible();
 });
