@@ -24,4 +24,5 @@ Conventions for anyone, human or agent, contributing to this repository.
 ## Workflow
 - Read `README.md`, `docs/PROJECT.md` and the latest decision records before changing the model or a contract; record a short ADR for such changes.
 - Backend tests run on PostGIS through Docker Compose (see README); the offline Sheets diagnostic tests also run on the host with `cd backend && python3 -m unittest catalog.tests.test_sheets`.
-- No pull request to the fork or to Data for Good until Guillaume decides to show the work (decision of 24 October 2026). Work on branches and push them.
+- The project is public at `memolabs-dev/mediterranean-rescue` (decision of 25 October 2026): work on a branch, open a pull request against `main`, CI must be green. No pull request to `dataforgoodfr/mediterranean-rescue` until Guillaume decides.
+- Every green commit on `main` publishes the image that https://rescue.memolabs.dev runs within minutes: `main` is production.

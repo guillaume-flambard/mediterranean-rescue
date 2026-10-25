@@ -6,12 +6,12 @@ Ce fork est une contribution en cours. Son périmètre et sa future adoption doi
 
 ## Décisions et données
 
-- [Document de départ et plan concret](docs/PROJECT.md)
-- [Architecture et limites de la première tranche](docs/architecture.md)
-- [Inventaire réel des sources et dictionnaire des trois onglets](docs/data-catalog.md)
-- [Décision REST et typage backend/frontend](docs/decisions/0003-rest-openapi.md)
-- [La donnée d’abord : diagnostic hors ligne des exports Sheets](docs/decisions/0004-data-first.md)
-- [Suivi et preuves](.agent/project/state.json)
+- [Document de départ et plan concret](PROJECT.md)
+- [Architecture et limites de la première tranche](architecture.md)
+- [Inventaire réel des sources et dictionnaire des trois onglets](data-catalog.md)
+- [Décision REST et typage backend/frontend](decisions/0003-rest-openapi.md)
+- [La donnée d’abord : diagnostic hors ligne des exports Sheets](decisions/0004-data-first.md)
+- [Suivi et preuves](../.agent/project/state.json)
 
 L’existant [CartONG/SOSMedDashboard](https://github.com/CartONG/SOSMedDashboard) a une carte et des données Sheets accessibles. Sa licence et les droits de republication des données ne sont pas établis. Aucun code ou dataset CartONG n’a été recopié dans cette plateforme. Le fond Natural Earth est du domaine public ; la provenance est conservée dans web/PROVENANCE.md.
 
@@ -44,7 +44,7 @@ docker compose exec api uv run --no-sync python backend/manage.py createsuperuse
 
 L’administration Django est à /admin/. Le serveur de développement local sert ses fichiers statiques ; le serveur WSGI de production requiert un proxy pour /static/. Voir infra/README.md. Un éditeur peut préparer des brouillons, mais la permission catalog.publish_event est requise pour publier/retirer. Les droits de la source et sa licence doivent avoir été approuvés. Une publication crée un audit ; les relations d’un événement publié sont gelées dans l’administration. Retirer puis corriger et revoir avant republication. L’API publique est exclusivement en lecture.
 
-Les bénévoles n’ont pas besoin de l’administration : ils travaillent dans l’espace équipe (`/workspace`), qui va de la vérification à la publication ([ADR 0013](docs/decisions/0013-publication-and-onboarding-in-the-team-space.md)). Les rôles sont des groupes créés par la migration `0008` : **Verify events**, **Prepare events**, **Publish events**, **Manual import**. Une personne du groupe **Coordinator**, avec l’accès à l’administration (`is_staff`), crée les comptes bénévoles, les active ou les désactive et leur donne ces rôles ; elle ne voit ni ne modifie les comptes d’équipe technique, ne peut pas nommer d’autres coordinateurs, et un compte n’est jamais supprimé (ses décisions restent attribuées). L’accord de publication d’une source se coche seulement par un superutilisateur, une fois l’accord écrit obtenu. L’administration suit la langue du navigateur (anglais ou français, `backend/locale`).
+Les bénévoles n’ont pas besoin de l’administration : ils travaillent dans l’espace équipe (`/workspace`), qui va de la vérification à la publication ([ADR 0013](decisions/0013-publication-and-onboarding-in-the-team-space.md)). Les rôles sont des groupes créés par la migration `0008` : **Verify events**, **Prepare events**, **Publish events**, **Manual import**. Une personne du groupe **Coordinator**, avec l’accès à l’administration (`is_staff`), crée les comptes bénévoles, les active ou les désactive et leur donne ces rôles ; elle ne voit ni ne modifie les comptes d’équipe technique, ne peut pas nommer d’autres coordinateurs, et un compte n’est jamais supprimé (ses décisions restent attribuées). L’accord de publication d’une source se coche seulement par un superutilisateur, une fois l’accord écrit obtenu. L’administration suit la langue du navigateur (anglais ou français, `backend/locale`).
 
 Sur une machine locale, la connexion peut être retirée : `LOCAL_AUTO_LOGIN=<identifiant>` connecte automatiquement chaque visiteur avec ce compte (actif, sans mot de passe utilisable suffit). Ce réglage n’est accepté qu’avec `DJANGO_ENV=development` ; en production le démarrage échoue. Il donne l’accès à toute personne qui atteint le serveur : à n’activer que sur un poste local ou un réseau privé.
 
@@ -52,7 +52,7 @@ Réglages de production liés au proxy (liste de contrôle Django) : `DJANGO_NUM
 
 ## Journal de bord public de SOS
 
-La carte publique de SOS s'arrête le 6 février 2024 ; le journal de bord de sosmediterranee.org continue. `docker compose run --rm api uv run --no-sync python backend/manage.py sync_logbook` en retrouve les opérations (une requête par seconde), les met en attente privée avec la phrase d'où chacune vient, et l'espace équipe permet de les vérifier puis de télécharger les lignes vérifiées au format du tableur. `--every 21600` relit toutes les six heures. Hors ligne : `python3 scripts/logbook_backfill.py` écrit les mêmes lignes et leur provenance dans `data/local/backfill`. Voir [ADR 0014](docs/decisions/0014-public-logbook-as-a-source.md) et [le compte rendu](docs/backfill-2024-2026.md).
+La carte publique de SOS s'arrête le 6 février 2024 ; le journal de bord de sosmediterranee.org continue. `docker compose run --rm api uv run --no-sync python backend/manage.py sync_logbook` en retrouve les opérations (une requête par seconde), les met en attente privée avec la phrase d'où chacune vient, et l'espace équipe permet de les vérifier puis de télécharger les lignes vérifiées au format du tableur. `--every 21600` relit toutes les six heures. Hors ligne : `python3 scripts/logbook_backfill.py` écrit les mêmes lignes et leur provenance dans `data/local/backfill`. Voir [ADR 0014](decisions/0014-public-logbook-as-a-source.md) et [le compte rendu](backfill-2024-2026.md).
 
 ## Importer un export autorisé
 
@@ -75,11 +75,11 @@ python3 scripts/diagnose_sheets.py --sheet Data_operations --input data/local/Da
 
 Le dossier de sortie doit être nouveau ; rien n’est jamais écrasé. Il reçoit, en 0700/0600 et protégés par un `.gitignore` local : `snapshot.csv` (copie exacte), `diagnostic.json` (cellules brutes, candidats, anomalies ligne/colonne/champ), `report.md` (compteurs et localisations, sans valeur source ; anglais par défaut, `--language fr` pour le français) et `MANIFEST.json`, écrit en dernier : sans lui, le paquet est incomplet. Statuts distincts : lecture du CSV (`complete`, `end_unverified` quand la dernière ligne n’a pas de fin de ligne, cas normal des exports Google, `partial`, `rejected`), normalisation (`blocked`, `needs_review`), identités `unresolved`, publication `disabled`. Codes de sortie : 0 paquet écrit sans erreur bloquante, 1 entrée refusée ou sortie impossible, 2 usage, 3 paquet écrit avec erreurs bloquantes. Aucun événement ni brouillon n’est créé.
 
-`--synthetic` étiquette une fixture fictive. Exemples générés à partir des fixtures de `backend/catalog/tests/fixtures/sheets/` : [docs/examples/synthetic-diagnostic](docs/examples/synthetic-diagnostic/). Tests sans Docker : `cd backend && python3 -m unittest catalog.tests.test_sheets` ; ils tournent aussi dans la suite Django ci-dessous.
+`--synthetic` étiquette une fixture fictive. Exemples générés à partir des fixtures de `backend/catalog/tests/fixtures/sheets/` : [docs/examples/synthetic-diagnostic](examples/synthetic-diagnostic/). Tests sans Docker : `cd backend && python3 -m unittest catalog.tests.test_sheets` ; ils tournent aussi dans la suite Django ci-dessous.
 
 ## Correspondance des identités et référentiel des ports
 
-Un export diagnostiqué peut être enregistré dans le staging privé, puis relié à des identités durables par une personne qui en a la permission (`catalog.review_identity`). Voir [ADR 0005](docs/decisions/0005-identity-crosswalk-and-ports.md).
+Un export diagnostiqué peut être enregistré dans le staging privé, puis relié à des identités durables par une personne qui en a la permission (`catalog.review_identity`). Voir [ADR 0005](decisions/0005-identity-crosswalk-and-ports.md).
 
 ```sh
 docker compose exec api uv run --no-sync python backend/manage.py stage_sheet --source ma-source --sheet Data_operations --file /app/data/local/Data_operations.csv --actor mon-compte
@@ -89,11 +89,11 @@ La commande affiche seulement des compteurs de propositions (`new`, `exact_carry
 
 ## Brouillons d’événements
 
-Une identité approuvée devient un brouillon privé avec `catalog.drafts.create_drafts` (permission `catalog.add_event`, motif obligatoire) ; `plan_drafts` montre d’abord l’issue de chaque ligne sans rien écrire. Les lignes écartées (non liées, déjà en brouillon, à réviser, effectifs incohérents) sont toujours listées. Un brouillon existant n’est jamais écrasé, et la publication reste celle de l’administration (droits de la source, motif, audit). Voir [ADR 0006](docs/decisions/0006-event-drafts-from-identities.md).
+Une identité approuvée devient un brouillon privé avec `catalog.drafts.create_drafts` (permission `catalog.add_event`, motif obligatoire) ; `plan_drafts` montre d’abord l’issue de chaque ligne sans rien écrire. Les lignes écartées (non liées, déjà en brouillon, à réviser, effectifs incohérents) sont toujours listées. Un brouillon existant n’est jamais écrasé, et la publication reste celle de l’administration (droits de la source, motif, audit). Voir [ADR 0006](decisions/0006-event-drafts-from-identities.md).
 
 ## Révisions revues des brouillons
 
-Quand un export plus récent corrige une ligne déjà convertie (`revision_needed`), `catalog.revisions.propose_revision` montre les champs qui changeraient et ceux qu’un éditeur a modifiés à la main (conflit). `apply_revision` applique la correction si rien ne bloque ni n’entre en conflit ; `reject_revision` garde le refus tant que l’export porte ce contenu. Permission `catalog.change_event` et motif obligatoires ; un événement publié n’est jamais révisé (le retirer d’abord), un événement retiré le reste. Chaque décision est tracée (`EventRevision`). Voir [ADR 0007](docs/decisions/0007-reviewed-draft-revisions.md).
+Quand un export plus récent corrige une ligne déjà convertie (`revision_needed`), `catalog.revisions.propose_revision` montre les champs qui changeraient et ceux qu’un éditeur a modifiés à la main (conflit). `apply_revision` applique la correction si rien ne bloque ni n’entre en conflit ; `reject_revision` garde le refus tant que l’export porte ce contenu. Permission `catalog.change_event` et motif obligatoires ; un événement publié n’est jamais révisé (le retirer d’abord), un événement retiré le reste. Chaque décision est tracée (`EventRevision`). Voir [ADR 0007](decisions/0007-reviewed-draft-revisions.md).
 
 ## Contrat REST, types et vérification
 
