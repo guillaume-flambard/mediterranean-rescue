@@ -27,6 +27,40 @@ class APIRequestLimit:
         return self.get_response(request)
 
 
+# Everything the site needs comes from its own origin: the map draws a local land outline, no
+# tiles, fonts or scripts from elsewhere. MapLibre starts its workers from blob: URLs and sets
+# inline styles; nothing evaluates strings as code.
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "worker-src 'self' blob:",
+        "child-src blob:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+
+
+class ContentSecurityPolicy:
+    """Sets the site's Content-Security-Policy on every response (audit of 25 October 2026)."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+        response.setdefault("Referrer-Policy", "same-origin")
+        return response
+
+
 LOCAL_AUTO_LOGIN_OFF = "local_auto_login_off"
 
 

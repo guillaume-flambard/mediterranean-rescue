@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from catalog.api import EventsView, EventView, EvidenceView, MapPointsView, TimelineView
 from catalog.private_api import (
     ExactCarriesView,
@@ -43,12 +45,13 @@ from catalog.private_publication import (
     PublicationOverviewView,
 )
 from catalog.private_sync import SyncStatusView
+from django.conf import settings
 from django.contrib import admin
 from django.db import connection
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.middleware.csrf import get_token
-from django.urls import path
-from django.views.decorators.http import require_GET
+from django.urls import path, re_path
+from django.views.decorators.http import require_GET, require_safe
 from drf_spectacular.views import SpectacularAPIView
 
 
@@ -67,6 +70,18 @@ def health(request):
     except Exception:
         return JsonResponse({"status": "unavailable"}, status=503)
     return JsonResponse({"status": "ok"})
+
+
+@require_safe
+def frontend(request):
+    """The application page for the frontend's own routes (/about, /workspace/…, /invite)."""
+    if not settings.FRONTEND_DIST:
+        raise Http404
+    response = FileResponse(open(Path(settings.FRONTEND_DIST) / "index.html", "rb"))
+    response["Content-Type"] = "text/html; charset=utf-8"
+    # Always revalidated, so a new release reaches the next page load.
+    response["Cache-Control"] = "no-cache"
+    return response
 
 
 urlpatterns = [
@@ -115,4 +130,6 @@ urlpatterns = [
         "api/v1/schema/",
         SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),
     ),
+    # Last: anything that is not the API, the admin or a static file is a page of the application.
+    re_path(r"^(?!api(?:/|$)|admin(?:/|$)|static/).*$", frontend),
 ]

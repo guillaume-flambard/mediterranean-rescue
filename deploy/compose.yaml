@@ -1,0 +1,67 @@
+# Reference production stack: the web process (API + frontend), PostGIS, and the two scheduled
+# readers. Put a TLS proxy in front of `web` and fill deploy/.env (see deploy/README.md).
+#
+#   docker compose -f deploy/compose.yaml --env-file deploy/.env up -d
+name: rescue
+x-app: &app
+  image: ${RESCUE_IMAGE:-ghcr.io/memolabs-dev/mediterranean-rescue:latest}
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    DB_HOST: db
+    DB_USER: rescue
+    POSTGRES_DB: rescue
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  web:
+    <<: *app
+    ports: ["127.0.0.1:${RESCUE_PORT:-8000}:8000"]
+    mem_limit: 768m
+
+  # Reads the public SOS MEDITERRANEE logbook every six hours (ADR 0014).
+  sync-logbook:
+    <<: *app
+    command: ["sync_logbook", "--every", "21600"]
+    healthcheck: {disable: true}
+    mem_limit: 384m
+
+  # Reads the Google Sheets tabs named in SHEETS_SYNC_CONFIG every five minutes (ADR 0012).
+  sync-sheets:
+    <<: *app
+    command: ["sync_sheets", "--every", "300"]
+    environment:
+      DB_HOST: db
+      DB_USER: rescue
+      POSTGRES_DB: rescue
+      SHEETS_SYNC_CONFIG: /app/config/sheets-sync.json
+    healthcheck: {disable: true}
+    mem_limit: 256m
+    volumes:
+      - ./sheets-sync.json:/app/config/sheets-sync.json:ro
+
+  db:
+    # PostGIS 17-3.6 with the script that creates the application role (infra/).
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.db
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rescue
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?}
+      DB_PASSWORD: ${DB_PASSWORD:?}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", 'PGPASSWORD="$$DB_PASSWORD" psql -h 127.0.0.1 -U rescue -d rescue -Atqc "SELECT 1"']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 512m
+
+volumes:
+  db:

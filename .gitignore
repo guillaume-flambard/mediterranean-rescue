@@ -174,3 +174,6 @@ data/local/
 .impeccable/review/
 .impeccable/mocks/
 .impeccable/build/
+
+# Production stack secrets and sheet links (deploy/README.md)
+deploy/sheets-sync.json

@@ -9,6 +9,7 @@ dependencies = [
   "gunicorn>=23,<24",
   "djangorestframework>=3.16,<4",
   "drf-spectacular>=0.28,<1",
+  "whitenoise>=6.9,<7",
 ]
 
 [dependency-groups]

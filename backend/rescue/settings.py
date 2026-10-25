@@ -32,6 +32,9 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "rescue.middleware.ContentSecurityPolicy",
+    # Serves /static/ and, in the production image, the built frontend (FRONTEND_DIST).
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     # The administration follows the browser's language (English or French).
     "django.middleware.locale.LocaleMiddleware",
@@ -99,6 +102,20 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+# Production image: the built frontend (frontend/dist) is served by the same process as the API.
+# Its files answer at the root; every other path that is not the API, the admin or /static/ gets
+# index.html, so the application's own routes load (rescue/urls.py).
+FRONTEND_DIST = os.environ.get("FRONTEND_DIST", "")
+if FRONTEND_DIST:
+    WHITENOISE_ROOT = FRONTEND_DIST
+    WHITENOISE_INDEX_FILE = True
+    # Vite names every built asset after its content: cache them for good.
+    WHITENOISE_IMMUTABLE_FILE_TEST = lambda path, url: url.startswith("/assets/")  # noqa: E731
+    WHITENOISE_MIMETYPES = {".geojson": "application/geo+json"}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 65536
 FILE_UPLOAD_MAX_MEMORY_SIZE = 65536
@@ -111,6 +128,8 @@ SECURE_HSTS_SECONDS = 31536000 if ENVIRONMENT == "production" else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = ENVIRONMENT == "production"
 SECURE_HSTS_PRELOAD = ENVIRONMENT == "production"
 X_FRAME_OPTIONS = "DENY"
+# The proxy's health probe may speak plain HTTP inside the server.
+SECURE_REDIRECT_EXEMPT = [r"^api/health/$"]
 # Behind a proxy that terminates TLS, Django must trust its header or SECURE_SSL_REDIRECT loops.
 # Set only when that proxy always overwrites the header (Django deployment checklist).
 if os.environ.get("DJANGO_BEHIND_TLS_PROXY") == "1":
