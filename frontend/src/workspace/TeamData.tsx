@@ -183,7 +183,7 @@ export function LogbookCard() {
             {t("logbook.card.verify", { count: data.to_verify })}
           </Link>
         )}
-        <Link to="/workspace/data?source=sos-logbook" className="pill-button">
+        <Link to="/workspace/data?source=sos-logbook" className="pill-button" onClick={showOnMap}>
           <Icon name="map" size={16} />
           {t("logbook.card.show")}
         </Link>
@@ -201,6 +201,15 @@ export function LogbookCard() {
 }
 
 // The team's own view of the latest data received, kept out of the public page.
+// The map is further down the same page: after filtering, bring it into view, or the click
+// seems to do nothing (Guillaume, 25 October 2026).
+function showOnMap() {
+  requestAnimationFrame(() => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("team-explore")?.scrollIntoView?.({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  });
+}
+
 export function TeamData() {
   const { t } = useI18n();
   return (
@@ -209,7 +218,9 @@ export function TeamData() {
         <>
           <LogbookCard />
           <SyncStatus />
-          <Explore audience="team" />
+          <div id="team-explore">
+            <Explore audience="team" />
+          </div>
         </>
       )}
     </WorkspaceShell>
