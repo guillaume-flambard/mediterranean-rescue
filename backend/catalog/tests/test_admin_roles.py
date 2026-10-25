@@ -26,6 +26,10 @@ class RoleTests(TestCase):
                 "auth.add_user",
                 "auth.change_user",
                 "auth.view_group",
+                # Invitations by link (ADR 0015, migration 0011).
+                "catalog.add_invitation",
+                "catalog.view_invitation",
+                "catalog.delete_invitation",
             },
         }
         for name, permissions in expected.items():

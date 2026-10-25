@@ -151,6 +151,7 @@ class PermissionsSerializer(serializers.Serializer):
     stage_snapshot = serializers.BooleanField()
     prepare_drafts = serializers.BooleanField()
     publish = serializers.BooleanField()
+    invite = serializers.BooleanField()
 
 
 class MeSerializer(serializers.Serializer):
@@ -166,6 +167,7 @@ def me_payload(user):
             "stage_snapshot": user.has_perm(STAGE_PERMISSION),
             "prepare_drafts": user.has_perm("catalog.add_event"),
             "publish": user.has_perm("catalog.publish_event"),
+            "invite": user.has_perm("catalog.add_invitation"),
         },
     }
 

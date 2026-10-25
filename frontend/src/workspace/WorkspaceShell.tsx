@@ -11,7 +11,7 @@ import { InlineMessage, PendingState } from "../ui/Feedback";
 
 export const ME_QUERY = ["get", "/api/private/v1/me/"] as const;
 
-type Section = "home" | "data" | "imports" | "review" | "publish" | "ports";
+type Section = "home" | "data" | "imports" | "review" | "publish" | "ports" | "team";
 
 const anyRole = (me: Me) => Object.values(me.permissions).some(Boolean);
 
@@ -27,6 +27,7 @@ const SECTIONS: readonly { key: Section; path: string; allowed: (me: Me) => bool
   },
   { key: "ports", path: "/workspace/ports", allowed: (me) => me.permissions.review_identity },
   { key: "imports", path: "/workspace/imports", allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity },
+  { key: "team", path: "/workspace/team", allowed: (me) => me.permissions.invite },
 ];
 
 const isCurrent = (path: string, pathname: string) =>

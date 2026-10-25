@@ -15,6 +15,12 @@ from catalog.private_imports import (
     ImportOptionsView,
     ImportsView,
 )
+from catalog.private_invitations import (
+    InvitationAcceptView,
+    InvitationCheckView,
+    InvitationsView,
+    InvitationView,
+)
 from catalog.private_logbook import LogbookExportView, LogbookOverviewView
 from catalog.private_ports import (
     PortLabelDecisionView,
@@ -73,6 +79,10 @@ urlpatterns = [
     path("api/v1/timeline/", TimelineView.as_view()),
     path("api/private/v1/me/", MeView.as_view()),
     path("api/private/v1/session/", SessionView.as_view()),
+    path("api/private/v1/invitations/", InvitationsView.as_view()),
+    path("api/private/v1/invitations/check/", InvitationCheckView.as_view()),
+    path("api/private/v1/invitations/accept/", InvitationAcceptView.as_view()),
+    path("api/private/v1/invitations/<uuid:id>/", InvitationView.as_view()),
     path("api/private/v1/snapshots/", SnapshotsView.as_view()),
     path("api/private/v1/review/rows/", ReviewRowsView.as_view()),
     path("api/private/v1/review/rows/<uuid:id>/", ReviewRowView.as_view()),

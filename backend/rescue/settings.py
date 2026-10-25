@@ -156,6 +156,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "sign_in": os.environ.get("SIGN_IN_RATE", "10/min"),
         "imports": os.environ.get("IMPORT_RATE", "30/min"),
+        "invitations": os.environ.get("INVITATION_RATE", "20/min"),
     },
 }
 SPECTACULAR_SETTINGS = {

@@ -65,6 +65,7 @@ class AccessTests(PrivateApiTestCase):
                     "stage_snapshot": True,
                     "prepare_drafts": False,
                     "publish": False,
+                    "invite": False,
                 },
             },
         )

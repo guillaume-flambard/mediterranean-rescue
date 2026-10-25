@@ -100,3 +100,19 @@
   .account__note { display: none; }
   .account__side { position: relative; z-index: 1; align-content: start; margin-top: -56px; padding-top: 0; }
 }
+
+/* Invitations (ADR 0015): the welcome page and the coordinator's team screen. */
+.invite__roles { padding: var(--space-3) var(--space-4); border-radius: 18px; background: rgb(27 39 71 / 0.05); }
+.invite__roles p { margin: 0 0 4px; color: var(--color-text-secondary); font-size: 14px; font-weight: 700; }
+.invite__roles ul { margin: 0; padding-left: 20px; color: var(--sos-navy, #1b2747); font-weight: 600; line-height: 1.6; }
+.team { display: grid; gap: var(--space-5, 20px); max-width: 44rem; }
+.team-invite, .team-created, .team-list { display: grid; gap: var(--space-3); padding: var(--space-5, 20px); border-radius: 20px; background: var(--sos-white, #fff); box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22); }
+.team-invite h2, .team-created h2, .team-list h2 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--sos-navy, #1b2747); font-size: 19px; font-weight: 800; }
+.team-invite__roles { display: grid; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+.team-invite__roles legend { margin-bottom: var(--space-2); font-weight: 700; }
+.team-created__link { margin: 0; padding: var(--space-3); border-radius: 12px; background: var(--canvas, #f7f8fa); font-size: 14px; overflow-wrap: anywhere; user-select: all; }
+.team-created__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.team-list ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.team-list__item { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.team-list__item p { margin: 0; }
+.team-list__email { color: var(--sos-navy, #1b2747); font-weight: 700; overflow-wrap: anywhere; }

@@ -322,6 +322,310 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: ''
+  /api/private/v1/invitations/:
+    get:
+      operationId: private_list_invitations
+      tags:
+      - invitations
+      security:
+      - privateSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+    post:
+      operationId: private_create_invitation
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationCreateRequest'
+        required: true
+      security:
+      - privateSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationCreated'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/{id}/:
+    delete:
+      operationId: private_revoke_invitation
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - invitations
+      security:
+      - privateSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/accept/:
+    post:
+      operationId: private_accept_invitation
+      description: Open to visitors, CSRF-checked and rate limited like sign-in.
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+        required: true
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+  /api/private/v1/invitations/check/:
+    post:
+      operationId: private_check_invitation
+      description: Open to visitors, CSRF-checked and rate limited like sign-in.
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+        required: true
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationOffer'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
   /api/private/v1/logbook/:
     get:
       operationId: private_logbook
@@ -3007,6 +3311,115 @@ components:
       - source
       - source_read
       - staged_by
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        roles:
+          type: array
+          items:
+            type: string
+        invited_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/InvitationStatusEnum'
+        used_by:
+          type: string
+          nullable: true
+      required:
+      - created_at
+      - email
+      - expires_at
+      - id
+      - invited_by
+      - roles
+      - status
+      - used_by
+    InvitationCreateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        roles:
+          type: array
+          items:
+            type: integer
+          maxItems: 10
+      required:
+      - email
+      - roles
+    InvitationCreated:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        token:
+          type: string
+          description: Shown once; the link is /invite#<token>.
+        expires_at:
+          type: string
+          format: date-time
+      required:
+      - expires_at
+      - id
+      - token
+    InvitationList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invitation'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          description: Roles this coordinator may give.
+      required:
+      - items
+      - roles
+    InvitationOffer:
+      type: object
+      properties:
+        invited_by:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+      required:
+      - expires_at
+      - invited_by
+      - roles
+    InvitationStatusEnum:
+      enum:
+      - waiting
+      - used
+      - revoked
+      - expired
+      type: string
+      description: |-
+        * `waiting` - waiting
+        * `used` - used
+        * `revoked` - revoked
+        * `expired` - expired
     Issue:
       type: object
       properties:
@@ -3050,6 +3463,20 @@ components:
       description: |-
         * `error` - error
         * `warning` - warning
+    KeyEnum:
+      enum:
+      - coordinator
+      - import
+      - prepare
+      - publish
+      - verify
+      type: string
+      description: |-
+        * `coordinator` - coordinator
+        * `import` - import
+        * `prepare` - prepare
+        * `publish` - publish
+        * `verify` - verify
     KindEnum:
       enum:
       - rescue
@@ -3462,7 +3889,10 @@ components:
           type: boolean
         publish:
           type: boolean
+        invite:
+          type: boolean
       required:
+      - invite
       - prepare_drafts
       - publish
       - review_identity
@@ -4093,6 +4523,16 @@ components:
         * `to_review` - to_review
         * `blocked` - blocked
         * `linked` - linked
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          $ref: '#/components/schemas/KeyEnum'
+      required:
+      - id
+      - key
     RowDetail:
       type: object
       properties:
@@ -4382,6 +4822,15 @@ components:
             $ref: '#/components/schemas/MonthCount'
       required:
       - months
+    TokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - token
     UploadRequest:
       type: object
       properties:
