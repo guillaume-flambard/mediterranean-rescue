@@ -1013,6 +1013,8 @@ export interface components {
         Me: {
             username: string;
             permissions: components["schemas"]["Permissions"];
+            /** @description Verification decisions this person has recorded: their progress, never a score. */
+            decisions: number;
         };
         MonthCount: {
             /** @description YYYY-MM */

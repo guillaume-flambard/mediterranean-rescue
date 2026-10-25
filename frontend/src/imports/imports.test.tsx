@@ -116,7 +116,7 @@ describe("imports", () => {
     server();
     renderAt("/workspace/imports");
     const nav = await screen.findByRole("navigation", { name: "Private workspace" });
-    expect(within(nav).getAllByRole("link").map((link) => link.textContent)).toEqual(["Home", "Manual update"]);
+    expect(within(nav).getAllByRole("link").map((link) => link.textContent)).toEqual(["Dashboard", "Add an update by hand", "Practise", "Help"]);
     expect(await screen.findByText("No export saved yet")).toBeTruthy();
   });
 

@@ -187,6 +187,42 @@ export function codeText(i18n: I18n, code: string) {
   return text === key ? code : text;
 }
 
+// A doubt goes to the coordinator with the link to this very operation, so nobody has to
+// describe where it is (25 October 2026). The application sends nothing itself.
+function ReportDoubt({ title }: { title: string }) {
+  const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
+  const link = window.location.href;
+  const subject = t("review.report.subject", { title });
+  const body = t("review.report.body", { title, link });
+  return (
+    <div className="review-report">
+      <p className="review-note">{t("review.report.help")}</p>
+      <div className="review-report__actions">
+        <a className="pill-button" href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}>
+          {t("review.report.write")}
+        </a>
+        <Button
+          variant="quiet"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(`${subject}\n\n${body}`);
+              setCopied(true);
+            } catch {
+              setCopied(false);
+            }
+          }}
+        >
+          {t("review.report.copy")}
+        </Button>
+      </div>
+      <p role="status" className="review-note">
+        {copied ? t("review.report.copied") : ""}
+      </p>
+    </div>
+  );
+}
+
 export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewProps) {
   const i18n = useI18n();
   const { t } = i18n;
@@ -426,6 +462,7 @@ export function RowReview({ rowId, snapshotId, onDecided, onClose }: RowReviewPr
               />
             )}
             <p className="review-note">{t("review.effect")}</p>
+            <ReportDoubt title={rowTitle(i18n, row.interpreted)} />
             <div className="review-actions">
               <Button variant="primary" loading={decide.isPending} onClick={() => void submit(false)}>
                 {decision === "later" ? t("review.action.later") : verb}

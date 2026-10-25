@@ -157,11 +157,15 @@ class PermissionsSerializer(serializers.Serializer):
 class MeSerializer(serializers.Serializer):
     username = serializers.CharField()
     permissions = PermissionsSerializer()
+    decisions = serializers.IntegerField(
+        help_text="Verification decisions this person has recorded: their progress, never a score."
+    )
 
 
 def me_payload(user):
     return {
         "username": user.get_username(),
+        "decisions": RowIdentityLink.objects.filter(approved_by=user).count(),
         "permissions": {
             "review_identity": user.has_perm(REVIEW_PERMISSION),
             "stage_snapshot": user.has_perm(STAGE_PERMISSION),

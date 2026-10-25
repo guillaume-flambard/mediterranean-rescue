@@ -109,8 +109,12 @@ describe("team home", () => {
     });
     render(<TeamHome />, "/workspace");
     expect(await screen.findByRole("heading", { name: "Hello volunteer" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Welcome to the team space" })).toBeTruthy();
-    const steps = within(screen.getByRole("region", { name: "To do" })).getAllByRole("listitem");
+    // One next task, with the only orange button; a newcomer practises first.
+    const next = screen.getByRole("region", { name: "Your next task" });
+    expect(within(next).getByRole("heading", { name: "Practise on an invented operation" })).toBeTruthy();
+    expect(within(next).getByRole("link", { name: /Start/ }).getAttribute("href")).toBe("/workspace/practice");
+    expect(screen.getByText("Discover the space")).toBeTruthy();
+    const steps = within(screen.getByRole("region", { name: "All the work, in order" })).getAllByRole("listitem");
     expect(steps.map((step) => within(step).getByRole("heading").textContent)).toEqual([
       "Sheet reading",
       "Verify new or changed events",
@@ -121,9 +125,6 @@ describe("team home", () => {
     expect(await within(steps[3]!).findByText("No written agreement recorded from: Fictitious source.")).toBeTruthy();
     expect(within(steps[3]!).getByText("Cannot start yet")).toBeTruthy();
     expect(await screen.findByText("3 port names to match to a known port.")).toBeTruthy();
-
-    await userEvent.click(screen.getByRole("button", { name: "Close the welcome message" }));
-    expect(screen.queryByRole("heading", { name: "Welcome to the team space" })).toBeNull();
     expect(window.localStorage.getItem("team-intro-dismissed")).toBe("1");
   });
 });
@@ -243,7 +244,7 @@ describe("team home for a single role", () => {
       }),
     });
     render(<TeamHome />, "/workspace");
-    const steps = within(await screen.findByRole("region", { name: "To do" })).getAllByRole("listitem");
+    const steps = within(await screen.findByRole("region", { name: "All the work, in order" })).getAllByRole("listitem");
     expect(within(steps[0]!).getByText("Not part of your role.")).toBeTruthy();
     expect(within(steps[1]!).getByText("Not part of your role.")).toBeTruthy();
     expect(within(steps[0]!).queryByRole("link")).toBeNull();

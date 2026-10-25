@@ -3827,7 +3827,12 @@ components:
           type: string
         permissions:
           $ref: '#/components/schemas/Permissions'
+        decisions:
+          type: integer
+          description: 'Verification decisions this person has recorded: their progress,
+            never a score.'
       required:
+      - decisions
       - permissions
       - username
     MonthCount:

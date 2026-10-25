@@ -1,9 +1,9 @@
-import { Button as BaseButton } from "@base-ui/react/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, type Me } from "../api/client";
 import { useI18n, type I18n } from "../i18n/I18nProvider";
 import { Link } from "../router";
 import { Icon } from "../ui/Icon";
+import { journeyDone, markJourney } from "./journey";
 import { WorkspaceShell } from "./WorkspaceShell";
 
 type Key = Parameters<I18n["t"]>[0];
@@ -18,15 +18,6 @@ interface Step {
   action: string;
 }
 
-const INTRO_KEY = "team-intro-dismissed";
-
-function introDismissed() {
-  try {
-    return window.localStorage.getItem(INTRO_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
 
 // The team space's front door: what needs doing today, in the order of the work, each step with
 // one sentence and one button. Built for a volunteer who has never been here (PRODUCT.md, 0).
@@ -46,7 +37,10 @@ function Home({ me }: { me: Me }) {
   // Each step reads only what this person's role may see; the others say so instead of loading.
   const canRead = reviewer || stager;
   const canFollow = reviewer || preparer || publisher;
-  const [intro, setIntro] = useState(() => !introDismissed());
+  // Landing here is discovering the space: the first step of the journey.
+  const [practiced] = useState(() => journeyDone("practice"));
+  const [publishGuide] = useState(() => journeyDone("publishGuide"));
+  useEffect(() => markJourney("intro"), []);
   const sync = api.useQuery("get", "/api/private/v1/sync/", {}, { refetchInterval: 60_000, enabled: canRead });
   const queue = api.useQuery("get", "/api/private/v1/preview/events/", { params: { query: { limit: 1 } } }, { enabled: reviewer });
   const publication = api.useQuery("get", "/api/private/v1/publication/", {}, { enabled: canFollow });
@@ -141,17 +135,36 @@ function Home({ me }: { me: Me }) {
     },
   ];
 
-  // One orange button on the page: the next thing to do. Later steps wait their turn.
-  const next = steps.findIndex((step) => step.state === "todo");
-
-  const close = () => {
-    setIntro(false);
-    try {
-      window.localStorage.setItem(INTRO_KEY, "1");
-    } catch {
-      // Blocked storage: the introduction comes back next time, nothing else changes.
-    }
-  };
+  const next = steps.find((step) => step.state === "todo" && step.path);
+  // The first operation still to verify, so "Start" opens it directly (logbook rows first).
+  const firstRow = api.useQuery(
+    "get",
+    "/api/private/v1/review/rows/",
+    { params: { query: { snapshot: rebuilt?.snapshot ?? "", status: "to_review", limit: 1 } } },
+    { enabled: reviewer && Boolean(rebuilt?.snapshot) },
+  );
+  const firstRowPath =
+    rebuilt?.snapshot && firstRow.data?.items[0] ? `/workspace/review/${rebuilt.snapshot}/rows/${firstRow.data.items[0].id}` : null;
+  // A newcomer practises once on an invented operation before touching real data.
+  // Older sessions may not send the count yet: unknown counts as none.
+  const decisions = me.decisions ?? 0;
+  const newcomer = reviewer && decisions === 0 && !practiced;
+  const task = newcomer
+    ? { key: "practice", path: "/workspace/practice", skip: firstRowPath ?? (next?.path || null) }
+    : next
+      ? { key: next.key === "logbook" ? "verify" : next.key, path: (next.key === "logbook" || next.key === "verify") && firstRowPath ? firstRowPath : next.path, skip: null }
+      : null;
+  const journey: { key: string; done: boolean }[] = [
+    { key: "discover", done: true },
+    { key: "practice", done: practiced || decisions > 0 },
+    { key: "first", done: decisions > 0 },
+    { key: "publication", done: publishGuide },
+  ];
+  const attention = [
+    rebuilt && rebuilt.to_check > 0 ? { key: "notes", count: rebuilt.to_check, path: "/workspace/data?source=sos-logbook" } : null,
+    counts && counts.blocked > 0 ? { key: "blocked", count: counts.blocked, path: "/workspace/review" } : null,
+    failing ? { key: "reading", count: 1, path: "/workspace/data" } : null,
+  ].filter((item): item is { key: string; count: number; path: string } => item !== null && (reviewer || item.key === "reading"));
 
   return (
     <div className="team-home">
@@ -160,24 +173,76 @@ function Home({ me }: { me: Me }) {
         <p>{t("home.lead")}</p>
       </div>
 
-      {intro && (
-        <section className="team-intro" aria-labelledby="team-intro-title">
-          <div className="team-intro__head">
-            <h2 id="team-intro-title">{t("home.intro.title")}</h2>
-            <BaseButton className="icon-button team-intro__close" aria-label={t("home.intro.close")} onClick={close}>
-              <Icon name="close" size={18} />
-            </BaseButton>
-          </div>
-          <p>{t("home.intro.body")}</p>
-          <p className="team-intro__safe">
-            <Icon name="lock" size={16} />
-            {t("home.intro.safe")}
-          </p>
+      {/* One person, one task, one obvious next action (25 October 2026). */}
+      <section className="team-next" aria-labelledby="team-next-title">
+        <h2 id="team-next-title" className="team-next__kicker">{t("home.next.kicker")}</h2>
+        {task ? (
+          <>
+            <h3>{t(`home.next.${task.key}.title` as Key)}</h3>
+            <p>{t(`home.next.${task.key}.body` as Key)}</p>
+            <div className="team-next__actions">
+              {task.path && (
+                <Link to={task.path} className="pill-button pill-button--primary team-next__start">
+                  {t("home.next.start")}
+                  <Icon name="arrowRight" size={16} />
+                </Link>
+              )}
+              {task.skip && (
+                <Link to={task.skip} className="link-button team-next__skip">
+                  {t("home.next.skip")}
+                </Link>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <h3>{t("home.next.none.title")}</h3>
+            <p>{t("home.next.none.body")}</p>
+          </>
+        )}
+        <p className="team-next__safe">
+          <Icon name="lock" size={16} />
+          {t("home.intro.safe")}
+        </p>
+      </section>
+
+      <div className="team-overview">
+        <section className="team-journey" aria-labelledby="team-journey-title">
+          <h2 id="team-journey-title">{t("home.journey.title")}</h2>
+          <ol>
+            {journey.map((item) => (
+              <li key={item.key} className={item.done ? "team-journey__done" : undefined}>
+                <span className="team-journey__mark" aria-hidden="true">
+                  {item.done && <Icon name="check" size={14} />}
+                </span>
+                {t(`home.journey.${item.key}` as Key)}
+                <span className="sr-only"> {t(item.done ? "home.journey.isDone" : "home.journey.isTodo")}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="review-note">{t("home.journey.decisions", { count: decisions })}</p>
         </section>
-      )}
+        <section className="team-attention" aria-labelledby="team-attention-title">
+          <h2 id="team-attention-title">{t("home.attention.title")}</h2>
+          {attention.length === 0 ? (
+            <p className="review-note">{t("home.attention.none")}</p>
+          ) : (
+            <ul>
+              {attention.map((item) => (
+                <li key={item.key}>
+                  <Link to={item.path}>
+                    <Icon name="alert" size={16} />
+                    {t(`home.attention.${item.key}` as Key, { count: item.count })}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
       <section aria-labelledby="todo-title" className="team-steps">
-        <h2 id="todo-title">{t("home.todo")}</h2>
+        <h2 id="todo-title">{t("home.allWork")}</h2>
         <ol>
           {steps.map((step, index) => (
             <li key={step.key} className={`team-step team-step--${step.state}`}>
@@ -193,7 +258,7 @@ function Home({ me }: { me: Me }) {
                 </p>
               </div>
               {step.path && (
-                <Link to={step.path} className={`pill-button${index === next ? " pill-button--primary" : ""} team-step__action`}>
+                <Link to={step.path} className="pill-button team-step__action">
                   {step.action}
                   <Icon name="arrowRight" size={16} />
                 </Link>

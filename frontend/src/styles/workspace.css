@@ -188,3 +188,84 @@
 /* Team pages on a phone: the filter panel scrolls away so an opened record has the screen. */
 @media (max-width: 959px) { .explore--team .composer { position: static; box-shadow: var(--card-shadow); } }
 .publish-step .ui-table { overflow-x: auto; }
+
+/* Team space as a workstation (25 October 2026): on a desk, a navy column of sections beside the
+   work; on phones and tablets the navy band with pills stays. */
+.workspace { min-height: 100dvh; }
+.workspace-side { display: none; }
+@media (min-width: 960px) {
+  .workspace { display: grid; grid-template-columns: 264px minmax(0, 1fr); align-items: start; gap: var(--space-2); padding: var(--space-4); }
+  .workspace > .review { width: 100%; margin: 0 auto; padding-top: var(--space-2); }
+  .workspace .workspace-bar { display: none; }
+  .workspace-side {
+    position: sticky; top: var(--space-4); display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-5, 20px);
+    height: calc(100dvh - 2 * var(--space-4)); padding: var(--space-5, 20px) var(--space-3); border-radius: 24px;
+    background: var(--sos-navy); color: var(--sos-white);
+  }
+  .workspace-side__brand { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 var(--space-2); font-size: 16px; font-weight: 800; }
+  .workspace-side__brand small { display: block; margin-top: 2px; color: rgb(255 255 255 / 0.66); font-size: 12px; font-weight: 600; }
+  .workspace-side__nav { display: grid; align-content: start; gap: 2px; overflow-y: auto; }
+  .workspace-side__link.workspace-side__link {
+    display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 var(--space-3); border: 0; border-radius: 14px;
+    background: transparent; color: rgb(255 255 255 / 0.86); font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; text-align: left; cursor: pointer;
+  }
+  .workspace-side__link:hover { background: rgb(255 255 255 / 0.08); color: var(--sos-white); }
+  .workspace-side__link[aria-current="page"] { background: var(--sos-white); color: var(--sos-navy); }
+  .workspace-side__link--secondary.workspace-side__link--secondary { min-height: 38px; font-size: 14px; font-weight: 600; color: rgb(255 255 255 / 0.72); }
+  .workspace-side__link:focus-visible { outline: 3px solid var(--sos-white); outline-offset: 2px; }
+  .workspace-side__foot { display: grid; gap: 2px; padding-top: var(--space-3); border-top: 1px solid rgb(255 255 255 / 0.14); }
+  .workspace-side__user { display: flex; align-items: center; gap: 8px; margin: 0 0 var(--space-1); padding: 0 var(--space-3); color: rgb(255 255 255 / 0.7); font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-side__signout { width: 100%; justify-content: flex-start; }
+}
+
+/* Practice and help: one column, generous, readable on a phone. */
+.practice, .help { display: grid; gap: var(--space-4); max-width: 46rem; }
+.practice__head h1 { margin: 0; font-size: clamp(26px, 2.4vw, 34px); font-weight: 800; letter-spacing: -0.02em; color: var(--sos-navy); }
+.practice__head p { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: 16px; line-height: 1.55; }
+.practice__safe { display: inline-flex; align-items: center; gap: 6px; color: var(--sos-navy) !important; font-weight: 700; }
+.practice__case, .practice__question, .help__guide {
+  display: grid; gap: var(--space-3); padding: var(--space-5, 20px); border-radius: 20px; background: var(--sos-white);
+  box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22);
+}
+.practice__case h2, .practice__case h3, .practice__question h2, .help__guide h2 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--sos-navy); font-size: 18px; font-weight: 800; }
+.practice__case h3 { font-size: 15px; }
+.practice__answers { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.practice__answers--stack { display: grid; }
+.practice__answers .ui-button { min-height: 48px; border-radius: 999px; }
+.practice__feedback { display: flex; align-items: center; gap: 6px; margin: 0; padding: var(--space-3); border-radius: 14px; font-weight: 600; }
+.practice__feedback--right { background: var(--color-success-background); color: var(--color-success); }
+.practice__feedback--wrong { background: var(--color-warning-background); color: var(--color-warning); }
+.practice__wrong { color: var(--color-error); font-weight: 800; text-decoration: underline wavy; text-underline-offset: 4px; }
+.practice__question--done .pill-button { justify-self: start; }
+.help__guides { display: grid; gap: var(--space-3); }
+@media (min-width: 900px) { .help__guides { grid-template-columns: 1fr 1fr; } }
+.help__guide p { margin: 0; line-height: 1.55; }
+.help__why, .help__example { color: var(--color-text-secondary); font-size: 14px; }
+
+/* Dashboard: one next task, then first steps and what needs attention. */
+.team-next {
+  display: grid; gap: var(--space-3); padding: clamp(20px, 3vw, 32px); border-radius: 24px; background: var(--sos-white);
+  box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 16px 36px -20px rgb(27 39 71 / 0.3);
+}
+.team-next__kicker { margin: 0; color: var(--sos-navy); font-size: 17px; font-weight: 800; }
+.team-next h3 { margin: 0; color: var(--sos-navy); font-size: clamp(22px, 2.2vw, 28px); font-weight: 800; letter-spacing: -0.015em; }
+.team-next > p { margin: 0; color: var(--color-text-secondary); font-size: 16px; line-height: 1.55; max-width: 60ch; }
+.team-next__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-1); }
+.team-next__start { min-height: 48px; padding-inline: var(--space-6, 24px); font-size: 16px; }
+@media (max-width: 639px) { .team-next__start { flex: 1; justify-content: center; } }
+.team-next__skip { color: var(--sos-navy); font-weight: 700; }
+.team-next__safe { display: flex; align-items: center; gap: 6px; margin: var(--space-1) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 13px; }
+.team-overview { display: grid; gap: var(--space-3); }
+@media (min-width: 760px) { .team-overview { grid-template-columns: 1fr 1fr; } }
+.team-journey, .team-attention { display: grid; align-content: start; gap: var(--space-3); padding: var(--space-5, 20px); border-radius: 20px; background: var(--sos-white); box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 10px 28px -14px rgb(27 39 71 / 0.22); }
+.team-journey h2, .team-attention h2 { margin: 0; color: var(--sos-navy); font-size: 18px; font-weight: 800; }
+.team-journey ol, .team-attention ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.team-journey li { display: flex; align-items: center; gap: 10px; color: var(--color-text-secondary); font-weight: 600; }
+.team-journey__mark { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border: 2px solid var(--color-border); border-radius: 50%; }
+.team-journey__done { color: var(--sos-navy) !important; }
+.team-journey__done .team-journey__mark { border-color: var(--color-success); background: var(--color-success); color: var(--sos-white); }
+.team-attention a { display: flex; align-items: center; gap: 8px; color: var(--sos-navy); font-weight: 700; text-decoration: none; }
+.team-attention a svg { flex: none; color: var(--color-warning); }
+.team-attention a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.team-next__safe svg, .practice__safe svg, .team-attention a svg { flex: none; }
+.practice__feedback svg { flex: none; }

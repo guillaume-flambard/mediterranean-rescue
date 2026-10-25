@@ -11,6 +11,8 @@ const ImportsWorkspace = lazy(async () => ({ default: (await import("./imports/I
 const PortsWorkspace = lazy(async () => ({ default: (await import("./ports/PortsWorkspace")).PortsWorkspace }));
 const TeamData = lazy(async () => ({ default: (await import("./workspace/TeamData")).TeamData }));
 const AboutPage = lazy(async () => ({ default: (await import("./explore/AboutPage")).AboutPage }));
+const TeamPractice = lazy(async () => ({ default: (await import("./workspace/TeamPractice")).TeamPractice }));
+const TeamHelp = lazy(async () => ({ default: (await import("./workspace/TeamHelp")).TeamHelp }));
 const TeamPeople = lazy(async () => ({ default: (await import("./workspace/TeamPeople")).TeamPeople }));
 const InvitationPage = lazy(async () => ({ default: (await import("./review/InvitationPage")).InvitationPage }));
 const TeamHome = lazy(async () => ({ default: (await import("./workspace/TeamHome")).TeamHome }));
@@ -62,6 +64,10 @@ function Routes() {
     <PublishWorkspace />
   ) : within(pathname, "/workspace/team") ? (
     <TeamPeople />
+  ) : within(pathname, "/workspace/practice") ? (
+    <TeamPractice />
+  ) : within(pathname, "/workspace/help") ? (
+    <TeamHelp />
   ) : pathname === "/workspace" || pathname === "/workspace/" ? (
     <TeamHome />
   ) : null;

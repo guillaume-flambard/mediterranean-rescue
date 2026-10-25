@@ -6,28 +6,37 @@ import { AccessProblem } from "../review/AccessProblem";
 import { Link, useLocation } from "../router";
 import { Button } from "../ui/Button";
 import { BrandMark } from "../ui/BrandMark";
-import { Icon } from "../ui/Icon";
+import { Icon, type IconName } from "../ui/Icon";
 import { InlineMessage, PendingState } from "../ui/Feedback";
 
 export const ME_QUERY = ["get", "/api/private/v1/me/"] as const;
 
-type Section = "home" | "data" | "imports" | "review" | "publish" | "ports" | "team";
+type Section = "home" | "data" | "imports" | "review" | "publish" | "ports" | "team" | "help" | "practice";
 
 const anyRole = (me: Me) => Object.values(me.permissions).some(Boolean);
 
 // In the order of the work: see what is new, verify it, publish it; then the occasional tasks.
-const SECTIONS: readonly { key: Section; path: string; allowed: (me: Me) => boolean }[] = [
-  { key: "home", path: "/workspace", allowed: anyRole },
-  { key: "data", path: "/workspace/data", allowed: (me) => me.permissions.review_identity },
-  { key: "review", path: "/workspace/review", allowed: (me) => me.permissions.review_identity },
+const SECTIONS: readonly { key: Section; path: string; icon: IconName; allowed: (me: Me) => boolean; secondary?: boolean }[] = [
+  { key: "home", path: "/workspace", icon: "grid", allowed: anyRole },
+  { key: "review", path: "/workspace/review", icon: "listCheck", allowed: (me) => me.permissions.review_identity },
   {
     key: "publish",
     path: "/workspace/publish",
+    icon: "send",
     allowed: (me) => me.permissions.review_identity || me.permissions.prepare_drafts || me.permissions.publish,
   },
-  { key: "ports", path: "/workspace/ports", allowed: (me) => me.permissions.review_identity },
-  { key: "imports", path: "/workspace/imports", allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity },
-  { key: "team", path: "/workspace/team", allowed: (me) => me.permissions.invite },
+  { key: "data", path: "/workspace/data", icon: "database", allowed: (me) => me.permissions.review_identity },
+  { key: "ports", path: "/workspace/ports", icon: "anchor", allowed: (me) => me.permissions.review_identity, secondary: true },
+  {
+    key: "imports",
+    path: "/workspace/imports",
+    icon: "upload",
+    allowed: (me) => me.permissions.stage_snapshot || me.permissions.review_identity,
+    secondary: true,
+  },
+  { key: "team", path: "/workspace/team", icon: "people", allowed: (me) => me.permissions.invite },
+  { key: "practice", path: "/workspace/practice", icon: "school", allowed: anyRole },
+  { key: "help", path: "/workspace/help", icon: "help", allowed: anyRole },
 ];
 
 const isCurrent = (path: string, pathname: string) =>
@@ -72,60 +81,101 @@ export function WorkspaceShell({
 
   const current = SECTIONS.find((item) => item.key === section);
   const allowed = current?.allowed(me.data) ?? false;
+  const sections = SECTIONS.filter((item) => item.allowed(me.data));
+  const signOutButton = (className: string) => (
+    <Button
+      size="sm"
+      variant="quiet"
+      className={className}
+      aria-label={t("signIn.signOut")}
+      loading={signOut.isPending}
+      onClick={async () => {
+        await signOut.mutateAsync({});
+        resetCsrfToken();
+        // Reset, not clear: a cleared cache left the screen on "Loading" with no observer to
+        // refetch who is signed in.
+        await queryClient.resetQueries();
+      }}
+    >
+      <Icon name="signOut" size={18} />
+      <span className="workspace-bar__label">{t("signIn.signOut")}</span>
+    </Button>
+  );
   return (
-    <main className={className}>
-      <header className="workspace-bar">
-        <div className="workspace-bar__top">
-          <p className="workspace-bar__brand">
-            <BrandMark size={28} className="workspace-bar__mark" />
-            {t("app.brand")} <span>{t("workspace.teamSpace")}</span>
-          </p>
-          <span className="workspace-bar__user" title={t("review.signedInAs", { name: me.data.username })}>
-            {me.data.username}
+    <div className="workspace">
+      {/* Desk: one navy column with every section this person may open, in the order of the work. */}
+      <aside className="workspace-side">
+        <p className="workspace-side__brand">
+          <BrandMark size={30} />
+          <span>
+            {t("app.brand")}
+            <small>{t("workspace.teamSpace")}</small>
           </span>
-          <Link to="/" className="workspace-bar__action" aria-label={t("review.publicSite")} title={t("review.publicSite")}>
-            <Icon name="map" size={18} />
-            <span className="workspace-bar__label">{t("review.publicSite")}</span>
-          </Link>
-          <Button
-            size="sm"
-            variant="quiet"
-            className="workspace-bar__action"
-            aria-label={t("signIn.signOut")}
-            loading={signOut.isPending}
-            onClick={async () => {
-              await signOut.mutateAsync({});
-              resetCsrfToken();
-              // Reset, not clear: a cleared cache left the screen on "Loading" with no observer to
-              // refetch who is signed in.
-              await queryClient.resetQueries();
-            }}
-          >
-            <Icon name="signOut" size={18} />
-            <span className="workspace-bar__label">{t("signIn.signOut")}</span>
-          </Button>
-        </div>
-        <nav className="workspace-nav" aria-label={t("workspace.nav")}>
-          {SECTIONS.filter((item) => item.allowed(me.data)).map((item) => (
+        </p>
+        <nav className="workspace-side__nav" aria-label={t("workspace.nav")}>
+          {sections.map((item) => (
             <Link
               key={item.key}
               to={item.path}
-              className="workspace-nav__link"
+              className={`workspace-side__link${item.secondary ? " workspace-side__link--secondary" : ""}`}
               aria-current={isCurrent(item.path, pathname) ? "page" : undefined}
             >
+              <Icon name={item.icon} size={19} />
               {t(`workspace.section.${item.key}`)}
             </Link>
           ))}
         </nav>
-      </header>
-      {allowed ? (
-        children(me.data)
-      ) : (
-        <>
-          <h1>{title}</h1>
-          <AccessProblem code="permission_denied" />
-        </>
-      )}
-    </main>
+        <div className="workspace-side__foot">
+          <p className="workspace-side__user" title={t("review.signedInAs", { name: me.data.username })}>
+            <Icon name="people" size={16} />
+            {me.data.username}
+          </p>
+          <Link to="/" className="workspace-side__link workspace-side__link--secondary">
+            <Icon name="map" size={18} />
+            {t("review.publicSite")}
+          </Link>
+          {signOutButton("workspace-side__link workspace-side__link--secondary workspace-side__signout")}
+        </div>
+      </aside>
+      <main className={className}>
+        {/* Phones and tablets: the navy band with the sections as pills under it. */}
+        <header className="workspace-bar">
+          <div className="workspace-bar__top">
+            <p className="workspace-bar__brand">
+              <BrandMark size={28} className="workspace-bar__mark" />
+              {t("app.brand")} <span>{t("workspace.teamSpace")}</span>
+            </p>
+            <span className="workspace-bar__user" title={t("review.signedInAs", { name: me.data.username })}>
+              {me.data.username}
+            </span>
+            <Link to="/" className="workspace-bar__action" aria-label={t("review.publicSite")} title={t("review.publicSite")}>
+              <Icon name="map" size={18} />
+              <span className="workspace-bar__label">{t("review.publicSite")}</span>
+            </Link>
+            {signOutButton("workspace-bar__action")}
+          </div>
+          <nav className="workspace-nav" aria-label={t("workspace.navCompact")}>
+            {sections.map((item) => (
+              <Link
+                key={item.key}
+                to={item.path}
+                className="workspace-nav__link"
+                aria-current={isCurrent(item.path, pathname) ? "page" : undefined}
+              >
+                {t(`workspace.section.${item.key}`)}
+              </Link>
+            ))}
+          </nav>
+        </header>
+        {allowed ? (
+          children(me.data)
+        ) : (
+          <>
+            <h1>{title}</h1>
+            <AccessProblem code="permission_denied" />
+          </>
+        )}
+      </main>
+    </div>
   );
 }

@@ -67,6 +67,7 @@ class AccessTests(PrivateApiTestCase):
                     "publish": False,
                     "invite": False,
                 },
+                "decisions": 0,
             },
         )
         self.assertEqual(response["Cache-Control"], "no-store")

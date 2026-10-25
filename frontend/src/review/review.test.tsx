@@ -97,7 +97,7 @@ describe("access", () => {
     await userEvent.clear(screen.getByLabelText("Password"));
     await userEvent.type(screen.getByLabelText("Password"), "right");
     await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
-    expect(await screen.findByTitle("Signed in as reviewer")).toBeTruthy();
+    expect((await screen.findAllByTitle("Signed in as reviewer")).length).toBeGreaterThan(0);
     const signIn = calls.filter((call) => call.method === "POST" && call.path === "/api/private/v1/session/").at(-1);
     expect(signIn?.headers.get("X-CSRFToken")).toBe("t");
   });
@@ -123,7 +123,7 @@ describe("queue (W04)", () => {
       "POST /api/private/v1/review/snapshots/:id/exact-carries/": () => ({ body: { carried: 1 } }),
     });
     renderAt("/workspace/review");
-    const table = await screen.findByRole("table", { name: "Events: Not verified yet" });
+    const table = await screen.findByRole("table", { name: "Events: To verify" });
     expect(screen.getByRole("radio", { name: "Verified 5" })).toBeTruthy();
     expect(within(table).getByRole("link", { name: "Feb 3, 2024 · Rescue operation" }).getAttribute("href")).toBe(
       `/workspace/review/${SNAPSHOT}/rows/${ROW}?status=to_review&offset=0`,
@@ -325,6 +325,6 @@ describe("review regressions", () => {
   it("a malformed address does not crash the workspace", async () => {
     server();
     renderAt("/workspace/review/%E0/rows/x");
-    expect(await screen.findByRole("table", { name: "Events: Not verified yet" })).toBeTruthy();
+    expect(await screen.findByRole("table", { name: "Events: To verify" })).toBeTruthy();
   });
 });
