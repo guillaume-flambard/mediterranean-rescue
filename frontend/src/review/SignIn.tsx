@@ -5,6 +5,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { Button } from "../ui/Button";
 import { InlineMessage } from "../ui/Feedback";
 import { TextField } from "../ui/TextField";
+import { AccountFrame } from "./AccountFrame";
 
 // The application's own sign-in screen over the Django session (ADR 0009).
 export function SignIn() {
@@ -41,9 +42,9 @@ export function SignIn() {
   };
 
   return (
-    <div className="sign-in">
+    <AccountFrame titleId="sign-in-title">
       <form
-        className="sign-in__card"
+        className="sign-in"
         noValidate
         aria-labelledby="sign-in-title"
         onSubmit={(event) => {
@@ -51,13 +52,12 @@ export function SignIn() {
           void submit();
         }}
       >
-        <p className="sign-in__brand">{t("app.brand")}</p>
         <h1 id="sign-in-title">{t("signIn.title")}</h1>
-        <p className="review-note">{t("signIn.lead")}</p>
+        <p className="sign-in__lead">{t("signIn.lead")}</p>
         {failure && <InlineMessage tone="error">{failure}</InlineMessage>}
         {state.data?.local_auto_login && (
           <div className="sign-in__local">
-            <p className="review-note">{t("signIn.localLead")}</p>
+            <p>{t("signIn.localLead")}</p>
             <Button
               size="lg"
               loading={resume.isPending}
@@ -96,8 +96,9 @@ export function SignIn() {
         <Button type="submit" variant="primary" size="lg" loading={signIn.isPending}>
           {t("signIn.submit")}
         </Button>
-        <p className="review-note">{t("signIn.privacy")}</p>
+        <p className="sign-in__invite">{t("signIn.invited")}</p>
+        <p className="sign-in__privacy">{t("signIn.privacy")}</p>
       </form>
-    </div>
+    </AccountFrame>
   );
 }

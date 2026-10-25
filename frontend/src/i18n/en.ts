@@ -229,6 +229,10 @@ export const en = {
   "review.carry.done": { one: "{count} event verified.", other: "{count} events verified." },
   "review.carry.rowLabel": "Select the event of {date} · {kind}",
 
+  "account.claim": "Each operation at sea, checked one by one against its source.",
+  "account.note": "A volunteer space, independent of SOS MEDITERRANEE. Nothing here is public until someone decides it.",
+  "account.back": "Back to the public site",
+  "signIn.invited": "New to the team? Ask your coordinator for an invitation link: it signs you in without a password.",
   "signIn.title": "Sign in",
   "signIn.localLead": "This is a local machine: it can sign the team in without a password. You signed out, so it no longer does it in this browser.",
   "signIn.localResume": "Sign in automatically again",

@@ -48,7 +48,9 @@ export function WorkspaceShell({
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const { pathname } = useLocation();
-  const me = api.useQuery("get", "/api/private/v1/me/", {});
+  // Signed out, coming back to the window must not refetch who is signed in: the refetch shows
+  // "Loading" and remounts the sign-in form, which loses what was typed.
+  const me = api.useQuery("get", "/api/private/v1/me/", {}, { refetchOnWindowFocus: (query) => query.state.status === "success" });
   const signOut = api.useMutation("delete", "/api/private/v1/session/");
 
   if (me.isPending) return <PendingState label={t("workspace.loading")} />;
@@ -93,8 +95,9 @@ export function WorkspaceShell({
             onClick={async () => {
               await signOut.mutateAsync({});
               resetCsrfToken();
-              queryClient.clear();
-              void me.refetch();
+              // Reset, not clear: a cleared cache left the screen on "Loading" with no observer to
+              // refetch who is signed in.
+              await queryClient.resetQueries();
             }}
           >
             <Icon name="signOut" size={18} />

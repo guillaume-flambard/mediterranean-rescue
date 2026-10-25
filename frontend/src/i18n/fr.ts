@@ -232,6 +232,10 @@ export const fr: Messages = {
   "review.carry.done": { one: "{count} événement vérifié.", other: "{count} événements vérifiés." },
   "review.carry.rowLabel": "Sélectionner l’événement du {date} · {kind}",
 
+  "account.claim": "Chaque opération en mer, vérifiée une à une d’après sa source.",
+  "account.note": "Un espace bénévole, indépendant de SOS MEDITERRANEE. Rien ici n’est public tant que quelqu’un ne l’a pas décidé.",
+  "account.back": "Retour au site public",
+  "signIn.invited": "Nouveau dans l’équipe ? Demandez un lien d’invitation à la personne qui coordonne : il vous connecte sans mot de passe.",
   "signIn.title": "Connexion",
   "signIn.localLead": "Ce poste est local : il peut connecter l’équipe sans mot de passe. Vous vous êtes déconnecté, il ne le fait donc plus dans ce navigateur.",
   "signIn.localResume": "Me reconnecter automatiquement",

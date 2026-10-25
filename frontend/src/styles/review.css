@@ -61,11 +61,42 @@
 }
 
 /* Sign-in screen. */
-.sign-in { min-height: 100dvh; display: grid; place-items: center; padding: var(--space-6) var(--layout-page-gutter-mobile); background: var(--color-brand); }
-.sign-in__card { width: min(26rem, 100%); display: grid; gap: var(--space-4); padding: var(--space-8) var(--space-6); background: var(--color-surface); color: var(--color-text); border-radius: var(--radius-large); box-shadow: var(--shadow-dialog); font-family: var(--font-family-sans); }
-.sign-in__card h1 { margin: 0; font-family: var(--font-family-sans); font-size: var(--type-page-size); line-height: var(--type-page-line); font-weight: var(--type-page-weight); }
-.sign-in__brand { margin: 0; font-weight: var(--font-weight-heading); color: var(--color-accent); letter-spacing: 0.02em; }
-.sign-in__card .ui-button { width: 100%; }
-
-/* Local machine: the way back to the automatic sign-in after signing out. */
-.sign-in__local { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: 14px; background: rgb(27 39 71 / 0.05); }
+/* Account screens (sign in, invitation), 25 October 2026: the sea beside a calm card. */
+.account { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); background: var(--ground, #eeedf2); font-family: var(--font-family-sans); }
+.account__sea {
+  position: relative; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-6);
+  padding: clamp(28px, 4vw, 56px); background: var(--sos-navy, #1b2747); color: var(--sos-white, #fff);
+}
+.account__brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+.account__brand small { display: block; margin-top: 2px; color: rgb(255 255 255 / 0.66); font-size: 13px; font-weight: 600; letter-spacing: 0; }
+.account__coast { position: absolute; inset: 8% -12% 4% -6%; width: 118%; height: 92%; }
+.account__coast path { fill: rgb(255 255 255 / 0.05); stroke: rgb(255 255 255 / 0.32); stroke-width: 0.035; stroke-linejoin: round; }
+.account__point { fill: rgb(255 255 255 / 0.75); }
+.account__point--live { fill: var(--sos-orange, #e83e1b); stroke: var(--sos-white, #fff); stroke-width: 0.05; }
+.account__words { position: relative; z-index: 1; grid-row: 3; display: grid; gap: var(--space-3); max-width: 30rem; }
+.account__claim { margin: 0; font-size: clamp(26px, 2.6vw, 38px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+.account__note { margin: 0; color: rgb(255 255 255 / 0.74); font-size: 15px; line-height: 1.55; }
+.account__side { display: grid; align-content: center; justify-items: center; gap: var(--space-4); padding: clamp(24px, 5vw, 64px) var(--layout-page-gutter-mobile, 16px); margin: 0; max-width: none; color: var(--color-text); }
+.account__card {
+  width: min(27rem, 100%); padding: clamp(24px, 3.4vw, 40px); border-radius: 28px; background: var(--sos-white, #fff);
+  box-shadow: 0 1px 2px rgb(27 39 71 / 0.06), 0 24px 48px -24px rgb(27 39 71 / 0.35);
+}
+.account__back { display: inline-flex; align-items: center; gap: 6px; color: var(--sos-navy, #1b2747); font-size: 14px; font-weight: 700; text-decoration: none; }
+.account__back:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sign-in { display: grid; gap: var(--space-4); }
+.sign-in h1 { margin: 0; font-family: var(--font-family-sans); color: var(--sos-navy, #1b2747); font-size: clamp(26px, 2.4vw, 32px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; }
+.sign-in__lead { margin: -8px 0 0; color: var(--color-text-secondary); font-size: 15px; line-height: 1.5; }
+.sign-in .ui-field__control { min-height: 48px; border-radius: 14px; background: var(--canvas, #f7f8fa); font-size: 16px; }
+.sign-in .ui-field__control:focus { background: var(--sos-white, #fff); }
+.sign-in .ui-button { width: 100%; min-height: 48px; border-radius: 999px; }
+.sign-in__invite { margin: 0; padding-top: var(--space-3); border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
+.sign-in__privacy { margin: 0; color: var(--color-text-muted); font-size: 13px; line-height: 1.5; }
+.sign-in__local { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); border-radius: 18px; background: rgb(27 39 71 / 0.05); }
+.sign-in__local p { margin: 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
+@media (max-width: 899px) {
+  .account { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .account__sea { min-height: 260px; gap: var(--space-4); padding: var(--space-5, 20px) var(--space-4, 16px) 72px; }
+  .account__claim { font-size: 24px; }
+  .account__note { display: none; }
+  .account__side { position: relative; z-index: 1; align-content: start; margin-top: -56px; padding-top: 0; }
+}
