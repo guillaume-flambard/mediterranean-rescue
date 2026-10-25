@@ -27,6 +27,25 @@ class APIRequestLimit:
         return self.get_response(request)
 
 
+LOCAL_AUTO_LOGIN_OFF = "local_auto_login_off"
+
+
+def local_auto_login_user():
+    """The account LOCAL_AUTO_LOGIN names, when it may be signed in this way, else None."""
+    from django.conf import settings
+    from django.contrib.auth import get_user_model
+
+    if not settings.LOCAL_AUTO_LOGIN:
+        return None
+    return (
+        get_user_model()
+        .objects.filter(
+            username=settings.LOCAL_AUTO_LOGIN, is_active=True, is_staff=False, is_superuser=False
+        )
+        .first()
+    )
+
+
 class LocalAutoLogin:
     """Development only: signs every visitor in as LOCAL_AUTO_LOGIN, so the team space opens
     without a sign-in screen on a local machine. Settings refuse it outside development, and a
@@ -37,20 +56,12 @@ class LocalAutoLogin:
         self.get_response = get_response
 
     def __call__(self, request):
-        from django.conf import settings
-        from django.contrib.auth import get_user_model, login
+        from django.contrib.auth import login
 
-        if not request.user.is_authenticated:
-            user = (
-                get_user_model()
-                .objects.filter(
-                    username=settings.LOCAL_AUTO_LOGIN,
-                    is_active=True,
-                    is_staff=False,
-                    is_superuser=False,
-                )
-                .first()
-            )
+        # A person who signed out stays signed out in this browser (Guillaume, 25 October 2026):
+        # otherwise the next request would sign them straight back in.
+        if not request.user.is_authenticated and request.COOKIES.get(LOCAL_AUTO_LOGIN_OFF) != "1":
+            user = local_auto_login_user()
             if user is not None:
                 login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         return self.get_response(request)

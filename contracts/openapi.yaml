@@ -1771,10 +1771,32 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: ''
   /api/private/v1/session/:
+    get:
+      operationId: private_session_state
+      description: |-
+        Sign in and out with the Django session, from the application's own screen.
+
+        On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+        this browser (a cookie), and PUT brings it back.
+      tags:
+      - session
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
     post:
       operationId: private_sign_in
-      description: Sign in and out with the Django session, from the application's
-        own screen.
+      description: |-
+        Sign in and out with the Django session, from the application's own screen.
+
+        On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+        this browser (a cookie), and PUT brings it back.
       tags:
       - session
       requestBody:
@@ -1835,10 +1857,71 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: ''
+    put:
+      operationId: private_resume_local
+      description: 'Local machine only: sign in again as the automatic account after
+        a sign-out.'
+      tags:
+      - session
+      security:
+      - privateSession: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
     delete:
       operationId: private_sign_out
-      description: Sign in and out with the Django session, from the application's
-        own screen.
+      description: |-
+        Sign in and out with the Django session, from the application's own screen.
+
+        On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+        this browser (a cookie), and PUT brings it back.
       tags:
       - session
       security:
@@ -4054,6 +4137,15 @@ components:
       - row_ref
       - snapshot
       - status
+    SessionState:
+      type: object
+      properties:
+        local_auto_login:
+          type: boolean
+          description: This local development machine can sign the team in without
+            a password.
+      required:
+      - local_auto_login
     SheetEnum:
       enum:
       - Data_operations

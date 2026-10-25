@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from drf_spectacular.authentication import SessionScheme
 from drf_spectacular.utils import extend_schema
+from rescue.middleware import LOCAL_AUTO_LOGIN_OFF, local_auto_login_user
 from rest_framework import exceptions, serializers
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.parsers import JSONParser
@@ -183,8 +184,17 @@ class SignInSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=4096, trim_whitespace=False)
 
 
+class SessionStateSerializer(serializers.Serializer):
+    local_auto_login = serializers.BooleanField(
+        help_text="This local development machine can sign the team in without a password."
+    )
+
+
 class SessionView(PrivateView):
-    """Sign in and out with the Django session, from the application's own screen."""
+    """Sign in and out with the Django session, from the application's own screen.
+
+    On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+    this browser (a cookie), and PUT brings it back."""
 
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
@@ -213,14 +223,43 @@ class SessionView(PrivateView):
             raise InvalidCredentials()
         # Rotates the session key and the CSRF token.
         login(request._request, user)
-        return Response(me_payload(user))
+        response = Response(me_payload(user))
+        response.delete_cookie(LOCAL_AUTO_LOGIN_OFF)
+        return response
+
+    @extend_schema(
+        request=None, responses={200: SessionStateSerializer}, operation_id="private_session_state"
+    )
+    def get(self, request):
+        return Response(
+            SessionStateSerializer({"local_auto_login": local_auto_login_user() is not None}).data
+        )
+
+    @extend_schema(
+        request=None, responses={200: MeSerializer, **ERRORS}, operation_id="private_resume_local"
+    )
+    def put(self, request):
+        """Local machine only: sign in again as the automatic account after a sign-out."""
+        PrivateSessionAuthentication().enforce_csrf(request)
+        user = local_auto_login_user()
+        if user is None:
+            raise exceptions.NotFound()
+        login(request._request, user, backend="django.contrib.auth.backends.ModelBackend")
+        response = Response(me_payload(user))
+        response.delete_cookie(LOCAL_AUTO_LOGIN_OFF)
+        return response
 
     @extend_schema(request=None, responses={204: None, **ERRORS}, operation_id="private_sign_out")
     def delete(self, request):
         if not request.user.is_authenticated:
             raise exceptions.NotAuthenticated()
         logout(request._request)
-        return Response(status=204)
+        response = Response(status=204)
+        if local_auto_login_user() is not None:
+            response.set_cookie(
+                LOCAL_AUTO_LOGIN_OFF, "1", max_age=30 * 24 * 3600, httponly=True, samesite="Lax"
+            )
+        return response
 
 
 # Snapshots

@@ -271,6 +271,38 @@ class LocalAutoLoginTests(TestCase):
             User.objects.filter(username="local-team").update(is_staff=False, is_superuser=True)
             self.assertFalse(run().is_authenticated)
 
+    def test_a_sign_out_holds_in_this_browser_and_can_be_undone(self):
+        # Guillaume, 25 October 2026: signing out did nothing, the next request signed in again.
+        from django.contrib.auth.models import AnonymousUser
+        from django.contrib.sessions.middleware import SessionMiddleware
+        from django.http import HttpResponse
+        from django.test import Client, RequestFactory, override_settings
+        from rescue.middleware import LOCAL_AUTO_LOGIN_OFF, LocalAutoLogin
+
+        User.objects.create_user(username="local-team", password=None)
+        with override_settings(LOCAL_AUTO_LOGIN="local-team"):
+            client = Client(enforce_csrf_checks=True)
+            client.force_login(User.objects.get(username="local-team"))
+            token = client.get("/api/csrf/").json()["csrfToken"]
+            self.assertTrue(client.get("/api/private/v1/session/").json()["local_auto_login"])
+            client.delete("/api/private/v1/session/", HTTP_X_CSRFTOKEN=token)
+            self.assertEqual(client.cookies[LOCAL_AUTO_LOGIN_OFF].value, "1")
+
+            request = RequestFactory().get("/api/private/v1/me/")
+            request.COOKIES[LOCAL_AUTO_LOGIN_OFF] = "1"
+            SessionMiddleware(lambda r: HttpResponse()).process_request(request)
+            request.user = AnonymousUser()
+            LocalAutoLogin(lambda r: HttpResponse())(request)
+            self.assertFalse(request.user.is_authenticated)
+
+            token = client.get("/api/csrf/").json()["csrfToken"]
+            resumed = client.put("/api/private/v1/session/", HTTP_X_CSRFTOKEN=token)
+            self.assertEqual(resumed.status_code, 200)
+            self.assertEqual(resumed.json()["username"], "local-team")
+            self.assertEqual(client.cookies[LOCAL_AUTO_LOGIN_OFF].value, "")
+        # Without the local setting there is nothing to resume.
+        self.assertEqual(Client().put("/api/private/v1/session/").status_code, 404)
+
     def test_production_settings_refuse_it(self):
         import os
         import subprocess

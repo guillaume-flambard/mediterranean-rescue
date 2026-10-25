@@ -230,6 +230,8 @@ export const en = {
   "review.carry.rowLabel": "Select the event of {date} · {kind}",
 
   "signIn.title": "Sign in",
+  "signIn.localLead": "This is a local machine: it can sign the team in without a password. You signed out, so it no longer does it in this browser.",
+  "signIn.localResume": "Sign in automatically again",
   "signIn.lead": "Private workspace for the people who review the data.",
   "signIn.username": "Username",
   "signIn.password": "Password",

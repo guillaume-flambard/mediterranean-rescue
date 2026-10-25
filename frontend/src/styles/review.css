@@ -66,3 +66,6 @@
 .sign-in__card h1 { margin: 0; font-family: var(--font-family-sans); font-size: var(--type-page-size); line-height: var(--type-page-line); font-weight: var(--type-page-weight); }
 .sign-in__brand { margin: 0; font-weight: var(--font-weight-heading); color: var(--color-accent); letter-spacing: 0.02em; }
 .sign-in__card .ui-button { width: 100%; }
+
+/* Local machine: the way back to the automatic sign-in after signing out. */
+.sign-in__local { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: 14px; background: rgb(27 39 71 / 0.05); }

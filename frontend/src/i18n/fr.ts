@@ -233,6 +233,8 @@ export const fr: Messages = {
   "review.carry.rowLabel": "Sélectionner l’événement du {date} · {kind}",
 
   "signIn.title": "Connexion",
+  "signIn.localLead": "Ce poste est local : il peut connecter l’équipe sans mot de passe. Vous vous êtes déconnecté, il ne le fait donc plus dans ce navigateur.",
+  "signIn.localResume": "Me reconnecter automatiquement",
   "signIn.lead": "Espace privé des personnes qui revoient les données.",
   "signIn.username": "Identifiant",
   "signIn.password": "Mot de passe",

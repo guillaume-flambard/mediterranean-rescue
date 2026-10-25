@@ -98,7 +98,7 @@ describe("access", () => {
     await userEvent.type(screen.getByLabelText("Password"), "right");
     await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
     expect(await screen.findByTitle("Signed in as reviewer")).toBeTruthy();
-    const signIn = calls.filter((call) => call.path === "/api/private/v1/session/").at(-1);
+    const signIn = calls.filter((call) => call.method === "POST" && call.path === "/api/private/v1/session/").at(-1);
     expect(signIn?.headers.get("X-CSRFToken")).toBe("t");
   });
 

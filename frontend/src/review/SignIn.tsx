@@ -11,6 +11,9 @@ export function SignIn() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const signIn = api.useMutation("post", "/api/private/v1/session/");
+  // On a local machine, a sign-out stops the automatic sign-in for this browser; it comes back here.
+  const state = api.useQuery("get", "/api/private/v1/session/", {});
+  const resume = api.useMutation("put", "/api/private/v1/session/");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [failure, setFailure] = useState<string | null>(null);
@@ -52,6 +55,27 @@ export function SignIn() {
         <h1 id="sign-in-title">{t("signIn.title")}</h1>
         <p className="review-note">{t("signIn.lead")}</p>
         {failure && <InlineMessage tone="error">{failure}</InlineMessage>}
+        {state.data?.local_auto_login && (
+          <div className="sign-in__local">
+            <p className="review-note">{t("signIn.localLead")}</p>
+            <Button
+              size="lg"
+              loading={resume.isPending}
+              onClick={async () => {
+                setFailure(null);
+                try {
+                  await resume.mutateAsync({});
+                  resetCsrfToken();
+                  await queryClient.invalidateQueries();
+                } catch {
+                  setFailure(t("signIn.failed"));
+                }
+              }}
+            >
+              {t("signIn.localResume")}
+            </Button>
+          </div>
+        )}
         <TextField
           label={t("signIn.username")}
           autoComplete="username"

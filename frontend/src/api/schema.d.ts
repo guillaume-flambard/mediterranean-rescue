@@ -395,11 +395,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        /** @description Sign in and out with the Django session, from the application's own screen. */
+        /**
+         * @description Sign in and out with the Django session, from the application's own screen.
+         *
+         *     On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+         *     this browser (a cookie), and PUT brings it back.
+         */
+        get: operations["private_session_state"];
+        /** @description Local machine only: sign in again as the automatic account after a sign-out. */
+        put: operations["private_resume_local"];
+        /**
+         * @description Sign in and out with the Django session, from the application's own screen.
+         *
+         *     On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+         *     this browser (a cookie), and PUT brings it back.
+         */
         post: operations["private_sign_in"];
-        /** @description Sign in and out with the Django session, from the application's own screen. */
+        /**
+         * @description Sign in and out with the Django session, from the application's own screen.
+         *
+         *     On a local machine with LOCAL_AUTO_LOGIN, signing out also stops the automatic sign-in for
+         *     this browser (a cookie), and PUT brings it back.
+         */
         delete: operations["private_sign_out"];
         options?: never;
         head?: never;
@@ -1159,6 +1176,10 @@ export interface components {
             proposal: components["schemas"]["Proposal"];
             decision: components["schemas"]["Decision"] | null;
             evidence: components["schemas"]["LogbookEvidence"] | null;
+        };
+        SessionState: {
+            /** @description This local development machine can sign the team in without a password. */
+            local_auto_login: boolean;
         };
         /**
          * @description * `Data_operations` - Data_operations
@@ -3243,6 +3264,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExactCarriesResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    private_session_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionState"];
+                };
+            };
+        };
+    };
+    private_resume_local: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
                 };
             };
             400: {
