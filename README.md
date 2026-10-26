@@ -1,5 +1,7 @@
 # Mediterranean Rescue
 
+> **Repository ownership:** This repository is a historical **fork of [Data for Good's Mediterranean Rescue](https://github.com/dataforgoodfr/mediterranean-rescue)**. The actively maintained Memo Labs application is [**memolabs-dev/mediterranean-rescue**](https://github.com/memolabs-dev/mediterranean-rescue) and its public site is [rescue.memolabs.dev](https://rescue.memolabs.dev/). Please open new issues and implementation pull requests on the organization repository. This fork is preserved for provenance/upstream collaboration; its source and deployment configuration should not be treated as canonical. No changes are being proposed to the Data for Good upstream by this notice.
+
 [![CI](https://github.com/memolabs-dev/mediterranean-rescue/actions/workflows/ci.yaml/badge.svg)](https://github.com/memolabs-dev/mediterranean-rescue/actions/workflows/ci.yaml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
