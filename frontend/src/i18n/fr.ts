@@ -16,7 +16,7 @@ export const fr: Messages = {
   "app.footer.sosMap": "Consulter la carte SOS MEDITERRANEE existante ↗",
   "app.language": "Langue",
   "app.documentTitle": "Mediterranean Rescue",
-  "app.metaDescription": "Explorer les opérations de sauvetage en mer et leurs sources.",
+  "app.metaDescription": "Les opérations de sauvetage en mer Méditerranée, chacune avec sa source. Un projet bénévole indépendant, qui n’est pas le site officiel de SOS MEDITERRANEE.",
 
   "filters.from": "Du",
   "filters.to": "Au",
