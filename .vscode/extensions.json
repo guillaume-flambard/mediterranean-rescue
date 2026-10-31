@@ -1,0 +1,13 @@
+{
+  // Extensions proposées par VS Code à l'ouverture du projet. Toutes facultatives.
+  "recommendations": [
+    "Vue.volar",
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "dbaeumer.vscode-eslint",
+    "oxc.oxc-vscode",
+    "esbenp.prettier-vscode",
+    "vitest.explorer",
+    "ms-playwright.playwright"
+  ]
+}

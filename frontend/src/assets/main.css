@@ -1,0 +1,22 @@
+/* Jetons de design : les couleurs de SOS MEDITERRANEE. Toute couleur et tout espacement de
+   l'app vient d'ici ; ne pas écrire de couleur en dur ailleurs. */
+:root {
+  --color-brand: #1b2747;
+  --color-on-brand: #ffffff;
+  --color-accent: #e83e1b;
+  --color-surface: #ffffff;
+  --color-text: #1b2747;
+  --color-water: #dfe3ee;
+  --color-land: #fbfbfd;
+
+  --space-1: 0.25rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: var(--color-text);
+  background: var(--color-surface);
+}

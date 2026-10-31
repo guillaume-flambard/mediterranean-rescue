@@ -1,0 +1,11 @@
+# Réglages de ruff, l'outil qui vérifie et met en forme le Python. Doc : https://docs.astral.sh/ruff/
+line-length = 100
+target-version = "py312"
+# Les migrations sont écrites par `makemigrations` : on ne les retouche jamais, même pour le style.
+extend-exclude = ["*/migrations/*"]
+# Appliquer l'exclusion aussi quand pre-commit passe les fichiers un par un.
+force-exclude = true
+
+[lint]
+# E et F : erreurs de base ; I : ordre des imports ; DJ : bonnes pratiques Django.
+select = ["E4", "E7", "E9", "F", "I", "DJ"]

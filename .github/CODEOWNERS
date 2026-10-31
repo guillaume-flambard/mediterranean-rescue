@@ -1,0 +1,11 @@
+# Qui relit quoi. GitHub demande automatiquement la relecture du ou des propriétaires
+# de chaque fichier modifié. Doc : https://docs.github.com/fr/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# À remplir quand le dépôt sera dans l'organisation Data for Good, avec les comptes GitHub
+# des tech leads, sur le modèle :
+#
+# *                   <comptes des tech leads>   # par défaut
+# /backend/           <relecteur backend>        # API et données
+# /frontend/          <relecteur carte>          # la carte
+# /.github/           <relecteur CI>             # CI et règles
+# /docs/decisions/    <comptes des tech leads>   # les décisions

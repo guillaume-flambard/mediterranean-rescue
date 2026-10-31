@@ -1,0 +1,45 @@
+# Modèle d'issue « fonctionnalité » : l'issue est la spec (décision 0003).
+# Elle devient « prête » quand chaque champ est rempli : voir docs/equipe.md.
+# Syntaxe : https://docs.github.com/fr/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms
+name: Fonctionnalité
+description: Une chose que la carte ou l'API doit savoir faire.
+labels: [besoin-spec]
+body:
+  - type: textarea
+    id: besoin
+    attributes:
+      label: Le besoin
+      description: Une phrase d'utilisateur.
+      placeholder: En tant que journaliste, je veux filtrer les opérations par type, pour retrouver les évacuations médicales.
+    validations:
+      required: true
+  - type: textarea
+    id: criteres
+    attributes:
+      label: Critères d'acceptation
+      description: Vérifiables, un par ligne. Chacun aura au moins un test.
+      placeholder: |
+        - Étant donné des opérations de plusieurs types, quand je coche « Évacuation médicale », alors seules celles-ci restent sur la carte.
+        - Le filtre se règle au clavier.
+    validations:
+      required: true
+  - type: textarea
+    id: hors-perimetre
+    attributes:
+      label: Hors du périmètre
+      placeholder: Le filtre par date est l'issue #15.
+  - type: input
+    id: zone
+    attributes:
+      label: Zone de fichiers
+      placeholder: frontend/src/components/, backend/operations/views.py
+  - type: dropdown
+    id: niveau
+    attributes:
+      label: Niveau
+      options: ["à définir", "good first issue (débutant)", "niveau-2 (intermédiaire)", "niveau-3 (confirmé)"]
+  - type: textarea
+    id: notes
+    attributes:
+      label: Pour aider
+      description: Fichiers à lire, maquette, exemple, données fictives à utiliser.

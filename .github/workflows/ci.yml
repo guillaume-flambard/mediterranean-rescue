@@ -1,0 +1,137 @@
+# Intégration continue : GitHub relance ici les vérifications du CONTRIBUTING.md sur chaque
+# pull request vers main. Une PR ne se merge que si tout est vert.
+# Doc : https://docs.github.com/fr/actions
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Un nouveau push sur la même PR annule les vérifications encore en cours.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read # pour lister les fichiers modifiés de la PR
+
+jobs:
+  # Quelles zones la PR touche-t-elle ? Une PR de documentation ne relance ni l'API, ni la
+  # carte, ni le navigateur. Un job sauté compte comme réussi pour la protection de branche.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/**'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/**'
+
+  # Les contrôles de pre-commit (fichiers, style Python), sur tout le dépôt.
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - run: uv run --project backend pre-commit run --all-files --show-diff-on-failure
+
+  # L'API Django, sur la plus ancienne version de Python acceptée (3.12) :
+  # en local on développe sur une version plus récente.
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked # échoue si uv.lock ne suit pas pyproject.toml
+      - run: uv run manage.py check
+      - run: uv run manage.py makemigrations --check --dry-run # une migration oubliée ?
+      - run: uv run manage.py test
+
+  # La carte Vue : style, tests unitaires, types et construction.
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # `pnpm lint` corrige ce qu'il peut : en CI, un fichier corrigé veut dire un oubli.
+      - run: pnpm lint && git diff --exit-code
+      - run: pnpm test:unit --run
+      - run: pnpm build
+
+  # Le parcours dans un vrai navigateur, l'API Django et les données fictives en marche.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [changes, backend, frontend]
+    # Après l'API et la carte, si l'une des deux a changé et que rien n'a échoué.
+    if: >-
+      !failure() && !cancelled() &&
+      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true')
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Démarrer l'API avec les données fictives
+        working-directory: backend
+        run: |
+          uv sync --locked
+          uv run manage.py migrate
+          uv run manage.py loaddata operations/fictional_operations
+          uv run manage.py runserver 8000 &
+      - name: Tester dans Chromium
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          pnpm build
+          pnpm test:e2e --project=chromium
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7

@@ -1,0 +1,13 @@
+{
+  // Le Python du projet : celui de l'environnement virtuel du backend.
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  // ESLint cherche sa configuration dans frontend/.
+  "eslint.workingDirectories": ["frontend"],
+  // Mise en forme à l'enregistrement : ruff pour Python, Prettier pour la carte.
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": { "source.fixAll": "explicit" },
+  "[python]": { "editor.defaultFormatter": "charliermarsh.ruff" },
+  "[vue]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" }
+}

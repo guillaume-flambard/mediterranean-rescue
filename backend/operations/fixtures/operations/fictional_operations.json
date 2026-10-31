@@ -1,0 +1,77 @@
+[
+  {
+    "model": "operations.operation",
+    "pk": 1,
+    "fields": {
+      "kind": "rescue",
+      "occurred_on": "2026-01-12",
+      "title": "FICTIF - Exercice de sauvetage",
+      "summary": "Donnée d'entraînement, pas une vraie opération de SOS MEDITERRANEE.",
+      "people": 18,
+      "latitude": 35.1,
+      "longitude": 12.6,
+      "source_url": "https://example.org/fictif/1",
+      "published": true
+    }
+  },
+  {
+    "model": "operations.operation",
+    "pk": 2,
+    "fields": {
+      "kind": "rescue",
+      "occurred_on": "2026-01-13",
+      "title": "FICTIF - Sauvetage sans position ni nombre connus",
+      "summary": "Donnée d'entraînement. Inconnu n'est pas zéro : pas de point, pas de nombre.",
+      "people": null,
+      "latitude": null,
+      "longitude": null,
+      "source_url": "https://example.org/fictif/2",
+      "published": true
+    }
+  },
+  {
+    "model": "operations.operation",
+    "pk": 3,
+    "fields": {
+      "kind": "transfer",
+      "occurred_on": "2026-01-14",
+      "title": "FICTIF - Exercice de transfert",
+      "summary": "Donnée d'entraînement, pas une vraie opération de SOS MEDITERRANEE.",
+      "people": 6,
+      "latitude": 34.9,
+      "longitude": 13.2,
+      "source_url": "https://example.org/fictif/3",
+      "published": true
+    }
+  },
+  {
+    "model": "operations.operation",
+    "pk": 4,
+    "fields": {
+      "kind": "medevac",
+      "occurred_on": "2026-01-15",
+      "title": "FICTIF - Exercice d'évacuation médicale",
+      "summary": "Donnée d'entraînement, pas une vraie opération de SOS MEDITERRANEE.",
+      "people": 1,
+      "latitude": 35.0,
+      "longitude": 14.4,
+      "source_url": "https://example.org/fictif/4",
+      "published": true
+    }
+  },
+  {
+    "model": "operations.operation",
+    "pk": 5,
+    "fields": {
+      "kind": "incident",
+      "occurred_on": "2026-01-16",
+      "title": "FICTIF - Brouillon pas encore vérifié",
+      "summary": "Donnée d'entraînement. Non publiée, donc absente de la carte.",
+      "people": null,
+      "latitude": 35.4,
+      "longitude": 13.8,
+      "source_url": "https://example.org/fictif/5",
+      "published": false
+    }
+  }
+]

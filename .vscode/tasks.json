@@ -1,0 +1,65 @@
+{
+  // Tâches en un clic : menu Terminal, « Exécuter la tâche… ».
+  // Prérequis : l'installation de TECHNICAL.md faite une fois.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tout vérifier",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Vérifier le style (pre-commit)", "Tests du backend", "Vérifier la carte"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Vérifier la carte",
+      "type": "shell",
+      "command": "pnpm lint && pnpm test:unit --run && pnpm build",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Lancer l'API Django",
+      "type": "shell",
+      "command": "uv run manage.py runserver",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Lancer la carte",
+      "type": "shell",
+      "command": "pnpm dev",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Lancer l'API et la carte",
+      "dependsOn": ["Lancer l'API Django", "Lancer la carte"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests du backend",
+      "type": "shell",
+      "command": "uv run manage.py test",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests de la carte",
+      "type": "shell",
+      "command": "pnpm test:unit --run",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Vérifier le style (pre-commit)",
+      "type": "shell",
+      "command": "uv run --project backend pre-commit run --all-files",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

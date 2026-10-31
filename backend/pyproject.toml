@@ -1,0 +1,12 @@
+[project]
+name = "sosmed-carto-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "django==6.1.2",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit==4.7.0",
+]
