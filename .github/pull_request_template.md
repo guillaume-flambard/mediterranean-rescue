@@ -1,4 +1,6 @@
-<!-- Une pull request = une issue. Elle va vers `main`. Voir CONTRIBUTING.md. -->
+<!-- Une pull request = une issue. Elle va vers `main`. Voir CONTRIBUTING.md.
+     Le titre suit les commits conventionnels (`feat: …`, `fix: …`, `docs: …`) : au merge en
+     squash, il devient le message du commit sur `main`. Tu peux l'ouvrir en brouillon. -->
 
 Closes #
 
@@ -14,13 +16,6 @@ Closes #
 
 <!-- Avant et après, si la carte change. Aucune donnée réelle. -->
 
-## Usage de l'IA
-
-<!-- Charte IA de Data for Good. Cochez une case. -->
-
-- [ ] Aucun outil d'IA
-- [ ] Un outil d'IA a servi. Outil et modèle : … Ce qu'il a produit : …
-
 ## Avant de demander une relecture
 
 - [ ] Chaque critère de l'issue a son test, et la CI est verte.
@@ -29,3 +24,4 @@ Closes #
 - [ ] La documentation est à jour si le comportement change.
 - [ ] Aucune donnée réelle, aucun secret.
 - [ ] Je peux expliquer chaque ligne.
+- [ ] Un assistant IA a servi, avec l'accord de mon tech lead. Outil : … (seulement si c'est le cas)

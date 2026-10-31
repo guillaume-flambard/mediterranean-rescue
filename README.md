@@ -21,22 +21,25 @@ les bénévoles de [Data for Good](https://dataforgood.fr/), on refait la carte 
 opérations, pour trois usages : **la transparence**, **le plaidoyer** (journalistes, chercheurs,
 étudiants) et **la collecte de fonds**.
 
-Chaque opération affichée a été vérifiée par une personne avant d'être publiée. Ce qui n'est pas
-connu reste vide : la carte n'invente jamais un chiffre.
+Chaque opération affichée sera vérifiée par une personne avant d'être publiée. Ce qui n'est pas
+connu restera vide : la carte n'inventera jamais un chiffre.
 
 > [!NOTE]
-> Socle en construction. La carte actuelle n'est plus mise à jour depuis février 2024.
+> **Rien n'est encore construit, et c'est voulu.** Le dépôt part des gabarits officiels de Django
+> et de Vue, avec un modèle vide : chaque pièce de la carte (le modèle des opérations, l'admin,
+> l'API, la carte elle-même) est une issue à prendre. Les premières issues sont la porte d'entrée.
+> La carte actuelle n'est plus mise à jour depuis février 2024.
 
 ## Contribuer
 
 > [!TIP]
-> Première fois ? Commencez par le [guide des bénévoles](docs/guides/README.md) : cinq minutes
+> Première fois ? Commence par le [guide des bénévoles](docs/guides/README.md) : cinq minutes
 > pour savoir comment l'équipe marche et par où entrer.
 
 | Je veux… | Par où commencer |
 |---|---|
 | **Coder** (Django, Vue, données) | Une issue [`good first issue`](https://github.com/dataforgoodfr/mediterranean-rescue/issues?q=is%3Aopen+label%3A%22good+first+issue%22), puis [CONTRIBUTING.md](CONTRIBUTING.md) |
-| **Aider sans connaître Git** | Corriger un texte directement dans GitHub : ouvrir le fichier, puis le crayon « Modifier » |
+| **Aider sans connaître Git** | Corriger un texte directement dans GitHub : ouvrir le fichier, cliquer sur le crayon, puis proposer le changement dans une nouvelle branche |
 | **Aider sans coder** | Tester la carte, relire un texte, proposer une idée : sur le canal du projet du Mattermost de Data for Good |
 
 ```mermaid

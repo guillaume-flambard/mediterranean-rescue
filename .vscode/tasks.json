@@ -6,19 +6,19 @@
     {
       "label": "Tout vérifier",
       "dependsOrder": "sequence",
-      "dependsOn": ["Vérifier le style (pre-commit)", "Tests du backend", "Vérifier la carte"],
+      "dependsOn": ["Vérifier le style (pre-commit)", "Tests du backend", "Vérifier le frontend"],
       "group": { "kind": "test", "isDefault": true },
       "problemMatcher": []
     },
     {
-      "label": "Vérifier la carte",
+      "label": "Vérifier le frontend",
       "type": "shell",
       "command": "pnpm lint && pnpm test:unit --run && pnpm build",
       "options": { "cwd": "${workspaceFolder}/frontend" },
       "problemMatcher": []
     },
     {
-      "label": "Lancer l'API Django",
+      "label": "Lancer le backend",
       "type": "shell",
       "command": "uv run manage.py runserver",
       "options": { "cwd": "${workspaceFolder}/backend" },
@@ -26,7 +26,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Lancer la carte",
+      "label": "Lancer le frontend",
       "type": "shell",
       "command": "pnpm dev",
       "options": { "cwd": "${workspaceFolder}/frontend" },
@@ -34,8 +34,8 @@
       "problemMatcher": []
     },
     {
-      "label": "Lancer l'API et la carte",
-      "dependsOn": ["Lancer l'API Django", "Lancer la carte"],
+      "label": "Lancer le backend et le frontend",
+      "dependsOn": ["Lancer le backend", "Lancer le frontend"],
       "problemMatcher": []
     },
     {
@@ -47,7 +47,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Tests de la carte",
+      "label": "Tests du frontend",
       "type": "shell",
       "command": "pnpm test:unit --run",
       "options": { "cwd": "${workspaceFolder}/frontend" },

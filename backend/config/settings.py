@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     # On donne le chemin de sa configuration (operations/apps.py), comme le tutoriel
     # Django (partie 2) : https://docs.djangoproject.com/fr/6.1/intro/tutorial02/
     "operations.apps.OperationsConfig",
-    # Les applications fournies par Django : l'admin (relecture et publication),
+    # Les applications fournies par Django : l'admin (qui servira à relire et publier),
     # les comptes, les sessions, les messages et les fichiers statiques.
     "django.contrib.admin",
     "django.contrib.auth",
@@ -79,7 +79,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 # SQLite, la base par défaut de Django : un simple fichier backend/db.sqlite3, rien à
-# installer. Ce fichier reste sur votre machine (il est ignoré par Git).
+# installer. Ce fichier reste sur ta machine (il est ignoré par Git).
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",

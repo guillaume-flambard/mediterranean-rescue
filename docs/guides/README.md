@@ -8,6 +8,9 @@ SOS MEDITERRANEE secourt des personnes en détresse en Méditerranée centrale. 
 on refait la carte publique de ses opérations, pour la transparence, le plaidoyer et la collecte
 de fonds.
 
+Le code part des gabarits officiels de Django et de Vue : la carte se construit pièce par pièce,
+une issue à la fois. Les premières issues sont là pour toi.
+
 ## Qui fait quoi
 
 | Qui | Ce qu'il fait |
@@ -15,7 +18,7 @@ de fonds.
 | SOS MEDITERRANEE | dit ce dont elle a besoin, valide ce qui est publié |
 | Les PM/PO | recueillent les besoins, les transforment en issues |
 | Les tech leads | préparent les issues, relisent et mergent, aident quand on bloque |
-| Vous | prenez une issue, la menez jusqu'au merge, demandez de l'aide tôt |
+| Toi | tu prends une issue, tu la mènes jusqu'au merge, tu demandes de l'aide tôt |
 
 On se retrouve sur le canal du projet du Mattermost de Data for Good : les rendez-vous y sont
 annoncés.
@@ -40,22 +43,22 @@ On commence au niveau 1 quelle que soit son expérience : c'est le plus court ch
 connaître le projet. On passe au suivant quand la quête est faite.
 
 **1. Premiers pas** ([guide](01-premiers-pas.md))
-- [ ] Lancer l'API et la carte sur sa machine.
-- [ ] Publier une opération fictive dans l'admin et la voir sur la carte.
+- [ ] Lancer le backend et le frontend sur sa machine.
+- [ ] Se connecter à l'admin de Django.
 - [ ] Faire merger une première pull request sur une `good first issue`.
-- [ ] Noter dans une issue `docs` ce qui vous a surpris ou bloqué en arrivant.
+- [ ] Noter dans une issue `docs` ce qui t'a surpris ou bloqué en arrivant.
 
-**2. De bout en bout** ([guide](02-un-champ-de-bout-en-bout.md))
+**2. De bout en bout**
 - [ ] Faire merger deux pull requests `niveau-2`, chacune avec ses tests.
+- [ ] Suivre une donnée du modèle Django jusqu'à l'écran, dans une de ces deux pull requests.
 - [ ] Relire la pull request d'un autre bénévole et y laisser un commentaire utile.
 
-**3. Confirmé** ([architecture](03-architecture.md))
+**3. Confirmé** ([architecture visée](03-architecture.md))
 - [ ] Faire merger une pull request `niveau-3`.
 - [ ] Aider un tech lead à découper une issue, ou proposer une [décision](../decisions/).
 
-Quête 3 faite : vous pouvez relire des pull requests avec les tech leads.
+Quête 3 faite : tu peux relire des pull requests avec les tech leads.
 
 ## Sous la main
 
 - Les mots du métier (SAR, MRCC, AIS…) : le [glossaire](../glossaire.md).
-- Contribuer avec un assistant IA : [conseils](assistant-ia.md), facultatifs.

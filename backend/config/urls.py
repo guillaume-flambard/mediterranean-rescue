@@ -16,13 +16,11 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path
 
-# Les adresses de tout le site. Chaque application garde les siennes dans son propre
-# urls.py, branché ici avec include() (tutoriel, partie 1).
+# Les adresses de tout le site. Pour l'instant, seulement l'admin : /admin/
+# Une application qui a ses propres adresses les garde dans son urls.py, branché ici avec
+# include() (tutoriel, partie 1 : https://docs.djangoproject.com/fr/6.1/intro/tutorial01/).
 urlpatterns = [
-    # L'API lue par la carte : /api/operations/ (voir operations/urls.py).
-    path("api/operations/", include("operations.urls")),
-    # L'admin, pour relire et publier : /admin/
     path("admin/", admin.site.urls),
 ]

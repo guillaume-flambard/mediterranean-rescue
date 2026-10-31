@@ -1,6 +1,6 @@
 # 0002. Un socle minimal, tiré des commandes officielles
 
-Date : 30 octobre 2026. Statut : en vigueur.
+Date : 30 octobre 2026. Statut : en vigueur, complétée par la [décision 0004](0004-demarrer-d-un-socle-vide.md).
 
 ## Contexte
 

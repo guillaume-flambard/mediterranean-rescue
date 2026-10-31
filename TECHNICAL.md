@@ -3,12 +3,26 @@
 Tout ce qu'il faut pour faire tourner le projet et y contribuer. La présentation du projet est
 dans le [README](README.md) ; le chemin d'une contribution dans [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Où en est le code
+
+Le dépôt part des gabarits officiels, sans rien de plus
+([décision 0004](docs/decisions/0004-demarrer-d-un-socle-vide.md)) :
+
+- le backend est le projet Django créé par `django-admin startproject`, avec une application
+  `operations` vide, créée par `manage.py startapp` : pas encore de modèle ni de migration ;
+- le frontend est l'app créée par `create-vue`, avec une page d'accueil qui annonce la carte ;
+- l'outillage est en place : pre-commit, CI, modèles d'issue et de pull request.
+
+Le modèle des opérations, l'admin de relecture, l'API, la carte et ses tests arrivent par les
+premières issues. La cible est décrite dans le [guide d'architecture](docs/guides/03-architecture.md).
+
 ## La pile
 
-- **Django 6.1** et **SQLite** : l'API (`/api/operations/`) et l'admin de relecture.
+- **Django 6.1** et **SQLite** : l'API et l'admin de relecture (à venir).
 - **Vue 3.5**, **Vite** et **TypeScript** : l'app de la carte.
-- **MapLibre GL** : la carte, sans service extérieur.
-- **pre-commit**, **ruff**, **ESLint**, **Vitest**, **Playwright** : les vérifications.
+- **MapLibre GL** : la carte, sans service extérieur (à ajouter avec l'issue de la carte).
+- **pre-commit**, **ruff**, **ESLint**, **Oxlint**, **Vitest**, **Playwright** : les
+  vérifications.
 
 ## Ce qu'il faut installer
 
@@ -18,12 +32,12 @@ dans le [README](README.md) ; le chemin d'une contribution dans [CONTRIBUTING.md
 
 ## Lancer le projet
 
-Avec VS Code, la tâche « Lancer l'API et la carte » (menu Terminal, « Exécuter la tâche… »)
-fait les deux d'un clic, une fois l'installation ci-dessous faite.
+Avec VS Code, la tâche « Lancer le backend et le frontend » (menu Terminal, « Exécuter la
+tâche… ») fait les deux d'un clic, une fois l'installation ci-dessous faite.
 
-Deux terminaux : un pour l'API Django, un pour la carte.
+Deux terminaux : un pour Django, un pour l'app Vue.
 
-### Terminal 1 : l'API Django (http://127.0.0.1:8000)
+### Terminal 1 : le backend Django (http://127.0.0.1:8000)
 
 ```sh
 cd backend
@@ -34,36 +48,30 @@ uv sync
 
 # 2. `uv run` lance une commande avec le Python du projet, sans rien activer.
 
-# 3. Créer la base SQLite (backend/db.sqlite3) et ses tables.
+# 3. Créer la base SQLite (backend/db.sqlite3) et les tables fournies par Django.
 uv run manage.py migrate
 
-# 4. Charger les opérations fictives d'entraînement (jamais de données réelles).
-uv run manage.py loaddata operations/fictional_operations
-
-# 5. Créer votre compte pour l'admin (nom, e-mail, mot de passe).
+# 4. Créer ton compte pour l'admin (nom, e-mail, mot de passe).
 uv run manage.py createsuperuser
 
-# 6. Démarrer le serveur de développement.
+# 5. Démarrer le serveur de développement.
 uv run manage.py runserver
 ```
 
-Ensuite :
+Ensuite, http://127.0.0.1:8000/admin/ ouvre l'admin de Django. Il ne montre encore que les
+comptes et les groupes : les opérations y entreront avec leur modèle.
 
-- http://127.0.0.1:8000/api/operations/ renvoie les opérations publiées en JSON ;
-- http://127.0.0.1:8000/admin/ permet de relire, corriger et publier les opérations.
-
-### Terminal 2 : la carte (http://localhost:5173)
+### Terminal 2 : le frontend (http://localhost:5173)
 
 ```sh
 cd frontend
 pnpm install   # installe les paquets, une seule fois
-pnpm dev       # démarre la carte
+pnpm dev       # démarre l'app
 ```
 
-Le port 8000 est déjà pris ? Lancer `uv run manage.py runserver 8001`, puis la carte avec
-`API_TARGET=http://127.0.0.1:8001 pnpm dev`. Le port 5173 est pris par une autre application ?
-Les tests Playwright la réutiliseraient sans prévenir : les lancer alors comme la CI, avec
-`CI=1 API_TARGET=http://127.0.0.1:8001 pnpm test:e2e --project=chromium` (après `pnpm build`).
+La page d'accueil annonce la carte. Le port 5173 est pris par une autre application ? Les tests
+Playwright la réutiliseraient sans prévenir : les lancer alors comme la CI, avec
+`CI=1 pnpm test:e2e --project=chromium` (après `pnpm build`).
 
 ## Où est quoi
 
@@ -71,21 +79,18 @@ Les tests Playwright la réutiliseraient sans prévenir : les lancer alors comme
 |---|---|
 | `backend/` | Le projet Django, créé par `django-admin startproject config .` |
 | `backend/config/settings.py` | Les réglages : applications installées, base SQLite, langue, fuseau horaire. |
-| `backend/config/urls.py` | Les adresses du site : `/api/operations/` et `/admin/`. |
-| `backend/operations/` | L'application, créée par `uv run manage.py startapp operations`. |
-| `backend/operations/models.py` | Le modèle `Operation` : la table des opérations. |
-| `backend/operations/admin.py` | L'admin : relecture et publication. |
-| `backend/operations/views.py` | La vue qui renvoie les opérations publiées en JSON. |
+| `backend/config/urls.py` | Les adresses du site : pour l'instant `/admin/`. |
+| `backend/operations/` | L'application des opérations, créée par `uv run manage.py startapp operations`. |
+| `backend/operations/models.py` | Les modèles : vide pour l'instant. |
 | `backend/operations/tests.py` | Les tests (`uv run manage.py test`). |
-| `backend/operations/fixtures/operations/` | Les données fictives d'entraînement. |
 | `backend/pyproject.toml` | Les paquets Python du backend ; `uv.lock` fige leurs versions exactes. |
 | `frontend/` | L'app Vue, créée par `pnpm create vue@latest`. |
-| `frontend/src/views/MapView.vue` | La page de la carte : charge les opérations et les passe aux composants. |
-| `frontend/src/components/StatusBanner.vue` | Le bandeau : titre et état du chargement. |
-| `frontend/src/components/OperationsMap.vue` | La carte MapLibre et ses points. |
-| `frontend/src/operations.ts` | Lecture de l'API et conversion des opérations en points. |
-| `frontend/src/assets/main.css` | Les jetons de design (couleurs SOS MEDITERRANEE). |
-| `frontend/public/land.geojson` | Le contour des terres (Natural Earth, domaine public). |
+| `frontend/src/views/HomeView.vue` | La page d'accueil. |
+| `frontend/src/router/index.ts` | Les routes : quelle page pour quelle adresse. |
+| `frontend/src/assets/main.css` | Les jetons de design (couleurs SOS MEDITERRANEE, espacements). |
+| `frontend/src/__tests__/` | Les tests unitaires (`pnpm test:unit`). |
+| `frontend/e2e/` | Les tests dans un vrai navigateur (`pnpm test:e2e`). |
+| `data/` | Les données locales, jamais committées. |
 | `docs/guides/` | Le guide des bénévoles et les guides par niveau. |
 | `docs/equipe.md` | Pour les tech leads et les PM/PO : issue prête, étiquettes, relecture. |
 | `docs/glossaire.md` | Les mots du métier et leur nom dans le code. |
@@ -97,7 +102,6 @@ Les tests Playwright la réutiliseraient sans prévenir : les lancer alors comme
 | `README.md` | La présentation du projet. |
 | `TECHNICAL.md` | Ce fichier : installation, structure, commandes. |
 | `CONTRIBUTING.md` | Comment passer d'une issue à une pull request mergée. |
-| `AGENTS.md` | Les consignes pour les assistants de code IA (inutile si vous n'en utilisez pas). |
 
 ## Vérifier avant de pousser
 
@@ -107,17 +111,27 @@ Dans VS Code, la tâche « Tout vérifier » lance tout. Sinon :
 # Dans backend/
 uv run pre-commit run --all-files                   # style et fichiers
 uv run manage.py check
-uv run manage.py makemigrations --check --dry-run   # rien ne doit s'afficher
+uv run manage.py makemigrations --check --dry-run   # doit dire « No changes detected »
 uv run manage.py test
 
 # Dans frontend/
 pnpm lint
 pnpm test:unit --run
-pnpm build
-pnpm test:e2e --project=chromium   # si le changement touche un parcours ; l'API doit tourner
+pnpm build                          # vérifie aussi les types
+pnpm test:e2e --project=chromium    # si le changement touche un parcours
 ```
 
-La CI de GitHub relance tout cela sur chaque pull request.
+La CI de GitHub relance tout cela sur chaque pull request. Une pull request peut s'ouvrir en
+brouillon avec des tests encore rouges ; seul le merge demande une CI verte.
+
+## Branches, commits et `main`
+
+Le projet suit le **feature branching** : une branche par issue, créée depuis `main`, nommée
+`type/numéro-mots-cles` (par exemple `feat/12-fiche-operation`), poussée sur ce dépôt, puis une
+pull request vers `main`. Les messages de commit suivent les commits
+conventionnels (`feat:`, `fix:`, `docs:`…). `main` est protégée : CI verte, une approbation d'un
+tech lead, merge en squash. Le détail et les exemples sont dans
+[CONTRIBUTING.md](CONTRIBUTING.md#le-modèle--une-branche-par-issue).
 
 ## Modifier le modèle
 
@@ -126,13 +140,14 @@ Après tout changement dans `backend/operations/models.py`, deux commandes (tuto
 
 ```sh
 uv run manage.py makemigrations operations   # écrit la migration, à committer
-uv run manage.py migrate                     # l'applique à votre base
+uv run manage.py migrate                     # l'applique à ta base
 ```
 
 ## Comment ce projet a été créé
 
-Uniquement des commandes officielles, dans l'ordre de leur documentation, le 30 octobre 2026.
-Le reste a été écrit à la main en suivant les tutoriels.
+Uniquement des commandes officielles, dans l'ordre de leur documentation. Le reste (commentaires
+en français, réglages de langue et de fuseau, page d'accueil, tests) a été écrit à la main en
+suivant les tutoriels.
 
 **Backend** ([uv](https://docs.astral.sh/uv/guides/projects/),
 [tutoriel](https://docs.djangoproject.com/fr/6.1/intro/tutorial01/)) :
@@ -143,30 +158,24 @@ uv init --bare                                # le projet Python (pyproject.toml
 uv add django                                 # Django 6.1.2
 uv run django-admin startproject config .
 uv run manage.py startapp operations
-# écriture de models.py, admin.py, views.py, urls.py, tests.py
-uv run manage.py makemigrations operations
-uv run manage.py sqlmigrate operations 0001
-uv run manage.py check
-uv run manage.py migrate
-uv run manage.py test
 uv add --dev pre-commit                       # les contrôles avant commit
 ```
 
-**Frontend** ([guide Vue](https://vuejs.org/guide/quick-start.html),
-[MapLibre](https://maplibre.org/maplibre-gl-js/docs/)) :
+**Frontend** ([guide Vue](https://vuejs.org/guide/quick-start.html)) :
 
 ```sh
 pnpm create vue@latest frontend --ts --router --vitest --playwright --eslint --prettier --bare
 cd frontend
 pnpm install
-pnpm add maplibre-gl
 ```
+
+`create-vue` 3.24.0 ajoute Oxlint avec ESLint. Le `package.json` garde des versions un peu plus
+récentes d'Oxlint, d'eslint-plugin-vue et de Prettier que celles du gabarit.
 
 ## Versions
 
-Django 6.1.2 sur Python 3.14 (3.12 au minimum), géré par uv, SQLite. Vue 3.5, Vite 8, Vue Router 5, TypeScript 6,
-MapLibre GL 6.16, Vitest 4, Playwright, ESLint 10 avec Oxlint, Prettier. Vérifiées le
-30 octobre 2026.
+Django 6.1.2 sur Python 3.14 (3.12 au minimum), géré par uv, SQLite. Vue 3.5, Vite 8, Vue Router 5,
+TypeScript 6, Vitest 4, Playwright, ESLint 10 avec Oxlint, Prettier. Vérifiées le 31 octobre 2026.
 
 ## Règles
 

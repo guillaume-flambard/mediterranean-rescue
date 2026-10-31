@@ -6,7 +6,7 @@
 set -e
 gh label create "prête" --color 0E8A16 --description "On peut la prendre : besoin, critères et zone sont clairs" --force
 gh label create "besoin-spec" --color FBCA04 --description "Le besoin n'est pas encore assez clair" --force
-gh label create "bloquée" --color B60205 --description "Attend une réponse ou une autre issue" --force
+gh label create "bloquée" --color B60205 --description "Attend une réponse" --force
 gh label create "niveau-2" --color 7FC97F --description "Intermédiaire" --force
 gh label create "niveau-3" --color 1B7837 --description "Confirmé" --force
 gh label create "good first issue" --color 7057FF --description "Première contribution : petite, guidée, sans prérequis" --force

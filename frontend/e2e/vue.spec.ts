@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test'
 
-// Test de bout en bout dans un vrai navigateur (`pnpm test:e2e`). Il faut que l'API Django
-// tourne avec les données fictives chargées (voir README.md).
-test('shows the published operations', async ({ page }) => {
+// Test de bout en bout dans un vrai navigateur (`pnpm test:e2e`).
+// Pour commencer : https://playwright.dev/docs/intro
+test('visits the app root url', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('h1')).toHaveText('SOS MEDITERRANEE operations')
-  await expect(page.getByRole('status')).toHaveText('4 published operations')
+  await expect(page.locator('h1')).toHaveText('La carte des opérations de SOS MEDITERRANEE')
 })

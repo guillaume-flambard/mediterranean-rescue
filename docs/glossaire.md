@@ -4,7 +4,7 @@ Les mots du métier, et leur nom dans le code. Le code reprend ces mots : une no
 s'ajoute ici avant d'entrer dans un modèle. Le glossaire de référence est celui de
 SOS MEDITERRANEE : https://www.sosmediterranee.org/glossary/
 
-Une définition vous semble fausse ou floue ? Ouvrez une issue `docs` : c'est une bonne première
+Une définition te semble fausse ou floue ? Ouvre une issue `docs` : c'est une bonne première
 contribution.
 
 ## Les opérations
