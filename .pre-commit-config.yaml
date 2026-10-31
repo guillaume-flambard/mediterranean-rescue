@@ -1,5 +1,7 @@
 # Contrôles lancés à chaque `git commit`, sur les fichiers modifiés seulement.
 # Installation, une fois : voir CONTRIBUTING.md. Doc : https://pre-commit.com
+# Les fichiers communs de Data for Good (d4g-utils) restent tels qu'ils arrivent du gabarit.
+exclude: ^(d4g-utils/|\.github/workflows/d4g-utils\.yml$)
 repos:
   # Petits contrôles de base, communs à tous les fichiers.
   - repo: https://github.com/pre-commit/pre-commit-hooks
