@@ -4,7 +4,7 @@
 </picture>
 
 <p align="center">
-  <a href="https://github.com/dataforgoodfr/mediterranean-rescue/actions/workflows/ci.yml"><img alt="Vérifications" src="https://github.com/dataforgoodfr/mediterranean-rescue/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/dataforgoodfr/mediterranean-rescue/actions/workflows/ci.yml"><img alt="Vérifications" src="https://img.shields.io/github/actions/workflow/status/dataforgoodfr/mediterranean-rescue/ci.yml?branch=main&label=v%C3%A9rifications"></a>
   <a href="https://github.com/dataforgoodfr/mediterranean-rescue/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img alt="Premières issues" src="https://img.shields.io/github/issues/dataforgoodfr/mediterranean-rescue/good%20first%20issue?label=premi%C3%A8res%20issues&color=E83E1B"></a>
   <a href="CONTRIBUTING.md"><img alt="Bénévoles bienvenus" src="https://img.shields.io/badge/b%C3%A9n%C3%A9voles-bienvenus-1B2747"></a>
   <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-1B2747"></a>
