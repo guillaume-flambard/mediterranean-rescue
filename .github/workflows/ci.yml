@@ -5,9 +5,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, socle-benevoles]
+    branches: [main]
   push:
-    branches: [main, socle-benevoles]
+    branches: [main]
 
 # Un nouveau push sur la même PR annule les vérifications encore en cours.
 concurrency:

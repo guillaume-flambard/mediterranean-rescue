@@ -56,8 +56,6 @@ cover/
 
 # Translations
 *.mo
-# The administration's French catalog is compiled and committed: the image has no gettext.
-!backend/locale/*/LC_MESSAGES/django.mo
 *.pot
 
 # Django stuff:
@@ -138,13 +136,8 @@ venv.bak/
 .spyderproject
 .spyproject
 
-# VS Code : seuls les réglages partagés du projet sont suivis.
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-!.vscode/tasks.json
-# Celui de create-vue fait doublon : on ouvre le projet à la racine.
-frontend/.vscode/
+# VS Code
+.vscode
 
 # Rope project settings
 .ropeproject
