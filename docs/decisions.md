@@ -38,5 +38,8 @@ ici, avec sa date.
 
 - **Le code de la carte actuelle n'a pas de licence.** Il faut l'accord de CartONG ou de
   SOS MEDITERRANEE pour le modifier ici, et décider où il vivra.
+- **La carte actuelle dépend de deux comptes** : un jeton et un style Mapbox, et un Google Sheet
+  lu par l'API Google. Qui les détient, et marchent-ils encore ? Sans eux, reproduire la carte
+  avec MapLibre deviendrait la priorité.
 - **La pile de la nouvelle carte** : Vue 3 avec Vite, ou Nuxt.
 - **Les règles d'usage de l'IA.**
