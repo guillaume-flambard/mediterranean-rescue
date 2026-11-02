@@ -1,42 +1,34 @@
-# Template DataForGood
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banniere-sombre.svg">
+  <img alt="SOSmed Carto, la carte des opérations de sauvetage en Méditerranée centrale" src=".github/assets/banniere-claire.svg">
+</picture>
 
-This file will become your README and also the index of your
-documentation.
+<p align="center">
+  <a href="https://github.com/dataforgoodfr/mediterranean-rescue/actions/workflows/ci.yml"><img alt="Vérifications" src="https://img.shields.io/github/actions/workflow/status/dataforgoodfr/mediterranean-rescue/ci.yml?branch=main&label=v%C3%A9rifications"></a>
+  <a href="CONTRIBUTING.md"><img alt="Bénévoles bienvenus" src="https://img.shields.io/badge/b%C3%A9n%C3%A9voles-bienvenus-1B2747"></a>
+  <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-1B2747"></a>
+</p>
 
-# Contributing
+SOS MEDITERRANEE recherche et secourt les personnes en détresse en Méditerranée centrale. Avec
+les bénévoles de [Data for Good](https://dataforgood.fr/), on fait vivre la
+[carte publique de ses opérations](https://map.sosmediterranee.org/) : pour la transparence, le
+plaidoyer et la collecte de fonds.
 
+> [!NOTE]
+> **Le projet démarre.** Ce dépôt contient un projet Django tout juste créé, avec un modèle vide,
+> et une app Vue provisoire. Chaque pièce arrive par une issue. Les décisions prises jusqu'ici sont dans
+> [docs/decisions.md](docs/decisions.md).
 
-## Installation
+## Contribuer
 
-- [Installation de Python](#installation-de-python)
+1. Présente-toi sur le canal du projet, sur le Mattermost de Data for Good.
+2. Lis [CONTRIBUTING.md](CONTRIBUTING.md) : le chemin d'une issue jusqu'au merge.
+3. Installe le projet avec [TECHNICAL.md](TECHNICAL.md).
+4. Prends une issue `good first issue`, puis suis la [progression](docs/progression.md).
 
-Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python. Il est préréquis pour l'installation de ce projet.
+Tu ne codes pas ? Tester la carte, relire un texte ou proposer une idée sur le canal, ça compte
+aussi.
 
-Une fois installé, il suffit de lancer la commande suivante pour installer la version de Python adéquate, créer un environnement virtuel et installer les dépendances du projet.
+## Licence
 
-```bash
-uv sync
-```
-
-A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement activé lorsque vous ouvrirez le projet. Sinon, il suffit de l'activer manuellement avec la commande suivante :
-
-```bash
-source .venv/bin/activate
-```
-
-Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lancer un script Python. Par exemple:
-
-```bash
-uv run pipelines/run.py run build_database
-```
-
-
-## Lancer les precommit-hook localement
-
-[Installer les precommit](https://pre-commit.com/)
-
-    pre-commit run --all-files
-
-## Utiliser Tox pour tester votre code
-
-    tox -vv
+[MIT](LICENSE). Ce n'est pas le site officiel de SOS MEDITERRANEE.
