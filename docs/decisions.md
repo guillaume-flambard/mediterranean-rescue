@@ -38,8 +38,10 @@ ici, avec sa date.
 
 - **Le code de la carte actuelle n'a pas de licence.** Il faut l'accord de CartONG ou de
   SOS MEDITERRANEE pour le modifier ici, et décider où il vivra.
-- **La carte actuelle dépend de deux comptes** : un jeton et un style Mapbox, et un Google Sheet
-  lu par l'API Google. Qui les détient, et marchent-ils encore ? Sans eux, reproduire la carte
-  avec MapLibre deviendrait la priorité.
+- **La carte actuelle dépend de comptes qu'on n'a plus.** Son Google Sheet et son compte Mapbox
+  (jeton et style) étaient liés au compte d'une personne qui ne s'occupe plus du projet
+  (appris le 2 novembre). Proposition à valider : faire passer en premier une nouvelle carte
+  MapLibre qui reprend toutes les fonctions de l'actuelle, sans jeton ni compte personnel, et
+  garder les tests Playwright pour décrire ces fonctions tant que la carte tourne.
 - **La pile de la nouvelle carte** : Vue 3 avec Vite, ou Nuxt.
 - **Les règles d'usage de l'IA.**
