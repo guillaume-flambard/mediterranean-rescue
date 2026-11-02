@@ -15,8 +15,8 @@ les bénévoles de [Data for Good](https://dataforgood.fr/), on fait vivre la
 plaidoyer et la collecte de fonds.
 
 > [!NOTE]
-> **Le projet démarre.** Ce dépôt contient un projet Django et une app Vue tout juste créés, avec
-> un modèle vide. Chaque pièce arrive par une issue. Les décisions prises jusqu'ici sont dans
+> **Le projet démarre.** Ce dépôt contient un projet Django tout juste créé, avec un modèle vide,
+> et une app Vue provisoire. Chaque pièce arrive par une issue. Les décisions prises jusqu'ici sont dans
 > [docs/decisions.md](docs/decisions.md).
 
 ## Contribuer

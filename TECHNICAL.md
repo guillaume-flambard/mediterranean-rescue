@@ -3,12 +3,14 @@
 ## La pile
 
 - **Django 6.1** et **SQLite** pour le backend.
-- **Vue 3.5**, **Vite** et **TypeScript** pour le frontend.
+- **Vue 3.5**, **Vite** et **TypeScript** pour le frontend, en attendant le choix de la pile de la
+  nouvelle carte.
 - **pre-commit**, **ruff**, **ESLint**, **Oxlint**, **Vitest** et **Playwright** pour les
   vérifications.
 
 Le backend est le projet créé par `django-admin startproject`, avec une application `operations`
-vide. Le frontend est l'app créée par `create-vue`. Rien d'autre pour l'instant.
+vide. Le frontend est l'app créée par `create-vue`, un point de départ provisoire : la pile de la
+nouvelle carte se choisit avec les bénévoles. Rien d'autre pour l'instant.
 
 ## Ce qu'il faut installer
 
@@ -18,7 +20,7 @@ vide. Le frontend est l'app créée par `create-vue`. Rien d'autre pour l'instan
 
 ## Lancer le projet
 
-Deux terminaux. Dans VS Code, la tâche « Lancer le backend et le frontend » fait les deux.
+Deux terminaux.
 
 **Le backend**, sur http://127.0.0.1:8000 :
 
@@ -58,7 +60,7 @@ pnpm build
 pnpm test:e2e --project=chromium   # si le changement touche un parcours
 ```
 
-La CI relance tout cela sur chaque pull request. Dans VS Code : la tâche « Tout vérifier ».
+La CI relance tout cela sur chaque pull request.
 
 ## Modifier le modèle
 

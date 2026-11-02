@@ -43,5 +43,6 @@ ici, avec sa date.
   (appris le 2 novembre). Proposition à valider : faire passer en premier une nouvelle carte
   MapLibre qui reprend toutes les fonctions de l'actuelle, sans jeton ni compte personnel, et
   garder les tests Playwright pour décrire ces fonctions tant que la carte tourne.
-- **La pile de la nouvelle carte** : Vue 3 avec Vite, ou Nuxt.
+- **La pile de la nouvelle carte** : Vue 3 avec Nuxt, avec Vite seul, ou une autre, selon les
+  bénévoles. L'app de `frontend/` n'est qu'un point de départ.
 - **Les règles d'usage de l'IA.**

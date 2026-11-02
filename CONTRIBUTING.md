@@ -47,8 +47,6 @@ la pull request aussi, puisqu'il devient le commit sur `main`.
 - **Aucune donnée réelle, aucun secret** dans Git, une issue ou une pull request. Les exemples
   sont fictifs et marqués `FICTIF`.
 - **Inconnu reste vide, jamais zéro.**
-- **Un assistant IA ?** Parles-en d'abord à ton tech lead. Les règles d'usage sont en cours
-  d'écriture.
 
 ## Les étiquettes
 
