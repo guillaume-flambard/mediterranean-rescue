@@ -8,4 +8,4 @@
 # /backend/           <relecteur backend>        # API et données
 # /frontend/          <relecteur carte>          # la carte
 # /.github/           <relecteur CI>             # CI et règles
-# /docs/decisions/    <comptes des tech leads>   # les décisions
+# /docs/decisions.md  <comptes des tech leads>   # les décisions

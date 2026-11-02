@@ -1,7 +1,7 @@
 # Modèle d'issue « données » : une source à brancher, un champ à ajouter, une donnée fausse.
 name: Données
 description: Une source, un champ ou une donnée à vérifier.
-labels: [data, besoin-spec]
+labels: [data]
 body:
   - type: textarea
     id: besoin

@@ -1,9 +1,7 @@
-# Modèle d'issue « fonctionnalité » : l'issue est la spec (décision 0003).
-# Elle devient « prête » quand chaque champ est rempli : voir docs/equipe.md.
+# Modèle d'issue « fonctionnalité » : l'issue est la spec, courte.
 # Syntaxe : https://docs.github.com/fr/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms
 name: Fonctionnalité
 description: Une chose que la carte ou l'API doit savoir faire.
-labels: [besoin-spec]
 body:
   - type: textarea
     id: besoin

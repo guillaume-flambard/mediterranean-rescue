@@ -5,55 +5,30 @@
 
 <p align="center">
   <a href="https://github.com/dataforgoodfr/mediterranean-rescue/actions/workflows/ci.yml"><img alt="Vérifications" src="https://img.shields.io/github/actions/workflow/status/dataforgoodfr/mediterranean-rescue/ci.yml?branch=main&label=v%C3%A9rifications"></a>
-  <a href="https://github.com/dataforgoodfr/mediterranean-rescue/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img alt="Premières issues" src="https://img.shields.io/github/issues/dataforgoodfr/mediterranean-rescue/good%20first%20issue?label=premi%C3%A8res%20issues&color=E83E1B"></a>
   <a href="CONTRIBUTING.md"><img alt="Bénévoles bienvenus" src="https://img.shields.io/badge/b%C3%A9n%C3%A9voles-bienvenus-1B2747"></a>
   <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-1B2747"></a>
 </p>
 
-<p align="center">
-  <a href="https://map.sosmediterranee.org/">La carte actuelle</a> ·
-  <a href="docs/guides/README.md">Le guide des bénévoles</a> ·
-  <a href="https://dataforgood.fr/">Data for Good</a>
-</p>
-
 SOS MEDITERRANEE recherche et secourt les personnes en détresse en Méditerranée centrale. Avec
-les bénévoles de [Data for Good](https://dataforgood.fr/), on refait la carte publique de ses
-opérations, pour trois usages : **la transparence**, **le plaidoyer** (journalistes, chercheurs,
-étudiants) et **la collecte de fonds**.
-
-Chaque opération affichée sera vérifiée par une personne avant d'être publiée. Ce qui n'est pas
-connu restera vide : la carte n'inventera jamais un chiffre.
+les bénévoles de [Data for Good](https://dataforgood.fr/), on fait vivre la
+[carte publique de ses opérations](https://map.sosmediterranee.org/) : pour la transparence, le
+plaidoyer et la collecte de fonds.
 
 > [!NOTE]
-> **Rien n'est encore construit, et c'est voulu.** Le dépôt part des gabarits officiels de Django
-> et de Vue, avec un modèle vide : chaque pièce de la carte (le modèle des opérations, l'admin,
-> l'API, la carte elle-même) est une issue à prendre. Les premières issues sont la porte d'entrée.
-> La carte actuelle n'est plus mise à jour depuis février 2024.
+> **Le projet démarre.** Ce dépôt contient un projet Django et une app Vue tout juste créés, avec
+> un modèle vide. Chaque pièce arrive par une issue. Les décisions prises jusqu'ici sont dans
+> [docs/decisions.md](docs/decisions.md).
 
 ## Contribuer
 
-> [!TIP]
-> Première fois ? Commence par le [guide des bénévoles](docs/guides/README.md) : cinq minutes
-> pour savoir comment l'équipe marche et par où entrer.
+1. Présente-toi sur le canal du projet, sur le Mattermost de Data for Good.
+2. Lis [CONTRIBUTING.md](CONTRIBUTING.md) : le chemin d'une issue jusqu'au merge.
+3. Installe le projet avec [TECHNICAL.md](TECHNICAL.md).
+4. Prends une issue `good first issue`, puis suis la [progression](docs/progression.md).
 
-| Je veux… | Par où commencer |
-|---|---|
-| **Coder** (Django, Vue, données) | Une issue [`good first issue`](https://github.com/dataforgoodfr/mediterranean-rescue/issues?q=is%3Aopen+label%3A%22good+first+issue%22), puis [CONTRIBUTING.md](CONTRIBUTING.md) |
-| **Aider sans connaître Git** | Corriger un texte directement dans GitHub : ouvrir le fichier, cliquer sur le crayon, puis proposer le changement dans une nouvelle branche |
-| **Aider sans coder** | Tester la carte, relire un texte, proposer une idée : sur le canal du projet du Mattermost de Data for Good |
-
-```mermaid
-flowchart LR
-  A[Je choisis une issue] --> B[Je dis « Je prends »]
-  B --> C[Je crée ma branche]
-  C --> D[Je code et je teste]
-  D --> E[J'ouvre une pull request]
-  E --> F[Un tech lead relit]
-  F --> G[C'est en ligne]
-```
-
-Installer le projet et le lancer en local : [TECHNICAL.md](TECHNICAL.md).
+Tu ne codes pas ? Tester la carte, relire un texte ou proposer une idée sur le canal, ça compte
+aussi.
 
 ## Licence
 
-[MIT](LICENSE). Sans lien avec CartONG ; ce n'est pas le site officiel de SOS MEDITERRANEE.
+[MIT](LICENSE). Ce n'est pas le site officiel de SOS MEDITERRANEE.
