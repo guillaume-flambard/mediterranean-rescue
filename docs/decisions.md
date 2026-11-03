@@ -40,9 +40,9 @@ ici, avec sa date.
   SOS MEDITERRANEE pour le modifier ici, et décider où il vivra.
 - **La carte actuelle dépend de comptes qu'on n'a plus.** Son Google Sheet et son compte Mapbox
   (jeton et style) étaient liés au compte d'une personne qui ne s'occupe plus du projet
-  (appris le 2 novembre). Proposition à valider : faire passer en premier une nouvelle carte
-  MapLibre qui reprend toutes les fonctions de l'actuelle, sans jeton ni compte personnel, et
-  garder les tests Playwright pour décrire ces fonctions tant que la carte tourne.
+  (appris le 2 novembre). À trancher au point tech du 4 novembre : les garder les premières
+  semaines (Julien), ou les retirer dès le départ, avec MapLibre à la place de Mapbox et les
+  données servies par le backend Django à la place du Google Sheet (Guillaume).
 - **La pile de la nouvelle carte** : Vue 3 avec Nuxt, avec Vite seul, ou une autre, selon les
   bénévoles. L'app de `frontend/` n'est qu'un point de départ.
 - **Les règles d'usage de l'IA.**
