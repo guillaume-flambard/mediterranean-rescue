@@ -13,3 +13,10 @@ Closes #
 - [ ] Je ne touche que la zone de l'issue.
 - [ ] Aucune donnée réelle, aucun secret.
 - [ ] Je peux expliquer chaque ligne.
+- [ ] La doc ou le README est à jour si le comportement change.
+
+## Relecture (pour le tech lead qui relit)
+
+- [ ] J'ai vérifié chaque critère de l'issue, pas seulement la CI.
+- [ ] Je comprends le code sans l'aide de l'auteur.
+- [ ] Aucune donnée réelle, aucun secret.

@@ -30,3 +30,14 @@ body:
     attributes:
       label: Navigateur et système
       placeholder: Firefox 150, macOS
+
+  - type: checkboxes
+    id: prete
+    attributes:
+      label: Prête à prendre
+      description: Un tech lead coche ces cases avant de passer l'issue dans « Prête » (Definition of Ready).
+      options:
+        - label: "On sait le reproduire."
+        - label: "Il tient en une journée au plus."
+        - label: "On sait où travailler (zone et fichiers)."
+        - label: "Son niveau est choisi."

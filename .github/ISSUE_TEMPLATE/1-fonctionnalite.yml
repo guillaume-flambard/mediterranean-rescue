@@ -41,3 +41,17 @@ body:
     attributes:
       label: Pour aider
       description: Fichiers à lire, maquette, exemple, données fictives à utiliser.
+
+  - type: checkboxes
+    id: prete
+    attributes:
+      label: Prête à prendre
+      description: Un tech lead coche ces cases avant de passer l'issue dans « Prête » (Definition of Ready).
+      options:
+        - label: "On sait pour qui et pourquoi."
+        - label: "Elle a 1 à 3 critères d'acceptation vérifiables."
+        - label: "Elle tient en une journée au plus."
+        - label: "Rien ne la bloque."
+        - label: "On sait où travailler (zone et fichiers)."
+        - label: "Son niveau est choisi."
+        - label: "Les données d'exemple sont fictives."

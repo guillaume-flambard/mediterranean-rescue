@@ -25,3 +25,15 @@ body:
         - La source et sa date sont visibles.
     validations:
       required: true
+
+  - type: checkboxes
+    id: prete
+    attributes:
+      label: Prête à prendre
+      description: Un tech lead coche ces cases avant de passer l'issue dans « Prête » (Definition of Ready).
+      options:
+        - label: "La source est publique et sa licence est connue."
+        - label: "Elle a 1 à 3 critères d'acceptation vérifiables."
+        - label: "Elle tient en une journée au plus."
+        - label: "Rien ne la bloque."
+        - label: "Les données d'exemple sont fictives."
