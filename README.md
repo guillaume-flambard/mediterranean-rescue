@@ -1,6 +1,6 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banniere-sombre.svg">
-  <img alt="SOSmed Carto, la carte des opérations de sauvetage en Méditerranée centrale" src=".github/assets/banniere-claire.svg">
+  <img alt="Rescue Atlas, la carte des opérations de sauvetage en Méditerranée centrale" src=".github/assets/banniere-claire.svg">
 </picture>
 
 <p align="center">

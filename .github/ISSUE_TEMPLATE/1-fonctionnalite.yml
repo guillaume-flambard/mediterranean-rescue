@@ -25,7 +25,7 @@ body:
     id: hors-perimetre
     attributes:
       label: Hors du périmètre
-      placeholder: Le filtre par date est l'issue #15.
+      placeholder: Ce qui est traité dans une autre issue, avec son numéro.
   - type: input
     id: zone
     attributes:

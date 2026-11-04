@@ -3,7 +3,7 @@
 Merci de donner de ton temps à la carte de SOS MEDITERRANEE.
 
 Tout passe par le canal du projet sur le Mattermost de Data for Good : questions, entraide et
-rendez-vous. Présente-toi en arrivant et demande l'accès en écriture au dépôt, pour pousser tes
+rendez-vous. Présente-toi en arrivant et demande l'accès en écriture à ce dépôt, pour pousser tes
 branches.
 
 ## Le chemin d'une issue
@@ -16,7 +16,7 @@ dans `main` par une pull request. Pas de fork.
 
    ```sh
    git switch main && git pull
-   git switch -c feat/12-modele-operation
+   git switch -c feat/16-modele-operation
    ```
 
 3. **Code et teste.** Chaque critère de l'issue a au moins un test.
@@ -52,7 +52,7 @@ la pull request aussi, puisqu'il devient le commit sur `main`.
 
 `good first issue` pour commencer, puis `niveau-2` et `niveau-3`. `front`, `back`, `data`, `docs`
 et `ci` disent la zone touchée, `bloquée` qu'une issue attend une réponse. L'avancement se suit
-dans les colonnes du projet GitHub.
+dans le tableau GitHub « Rescue Atlas » : Statut, Palier (P0 MVP d'abord) et Épopée.
 
 Les outils en plus de la CI et de pre-commit arrivent petit à petit, chacun par une issue `ci`.
 Améliorer la CI, c'est aussi du travail ouvert aux bénévoles.
