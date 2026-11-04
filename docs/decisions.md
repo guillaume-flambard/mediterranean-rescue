@@ -34,15 +34,17 @@ ici, avec sa date.
 - **Reconstituer le flux, comprendre les difficultés de saisie, choisir ce qui est public** :
   c'est le travail des PM/PO, avec SOS MEDITERRANEE.
 
+## La carte actuelle (4 novembre 2026)
+
+- **On la garde telle quelle au début.** Mise à jour et testée en local le 4 novembre : elle tourne
+  avec le jeton Mapbox et le Google Sheet public actuels, sans compte à nous.
+- **La licence du code et les comptes perdus ne bloquent rien.** D'après John (SOS MEDITERRANEE),
+  la personne qui tenait le Sheet et le compte Mapbox ne s'occupe plus du projet et n'est plus
+  joignable.
+- **MapLibre quand le besoin arrive** : des fonds en PMTiles, ou la fin du jeton (#21).
+
 ## Encore ouvert
 
-- **Le code de la carte actuelle n'a pas de licence.** Il faut l'accord de CartONG ou de
-  SOS MEDITERRANEE pour le modifier ici, et décider où il vivra.
-- **La carte actuelle dépend de comptes qu'on n'a plus.** Son Google Sheet et son compte Mapbox
-  (jeton et style) étaient liés au compte d'une personne qui ne s'occupe plus du projet
-  (appris le 2 novembre). À trancher au point tech du 4 novembre : les garder les premières
-  semaines (Julien), ou les retirer dès le départ, avec MapLibre à la place de Mapbox et les
-  données servies par le backend Django à la place du Google Sheet (Guillaume).
 - **La pile de la nouvelle carte** : Vue 3 avec Nuxt, avec Vite seul, ou une autre, selon les
   bénévoles. L'app de `frontend/` n'est qu'un point de départ.
 - **Les règles d'usage de l'IA.**
